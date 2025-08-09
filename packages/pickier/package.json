@@ -14,10 +14,11 @@
     "url": "https://github.com/stacksjs/pickier/issues"
   },
   "keywords": [
-    "monorepo",
-    "ts-starter",
     "pickier",
-    "template"
+    "linter",
+    "formatter",
+    "bun",
+    "fast"
   ],
   "exports": {
     ".": {
@@ -39,20 +40,20 @@
   ],
   "scripts": {
     "build": "bun --bun build.ts && bun run compile",
-    "compile": "bun build ./bin/cli.ts --compile --minify --outfile bin/bin-name",
+    "compile": "bun build ./bin/cli.ts --compile --minify --outfile bin/pickier",
     "compile:all": "bun run compile:linux-x64 && bun run compile:linux-arm64 && bun run compile:windows-x64 && bun run compile:darwin-x64 && bun run compile:darwin-arm64",
-    "compile:linux-x64": "bun build ./bin/cli.ts --compile --minify --target=bun-linux-x64 --outfile bin/bin-name-linux-x64",
-    "compile:linux-arm64": "bun build ./bin/cli.ts --compile --minify --target=bun-linux-arm64 --outfile bin/bin-name-linux-arm64",
-    "compile:windows-x64": "bun build ./bin/cli.ts --compile --minify --target=bun-windows-x64 --outfile bin/bin-name-windows-x64.exe",
-    "compile:darwin-x64": "bun build ./bin/cli.ts --compile --minify --target=bun-darwin-x64 --outfile bin/bin-name-darwin-x64",
-    "compile:darwin-arm64": "bun build ./bin/cli.ts --compile --minify --target=bun-darwin-arm64 --outfile bin/bin-name-darwin-arm64",
+    "compile:linux-x64": "bun build ./bin/cli.ts --compile --minify --target=bun-linux-x64 --outfile bin/pickier-linux-x64",
+    "compile:linux-arm64": "bun build ./bin/cli.ts --compile --minify --target=bun-linux-arm64 --outfile bin/pickier-linux-arm64",
+    "compile:windows-x64": "bun build ./bin/cli.ts --compile --minify --target=bun-windows-x64 --outfile bin/pickier-windows-x64.exe",
+    "compile:darwin-x64": "bun build ./bin/cli.ts --compile --minify --target=bun-darwin-x64 --outfile bin/pickier-darwin-x64",
+    "compile:darwin-arm64": "bun build ./bin/cli.ts --compile --minify --target=bun-darwin-arm64 --outfile bin/pickier-darwin-arm64",
     "zip": "bun run zip:all",
     "zip:all": "bun run zip:linux-x64 && bun run zip:linux-arm64 && bun run zip:windows-x64 && bun run zip:darwin-x64 && bun run zip:darwin-arm64",
-    "zip:linux-x64": "zip -j bin/bin-name-linux-x64.zip bin/bin-name-linux-x64",
-    "zip:linux-arm64": "zip -j bin/bin-name-linux-arm64.zip bin/bin-name-linux-arm64",
-    "zip:windows-x64": "zip -j bin/bin-name-windows-x64.zip bin/bin-name-windows-x64.exe",
-    "zip:darwin-x64": "zip -j bin/bin-name-darwin-x64.zip bin/bin-name-darwin-x64",
-    "zip:darwin-arm64": "zip -j bin/bin-name-darwin-arm64.zip bin/bin-name-darwin-arm64",
+    "zip:linux-x64": "zip -j bin/pickier-linux-x64.zip bin/pickier-linux-x64",
+    "zip:linux-arm64": "zip -j bin/pickier-linux-arm64.zip bin/pickier-linux-arm64",
+    "zip:windows-x64": "zip -j bin/pickier-windows-x64.zip bin/pickier-windows-x64.exe",
+    "zip:darwin-x64": "zip -j bin/pickier-darwin-x64.zip bin/pickier-darwin-x64",
+    "zip:darwin-arm64": "zip -j bin/pickier-darwin-arm64.zip bin/pickier-darwin-arm64",
     "lint": "bunx --bun eslint .",
     "lint:fix": "bunx --bun eslint . --fix",
     "fresh": "bunx rimraf node_modules/ bun.lock && bun i",
@@ -60,7 +61,14 @@
     "changelog:generate": "bunx logsmith --output CHANGELOG.md --theme github --exclude-authors \"dependabot[bot],github-actions[bot]\" --exclude-types \"chore\" --max-commits 50",
     "prepublishOnly": "bun --bun run build && bun run compile:all && bun run zip",
     "release": "bun run changelog:generate && git add CHANGELOG.md && git commit --amend --no-edit && bunx bumpx prompt --no-push --yes",
-    "test": "bun test"
+    "test": "bun test --coverage"
+  },
+  "dependencies": {
+    "@stacksjs/clapp": "^0.1.16",
+    "estree-walker": "^3.0.3",
+    "fast-glob": "^3.3.2",
+    "magic-string": "^0.30.12",
+    "meriyah": "^6.0.3"
   },
   "devDependencies": {
     "bunfig": "^0.10.1"
@@ -73,8 +81,5 @@
   },
   "workspaces": [
     "packages/*"
-  ],
-  "dependencies": {
-    "@stacksjs/clapp": "^0.1.16"
-  }
+  ]
 }

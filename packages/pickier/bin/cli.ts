@@ -1,39 +1,57 @@
 #!/usr/bin/env bun
 
+import type { FormatOptions } from '../src/cli/run-format'
+import type { LintOptions } from '../src/cli/run-lint'
+import process from 'node:process'
 import { CLI } from '@stacksjs/clapp'
 import { version } from '../package.json'
+import { runFormat } from '../src/cli/run-format'
+import { runLint } from '../src/cli/run-lint'
 
 const cli = new CLI('pickier')
 
-interface CliOption {
-  from: string
-  verbose: boolean
-}
+cli
+  .command('lint [...globs]', 'Lint files')
+  .option('--fix', 'Auto-fix problems')
+  .option('--max-warnings <n>', 'Max warnings before non-zero exit', { default: -1 })
+  .option('--reporter <name>', 'stylish|json|compact', { default: 'stylish' })
+  .option('--config <path>', 'Path to pickier config')
+  .option('--ignore-path <file>', 'Ignore file (like .gitignore)')
+  .option('--ext <exts>', 'Comma-separated extensions', { default: '.ts,.tsx,.js,.jsx' })
+  .option('--cache', 'Enable cache')
+  .option('--verbose', 'Verbose output')
+  .example('pickier lint .')
+  .example('pickier lint src --fix')
+  .example('pickier lint "src/**/*.{ts,tsx}" --reporter json')
+  .action(async (globs: string[], opts: LintOptions) => {
+    const code = await runLint(globs, opts)
+    process.exit(code)
+  })
 
 cli
-  .command('start', 'Start the Reverse Proxy Server')
-  .option('--from <from>', 'The URL to proxy from')
-  .option('--verbose', 'Enable verbose logging')
-  .example('reverse-proxy start --from localhost:5173 --to my-project.localhost')
-  .action(async (options?: CliOption) => {
-    if (!options?.from) {
-      console.error('Missing --from option')
-    }
-    else {
-      console.log('Options:', options)
-    }
+  .command('format [...globs]', 'Format files')
+  .option('--write', 'Write changes to files')
+  .option('--check', 'Check without writing')
+  .option('--config <path>', 'Path to pickier config')
+  .option('--ignore-path <file>', 'Ignore file')
+  .option('--ext <exts>', 'Comma-separated extensions', { default: '.ts,.tsx,.js,.jsx' })
+  .option('--verbose', 'Verbose output')
+  .example('pickier format . --check')
+  .example('pickier format src --write')
+  .example('pickier format "**/*.{ts,tsx,js}" --write')
+  .action(async (globs: string[], opts: FormatOptions) => {
+    const code = await runFormat(globs, opts)
+    process.exit(code)
   })
 
 cli.command('version', 'Show the version of the CLI').action(() => {
   console.log(version)
 })
 
-// Add a default command (empty name) that shows help
-cli
-  .command('', 'Show help information')
-  .action(() => {
-    cli.help()
-  })
+// default help when no command is provided
+cli.command('', 'Show help').action(() => {
+  cli.help()
+})
 
 cli.version(version)
 cli.help()

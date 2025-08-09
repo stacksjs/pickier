@@ -47,10 +47,10 @@ jobs:
         uses: stacksjs/action-releaser@v1.1.0
         with:
           files: |
-            packages/ts-starter-monorepo/bin/ts-starter-monorepo-linux-x64.zip
-            packages/ts-starter-monorepo/bin/ts-starter-monorepo-linux-arm64.zip
-            packages/ts-starter-monorepo/bin/ts-starter-monorepo-windows-x64.zip
-            packages/ts-starter-monorepo/bin/ts-starter-monorepo-darwin-x64.zip
-            packages/ts-starter-monorepo/bin/ts-starter-monorepo-darwin-arm64.zip
+            packages/pickier/bin/pickier-linux-x64.zip
+            packages/pickier/bin/pickier-linux-arm64.zip
+            packages/pickier/bin/pickier-windows-x64.zip
+            packages/pickier/bin/pickier-darwin-x64.zip
+            packages/pickier/bin/pickier-darwin-arm64.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

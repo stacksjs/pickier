@@ -1,24 +1,21 @@
 {
-  "name": "ts-starter-monorepo",
+  "name": "pickier",
   "type": "module",
   "version": "0.0.0",
   "description": "Format, lint and more in a fraction of seconds.",
   "author": "Chris Breuer <chris@stacksjs.org>",
   "license": "MIT",
-  "homepage": "https://github.com/stacksjs/ts-starter-monorepo#readme",
+  "homepage": "https://github.com/stacksjs/pickier#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/stacksjs/ts-starter-monorepo.git"
+    "url": "git+https://github.com/stacksjs/pickier.git"
   },
   "bugs": {
-    "url": "https://github.com/stacksjs/ts-starter-monorepo/issues"
+    "url": "https://github.com/stacksjs/pickier/issues"
   },
-  "keywords": [
-    "monorepo",
-    "ts-starter",
-    "ts-starter-monorepo",
-    "template"
-  ],
+  "bin": {
+    "pickier": "packages/pickier/pickier"
+  },
   "scripts": {
     "lint": "bunx --bun eslint .",
     "lint:fix": "bunx --bun eslint . --fix",
