@@ -6,6 +6,7 @@ import { colors } from '../utils'
 
 export interface LintOptions {
   fix?: boolean
+  dryRun?: boolean
   maxWarnings?: number
   reporter?: 'stylish' | 'json' | 'compact'
   config?: string
@@ -46,16 +47,18 @@ function scanContent(filePath: string, content: string): LintIssue[] {
   const issues: LintIssue[] = []
   const lines = content.split(/\r?\n/)
 
+  const debuggerStmt = /^\s*debugger\b/ // statement-only, not inside strings
+
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i]
     const lineNo = i + 1
 
-    const dbgCol = line.indexOf('debugger')
-    if (dbgCol !== -1) {
+    if (debuggerStmt.test(line)) {
+      const col = line.search(/\S|$/) + 1
       issues.push({
         filePath,
         line: lineNo,
-        column: dbgCol + 1,
+        column: col,
         ruleId: 'no-debugger',
         message: 'Unexpected debugger statement.',
         severity: 'error',
@@ -81,8 +84,9 @@ function scanContent(filePath: string, content: string): LintIssue[] {
 function applyFixes(filePath: string, content: string): string {
   const lines = content.split(/\r?\n/)
   const fixed: string[] = []
+  const debuggerStmt = /^\s*debugger\b/
   for (const line of lines) {
-    if (line.includes('debugger'))
+    if (debuggerStmt.test(line))
       continue
     fixed.push(line)
   }
@@ -126,10 +130,14 @@ export async function runLint(globs: string[], options: LintOptions): Promise<nu
 
     if (options.fix && issues.some(i => i.ruleId === 'no-debugger')) {
       const fixed = applyFixes(file, src)
-      if (fixed !== src)
+      if (!options.dryRun && fixed !== src)
         writeFileSync(file, fixed, 'utf8')
-      // recompute issues after fix
+      // recompute issues after simulated or real fix
       issues = scanContent(file, fixed)
+
+      if (options.dryRun && src !== fixed && options.verbose) {
+        console.log(colors.gray(`dry-run: would apply fixes in ${relative(process.cwd(), file)}`))
+      }
     }
 
     allIssues = allIssues.concat(issues)

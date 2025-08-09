@@ -13,6 +13,7 @@ const cli = new CLI('pickier')
 cli
   .command('lint [...globs]', 'Lint files')
   .option('--fix', 'Auto-fix problems')
+  .option('--dry-run', 'Simulate fixes without writing')
   .option('--max-warnings <n>', 'Max warnings before non-zero exit', { default: -1 })
   .option('--reporter <name>', 'stylish|json|compact', { default: 'stylish' })
   .option('--config <path>', 'Path to pickier config')
@@ -20,7 +21,7 @@ cli
   .option('--ext <exts>', 'Comma-separated extensions', { default: '.ts,.tsx,.js,.jsx' })
   .option('--cache', 'Enable cache')
   .option('--verbose', 'Verbose output')
-  .example('pickier lint .')
+  .example('pickier lint . --dry-run')
   .example('pickier lint src --fix')
   .example('pickier lint "src/**/*.{ts,tsx}" --reporter json')
   .action(async (globs: string[], opts: LintOptions) => {

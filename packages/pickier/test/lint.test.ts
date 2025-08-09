@@ -33,6 +33,39 @@ describe('runLint', () => {
     expect(out.includes('debugger')).toBe(false)
   })
 
+  it('dry-run simulates fix without writing', async () => {
+    const dir = tmp()
+    const file = join(dir, 'a.ts')
+    const src = 'debugger\nlet x=1\n'
+    writeFileSync(file, src, 'utf8')
+    const code = await runLint([dir], { fix: true, dryRun: true })
+    expect(code).toBe(0)
+    const out = readFileSync(file, 'utf8')
+    expect(out).toBe(src)
+  })
+
+  it('does not remove "debugger" inside strings', async () => {
+    const dir = tmp()
+    const file = join(dir, 'a.ts')
+    const src = 'const s = "debugger"\n'
+    writeFileSync(file, src, 'utf8')
+    const code = await runLint([dir], { fix: true })
+    expect(code).toBe(0)
+    const out = readFileSync(file, 'utf8')
+    expect(out).toBe(src)
+  })
+
+  it('does not remove "debugger" in comments', async () => {
+    const dir = tmp()
+    const file = join(dir, 'a.ts')
+    const src = '// debugger\n/* debugger */\nconst x = 1\n'
+    writeFileSync(file, src, 'utf8')
+    const code = await runLint([dir], { fix: true })
+    expect(code).toBe(0)
+    const out = readFileSync(file, 'utf8')
+    expect(out).toBe(src)
+  })
+
   it('fails when warnings exceed max-warnings', async () => {
     const dir = tmp()
     writeFileSync(join(dir, 'a.ts'), 'console.log(1)\n', 'utf8')
