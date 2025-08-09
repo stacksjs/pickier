@@ -1,3 +1,17 @@
+[Compare changes](https://github.com/stacksjs/pickier/compare/v0.0.1...HEAD)
+
+### Contributors
+
+- Adelino Ngomacha <Adelinob335@gmail.com>
+
+
+[Compare changes](https://github.com/stacksjs/pickier/compare/v0.0.1...HEAD)
+
+### Contributors
+
+- Adelino Ngomacha <Adelinob335@gmail.com>
+
+
 ### Contributors
 
 - Adelino Ngomacha <Adelinob335@gmail.com>
