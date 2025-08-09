@@ -5,6 +5,13 @@
 - Chris <chrisbreuer93@gmail.com>
 
 
+[Compare changes](https://github.com/stacksjs/pickier/compare/v0.1.0...HEAD)
+
+### Contributors
+
+- Chris <chrisbreuer93@gmail.com>
+
+
 [Compare changes](https://github.com/stacksjs/pickier/compare/v0.0.1...HEAD)
 
 ### Contributors
