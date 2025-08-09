@@ -179,3 +179,40 @@ MIT © Stacks.js
 - Docs (TBD)
 - GitHub: <https://github.com/stacksjs/pickier>
 - Issues: <https://github.com/stacksjs/pickier/issues>
+
+## Programmatic usage
+
+You can also call Pickier from code (Bun/Node). Useful for custom tooling, editors, or pipelines.
+
+```ts
+// example.ts
+import { runLint, runFormat, pickierConfig, type LintOptions, type FormatOptions } from '@stacksjs/pickier'
+
+// Lint some directories
+const lintOptions: LintOptions = {
+  fix: true,        // apply safe fixes
+  dryRun: false,    // set true to simulate fixes
+  reporter: 'json', // 'stylish' | 'json' | 'compact'
+  maxWarnings: 0,   // fail on any warning
+}
+
+const lintCode = await runLint(['src', 'tests'], lintOptions)
+console.log('lint exit code:', lintCode)
+
+// Format some globs
+const formatOptions: FormatOptions = {
+  write: true, // write changes
+}
+
+const fmtCode = await runFormat(['src/**/*.ts'], formatOptions)
+console.log('format exit code:', fmtCode)
+
+// Access loaded config (from pickier.config.ts or defaults)
+console.log('loaded config:', pickierConfig)
+```
+
+Run it with Bun:
+
+```bash
+bun example.ts
+```

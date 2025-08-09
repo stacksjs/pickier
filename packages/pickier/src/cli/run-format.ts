@@ -24,6 +24,8 @@ function expandPatterns(patterns: string[]): string[] {
 
 function normalizeWhitespace(src: string): string {
   // basic, fast formatting strategy: trim trailing spaces, ensure LF, collapse excessive blank lines to max 1
+  if (src.length === 0)
+    return ''
   const lines = src.replace(/\r\n/g, '\n').split('\n')
   const out: string[] = []
   let blank = 0
@@ -40,8 +42,6 @@ function normalizeWhitespace(src: string): string {
       out.push(t)
     }
   }
-  if (out.length === 0)
-    return ''
   const joined = out.join('\n')
   const lastIsBlank = out[out.length - 1] === ''
   if (lastIsBlank) {

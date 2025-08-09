@@ -1,8 +1,9 @@
+import type { PickierConfig } from '../types'
 import { readFileSync, writeFileSync } from 'node:fs'
-import { relative } from 'node:path'
+import { extname, isAbsolute, relative, resolve } from 'node:path'
 import process from 'node:process'
 import fg from 'fast-glob'
-import { pickierConfig } from '../config'
+import { pickierConfig as defaultPickierConfig } from '../config'
 import { colors } from '../utils'
 
 export interface LintOptions {
@@ -26,6 +27,19 @@ interface LintIssue {
   severity: 'warning' | 'error'
 }
 
+async function loadConfigFromPath(pathLike: string | undefined): Promise<PickierConfig> {
+  if (!pathLike)
+    return defaultPickierConfig
+  const abs = isAbsolute(pathLike) ? pathLike : resolve(process.cwd(), pathLike)
+  const ext = extname(abs).toLowerCase()
+  if (ext === '.json') {
+    const raw = readFileSync(abs, 'utf8')
+    return JSON.parse(raw) as PickierConfig
+  }
+  const mod = await import(abs)
+  return (mod.default || mod) as PickierConfig
+}
+
 function expandPatterns(patterns: string[]): string[] {
   return patterns.map((p) => {
     const hasMagic = /[\\*?[\]{}()!]/.test(p)
@@ -44,7 +58,7 @@ function isCodeFile(file: string, allowedExts: Set<string>): boolean {
   return allowedExts.has(ext)
 }
 
-function scanContent(filePath: string, content: string): LintIssue[] {
+function scanContent(filePath: string, content: string, cfg: PickierConfig): LintIssue[] {
   const issues: LintIssue[] = []
   const lines = content.split(/\r?\n/)
 
@@ -54,7 +68,7 @@ function scanContent(filePath: string, content: string): LintIssue[] {
     const line = lines[i]
     const lineNo = i + 1
 
-    if (debuggerStmt.test(line)) {
+    if (cfg.rules.noDebugger !== 'off' && debuggerStmt.test(line)) {
       const col = line.search(/\S|$/) + 1
       issues.push({
         filePath,
@@ -62,11 +76,11 @@ function scanContent(filePath: string, content: string): LintIssue[] {
         column: col,
         ruleId: 'no-debugger',
         message: 'Unexpected debugger statement.',
-        severity: 'error',
+        severity: cfg.rules.noDebugger === 'error' ? 'error' : 'warning',
       })
     }
 
-    if (pickierConfig.rules.noConsole !== 'off') {
+    if (cfg.rules.noConsole !== 'off') {
       const conCol = line.indexOf('console.')
       if (conCol !== -1) {
         issues.push({
@@ -75,7 +89,7 @@ function scanContent(filePath: string, content: string): LintIssue[] {
           column: conCol + 1,
           ruleId: 'no-console',
           message: 'Unexpected console usage.',
-          severity: pickierConfig.rules.noConsole === 'error' ? 'error' : 'warning',
+          severity: cfg.rules.noConsole === 'error' ? 'error' : 'warning',
         })
       }
     }
@@ -84,12 +98,12 @@ function scanContent(filePath: string, content: string): LintIssue[] {
   return issues
 }
 
-function applyFixes(filePath: string, content: string): string {
+function applyFixes(filePath: string, content: string, cfg: PickierConfig): string {
   const lines = content.split(/\r?\n/)
   const fixed: string[] = []
   const debuggerStmt = /^\s*debugger\b/
   for (const line of lines) {
-    if (debuggerStmt.test(line))
+    if (cfg.rules.noDebugger !== 'off' && debuggerStmt.test(line))
       continue
     fixed.push(line)
   }
@@ -112,14 +126,16 @@ function formatStylish(issues: LintIssue[]): string {
 }
 
 export async function runLint(globs: string[], options: LintOptions): Promise<number> {
+  const cfg = await loadConfigFromPath(options.config)
+
   const raw = globs.length ? globs : ['.']
   const patterns = expandPatterns(raw)
-  const extCsv = options.ext || pickierConfig.lint.extensions.join(',')
+  const extCsv = options.ext || cfg.lint.extensions.join(',')
   const extSet = new Set(extCsv.split(',').map(s => s.trim()))
 
   const entries = await fg(patterns, {
     dot: false,
-    ignore: pickierConfig.ignores,
+    ignore: cfg.ignores,
     onlyFiles: true,
     unique: true,
     absolute: true,
@@ -130,16 +146,16 @@ export async function runLint(globs: string[], options: LintOptions): Promise<nu
   let allIssues: LintIssue[] = []
   for (const file of files) {
     const src = readFileSync(file, 'utf8')
-    let issues = scanContent(file, src)
+    let issues = scanContent(file, src, cfg)
 
     if (options.fix && issues.some(i => i.ruleId === 'no-debugger')) {
-      const fixed = applyFixes(file, src)
+      const fixed = applyFixes(file, src, cfg)
       if (!options.dryRun && fixed !== src)
         writeFileSync(file, fixed, 'utf8')
       // recompute issues after simulated or real fix
-      issues = scanContent(file, fixed)
+      issues = scanContent(file, fixed, cfg)
 
-      if (options.dryRun && src !== fixed && options.verbose) {
+      if (options.dryRun && src !== fixed && (options.verbose || cfg.verbose)) {
         console.log(colors.gray(`dry-run: would apply fixes in ${relative(process.cwd(), file)}`))
       }
     }
@@ -150,7 +166,7 @@ export async function runLint(globs: string[], options: LintOptions): Promise<nu
   const errors = allIssues.filter(i => i.severity === 'error').length
   const warnings = allIssues.filter(i => i.severity === 'warning').length
 
-  const reporter = options.reporter || pickierConfig.lint.reporter
+  const reporter = options.reporter || cfg.lint.reporter
   if (reporter === 'json') {
     console.log(JSON.stringify({ errors, warnings, issues: allIssues }, null, 2))
   }
@@ -163,11 +179,11 @@ export async function runLint(globs: string[], options: LintOptions): Promise<nu
     console.log(formatStylish(allIssues))
   }
 
-  if (options.verbose || pickierConfig.verbose) {
+  if (options.verbose || cfg.verbose) {
     console.log(colors.gray(`Scanned ${files.length} files, found ${errors} errors and ${warnings} warnings.`))
   }
 
-  const maxWarnings = options.maxWarnings ?? pickierConfig.lint.maxWarnings
+  const maxWarnings = options.maxWarnings ?? cfg.lint.maxWarnings
   if (errors > 0)
     return 1
   if (maxWarnings >= 0 && warnings > maxWarnings)

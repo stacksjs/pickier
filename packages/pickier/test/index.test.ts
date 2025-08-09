@@ -83,13 +83,6 @@ describe('my awesome package', () => {
     consoleSpy.mockRestore()
   })
 
-  it.todo('should implement this test later')
-
-  it.skip('should skip this test', () => {
-    // This test will be skipped
-    expect(true).toBe(false)
-  })
-
   describe('Mocking example', () => {
     it('should demonstrate mock functionality', async () => {
       // Create a mock function

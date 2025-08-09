@@ -1,4 +1,6 @@
+export { runFormat } from './cli/run-format'
 export type { FormatOptions } from './cli/run-format'
+export { runLint } from './cli/run-lint'
 export type { LintOptions } from './cli/run-lint'
 export * from './config'
 export * from './types'
