@@ -6,90 +6,176 @@
 <!-- [![npm downloads][npm-downloads-src]][npm-downloads-href] -->
 <!-- [![Codecov][codecov-src]][codecov-href] -->
 
-# ts-starter-monorepo
+# Pickier
 
-This is an opinionated TypeScript Starter kit to help kick-start development of your next Bun package.
+Fast Bun‑native linting and formatting. Minimal defaults. Extensible. Built for speed.
 
 ## Features
 
-This Starter Kit comes pre-configured with the following:
+- Fast, Bun-first CLI (no Node install required)
+- Lint and Format in one tool
+- Sensible defaults with zero-config usage
+- Simple, typed `pickier.config.ts` for overrides
+- Dry‑run mode for safe previews
+- Thorough tests
 
-- 🛠️ [Powerful Build Process](https://github.com/oven-sh/bun) - via Bun
-- 💪🏽 [Fully Typed APIs](https://www.typescriptlang.org/) - via TypeScript
-- 📚 [Documentation-ready](https://vitepress.dev/) - via VitePress
-- ⌘ [CLI & Binary](https://www.npmjs.com/package/bunx) - via Bun & CAC
-- 🧪 [Built With Testing In Mind](https://bun.sh/docs/cli/test) - pre-configured unit-testing powered by [Bun](https://bun.sh/docs/cli/test)
-- 🤖 [Renovate](https://renovatebot.com/) - optimized & automated PR dependency updates
-- 🎨 [ESLint](https://eslint.org/) - for code linting _(and formatting)_
-- 📦️ [pkg.pr.new](https://pkg.pr.new) - Continuous (Preview) Releases for your libraries
-- 🐙 [GitHub Actions](https://github.com/features/actions) - runs your CI _(fixes code style issues, tags releases & creates its changelogs, runs the test suite, etc.)_
-
-## Get Started
-
-It's rather simple to get your package development started:
+## Install
 
 ```bash
-# you may use this GitHub template or the following command:
-bunx degit stacksjs/ts-starter my-pkg
-cd my-pkg
+# as a dev dependency
+bun add -D @stacksjs/pickier
 
-bun i # install all deps
-bun run build # builds the library for production-ready use
-
-# after you have successfully committed, you may create a "release"
-bun run release # automates git commits, versioning, and changelog generations
+# or with npm/pnpm/yarn
+npm i -D @stacksjs/pickier
 ```
 
-_Check out the package.json scripts for more commands._
-
-## Testing
+You can also run it directly via npx/bunx without installing:
 
 ```bash
-bun test
+npx pickier --help
+# or
+bunx pickier --help
 ```
 
-## Changelog
+## Quick start
 
-Please see our [releases](https://github.com/stackjs/ts-starter-monorepo/releases) page for more information on what has changed recently.
+```bash
+# Lint everything, pretty output
+pickier lint .
 
-## Contributing
+# Auto-fix issues (safe fixes only)
+pickier lint . --fix
 
-Please see [CONTRIBUTING](.github/CONTRIBUTING.md) for details.
+# Preview fixes without writing
+pickier lint . --fix --dry-run --verbose
 
-## Community
+# Format and write changes
+pickier format . --write
 
-For help, discussion about best practices, or any other conversation that would benefit from being searchable:
+# Check formatting without writing (CI-friendly)
+pickier format . --check
+```
 
-[Discussions on GitHub](https://github.com/stacksjs/ts-starter-monorepo/discussions)
+## CLI
 
-For casual chit-chat with others using this package:
+- `pickier lint [...globs]`
+  - `--fix`: apply safe fixes (e.g. remove `debugger` statements)
+  - `--dry-run`: simulate fixes without writing
+  - `--max-warnings <n>`: fail if warnings exceed n (default: -1)
+  - `--reporter <stylish|json|compact>`: output format (default: stylish)
+  - `--ext <.ts,.tsx,.js,...>`: comma-separated extensions (overrides config)
+  - `--ignore-path <file>`: optional ignore file (e.g. .gitignore)
+  - `--cache`: reserved (no-op currently)
+  - `--verbose`
+  - Examples:
+    - `pickier lint . --dry-run`
+    - `pickier lint src --fix`
+    - `pickier lint "src/**/*.{ts,tsx}" --reporter json`
 
-[Join the Stacks Discord Server](https://discord.gg/stacksjs)
+- `pickier format [...globs]`
+  - `--write`: write formatted files
+  - `--check`: only check, non-zero exit on differences
+  - `--ext <.ts,.tsx,.js,.json,...>`
+  - `--ignore-path <file>`
+  - `--verbose`
+  - Examples:
+    - `pickier format . --check`
+    - `pickier format src --write`
+    - `pickier format "**/*.{ts,tsx,js}" --write`
 
-## Postcardware
+## Configuration
 
-“Software that is free, but hopes for a postcard.” We love receiving postcards from around the world showing where Stacks is being used! We showcase them on our website too.
+Pickier works out-of-the-box. To customize, create `pickier.config.ts` in your project root. All fields are optional.
 
-Our address: Stacks.js, 12665 Village Ln #2306, Playa Vista, CA 90094, United States 🌎
+```ts
+// pickier.config.ts
+import type { PickierConfig } from '@stacksjs/pickier'
 
-## Sponsors
+const config: PickierConfig = {
+  verbose: false,
+  ignores: ['**/node_modules/**', '**/dist/**', '**/build/**'],
 
-We would like to extend our thanks to the following sponsors for funding Stacks development. If you are interested in becoming a sponsor, please reach out to us.
+  lint: {
+    // which extensions to lint
+    extensions: ['.ts', '.tsx', '.js', '.jsx'],
+    // stylish | json | compact
+    reporter: 'stylish',
+    // reserved (not used yet)
+    cache: false,
+    // -1 disables, otherwise fail when warnings > maxWarnings
+    maxWarnings: -1,
+  },
 
-- [JetBrains](https://www.jetbrains.com/)
-- [The Solana Foundation](https://solana.com/)
+  format: {
+    extensions: ['.ts', '.tsx', '.js', '.jsx', '.json', '.md', '.yaml', '.yml'],
+    trimTrailingWhitespace: true,
+    maxConsecutiveBlankLines: 1,
+    // one | two | none
+    finalNewline: 'one',
+  },
+
+  rules: {
+    // 'off' | 'warn' | 'error'
+    noDebugger: 'error',
+    noConsole: 'warn',
+  },
+}
+
+export default config
+```
+
+Notes:
+
+- `noDebugger` removes lines that are debugger statements when `--fix` is used.
+- `noConsole` controls severity (turn off for libraries that allow console logs).
+
+## Development
+
+This repository contains Pickier’s source under `packages/pickier`.
+
+Common tasks:
+
+```bash
+# install deps
+bun i
+
+# run tests (with coverage)
+bun test --coverage
+
+# build JS and type declarations
+bun run -C packages/pickier build
+
+# compile native binary for your platform
+bun run -C packages/pickier compile
+
+# compile all platform binaries
+bun run -C packages/pickier compile:all
+```
+
+Try the CLI locally without publishing:
+
+```bash
+# run the TS entry directly
+bun packages/pickier/bin/cli.ts --help
+
+# run the built dist CLI
+bun packages/pickier/dist/bin/cli.js lint .
+
+# or the compiled native binary (after compile)
+./packages/pickier/bin/pickier-<your-platform> --help
+```
+
+## CI & Releases
+
+- CI runs lint, typecheck, tests, and build.
+- Release workflow bundles platform binaries and publishes to npm.
 
 ## License
 
-The MIT License (MIT). Please see [LICENSE](LICENSE.md) for more information.
+MIT © Stacks.js
 
-Made with 💙
+## Links
 
-<!-- Badges -->
-[npm-version-src]: https://img.shields.io/npm/v/ts-starter-monorepo?style=flat-square
-[npm-version-href]: https://npmjs.com/package/ts-starter-monorepo
-[github-actions-src]: https://img.shields.io/github/actions/workflow/status/stacksjs/ts-starter-monorepo/ci.yml?style=flat-square&branch=main
-[github-actions-href]: https://github.com/stacksjs/ts-starter-monorepo/actions?query=workflow%3Aci
-
-<!-- [codecov-src]: https://img.shields.io/codecov/c/gh/stacksjs/ts-starter-monorepo/main?style=flat-square
-[codecov-href]: https://codecov.io/gh/stacksjs/ts-starter-monorepo -->
+- Docs (TBD)
+- GitHub: <https://github.com/stacksjs/pickier>
+- Issues: <https://github.com/stacksjs/pickier/issues>
