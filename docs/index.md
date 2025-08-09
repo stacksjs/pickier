@@ -3,9 +3,9 @@
 layout: home
 
 hero:
-  name: "ts-starter"
-  text: "For a better local environment."
-  tagline: "Modern and smart reverse proxy."
+  name: "Pickier"
+  text: "Format, lint, and more in seconds."
+  tagline: "Fast CLI for consistent codebases."
   image: /images/logo-white.png
   actions:
     - theme: brand
@@ -13,21 +13,18 @@ hero:
       link: /intro
     - theme: alt
       text: View on GitHub
-      link: https://github.com/stacksjs/rpx
+      link: https://github.com/stacksjs/pickier
 
 features:
-  - title: "Minimal Starter Kit"
-    icon: "🔀"
-    details: "Bootstrap your next TypeScript project."
-  - title: "Documentation"
-    icon: "📚"
-    details: "Easily document your idea/package/library."
-  - title: "CLI"
-    icon: "🛠"
-    details: "Build your own CLI."
-  - title: "Binary"
-    icon: "🚀"
-    details: "Automatically builds a binary for your project out of your CLI."
+  - title: "Fast"
+    icon: "⚡"
+    details: "Blazing fast scanning powered by Bun and fast-glob."
+  - title: "One Tool"
+    icon: "🧰"
+    details: "Lint and format with a single, simple CLI."
+  - title: "Configurable"
+    icon: "⚙️"
+    details: "Fine-grained options via pickier.config.{ts,js,json}."
 ---
 
 <Home />
