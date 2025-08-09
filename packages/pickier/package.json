@@ -73,5 +73,8 @@
   },
   "workspaces": [
     "packages/*"
-  ]
+  ],
+  "dependencies": {
+    "@stacksjs/clapp": "^0.1.16"
+  }
 }

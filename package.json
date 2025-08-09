@@ -2,7 +2,7 @@
   "name": "ts-starter-monorepo",
   "type": "module",
   "version": "0.0.0",
-  "description": "Like our `ts-starter`, but optimized for monorepos.",
+  "description": "Format, lint and more in a fraction of seconds.",
   "author": "Chris Breuer <chris@stacksjs.org>",
   "license": "MIT",
   "homepage": "https://github.com/stacksjs/ts-starter-monorepo#readme",
@@ -23,8 +23,9 @@
     "lint": "bunx --bun eslint .",
     "lint:fix": "bunx --bun eslint . --fix",
     "fresh": "bunx rimraf node_modules/ bun.lock && bun i",
-    "changelog": "bunx changelogen --output CHANGELOG.md",
-    "release": "bun run changelog && bunx bumpp -r --all",
+    "changelog": "bunx logsmith --output CHANGELOG.md --theme github --exclude-authors \"dependabot[bot],github-actions[bot]\" --exclude-types \"chore\" --max-commits 50",
+    "changelog:generate": "bunx logsmith --output CHANGELOG.md --theme github --exclude-authors \"dependabot[bot],github-actions[bot]\" --exclude-types \"chore\" --max-commits 50",
+    "release": "bun run changelog:generate && git add CHANGELOG.md && git commit --amend --no-edit && bunx bumpx prompt --no-push --yes",
     "test": "bun test",
     "dev:docs": "bun --bun vitepress dev docs",
     "build:docs": "bun --bun vitepress build docs",
@@ -39,12 +40,8 @@
     "@stacksjs/logsmith": "^0.1.4",
     "@types/bun": "^1.2.18",
     "buddy-bot": "^0.7.7",
-    "bumpp": "^10.2.0",
     "bun-git-hooks": "^0.2.19",
     "bun-plugin-dtsx": "^0.21.12",
-    "changelogen": "^0.6.2",
-    "lint-staged": "^15.5.2",
-    "simple-git-hooks": "^2.13.0",
     "typescript": "^5.8.3"
   },
   "overrides": {
@@ -57,5 +54,8 @@
       }
     },
     "commit-msg": "bunx gitlint --edit $1"
-  }
+  },
+  "workspaces": [
+    "packages/*"
+  ]
 }

@@ -1,7 +1,9 @@
-import { CAC } from 'cac'
+#!/usr/bin/env bun
+
+import { CLI } from '@stacksjs/clapp'
 import { version } from '../package.json'
 
-const cli = new CAC('my-cli')
+const cli = new CLI('pickier')
 
 interface CliOption {
   from: string
@@ -25,6 +27,13 @@ cli
 cli.command('version', 'Show the version of the CLI').action(() => {
   console.log(version)
 })
+
+// Add a default command (empty name) that shows help
+cli
+  .command('', 'Show help information')
+  .action(() => {
+    cli.help()
+  })
 
 cli.version(version)
 cli.help()
