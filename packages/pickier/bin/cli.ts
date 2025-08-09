@@ -1,12 +1,12 @@
 #!/usr/bin/env bun
 
-import type { FormatOptions } from '../src/cli/run-format'
-import type { LintOptions } from '../src/cli/run-lint'
+import type { FormatOptions } from '../src/cli/run-format.ts'
+import type { LintOptions } from '../src/cli/run-lint.ts'
 import process from 'node:process'
 import { CLI } from '@stacksjs/clapp'
 import { version } from '../package.json'
-import { runFormat } from '../src/cli/run-format'
-import { runLint } from '../src/cli/run-lint'
+import { runFormat } from '../src/cli/run-format.ts'
+import { runLint } from '../src/cli/run-lint.ts'
 
 const cli = new CLI('pickier')
 

@@ -185,15 +185,16 @@ MIT © Stacks.js
 You can also call Pickier from code (Bun/Node). Useful for custom tooling, editors, or pipelines.
 
 ```ts
+import type { FormatOptions, LintOptions } from '@stacksjs/pickier'
 // example.ts
-import { runLint, runFormat, pickierConfig, type LintOptions, type FormatOptions } from '@stacksjs/pickier'
+import { pickierConfig, runFormat, runLint } from '@stacksjs/pickier'
 
 // Lint some directories
 const lintOptions: LintOptions = {
-  fix: true,        // apply safe fixes
-  dryRun: false,    // set true to simulate fixes
+  fix: true, // apply safe fixes
+  dryRun: false, // set true to simulate fixes
   reporter: 'json', // 'stylish' | 'json' | 'compact'
-  maxWarnings: 0,   // fail on any warning
+  maxWarnings: 0, // fail on any warning
 }
 
 const lintCode = await runLint(['src', 'tests'], lintOptions)
