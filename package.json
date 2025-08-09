@@ -1,0 +1,51 @@
+{
+  "name": "ts-starter-monorepo",
+  "type": "module",
+  "version": "0.0.0",
+  "description": "Like our `ts-starter`, but optimized for monorepos.",
+  "author": "Chris Breuer <chris@stacksjs.org>",
+  "license": "MIT",
+  "homepage": "https://github.com/stacksjs/ts-starter-monorepo#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/stacksjs/ts-starter-monorepo.git"
+  },
+  "bugs": {
+    "url": "https://github.com/stacksjs/ts-starter-monorepo/issues"
+  },
+  "keywords": [
+    "monorepo",
+    "ts-starter",
+    "ts-starter-monorepo",
+    "template"
+  ],
+  "scripts": {
+    "lint": "bunx --bun eslint .",
+    "lint:fix": "bunx --bun eslint . --fix",
+    "fresh": "bunx rimraf node_modules/ bun.lock && bun i",
+    "changelog": "bunx changelogen --output CHANGELOG.md",
+    "release": "bun run changelog && bunx bumpp -r --all",
+    "test": "bun test",
+    "dev:docs": "bun --bun vitepress dev docs",
+    "build:docs": "bun --bun vitepress build docs",
+    "preview:docs": "bun --bun vitepress preview docs",
+    "typecheck": "bun --bun tsc --noEmit"
+  },
+  "devDependencies": {
+    "@stacksjs/docs": "^0.70.23",
+    "@stacksjs/eslint-config": "^4.14.0-beta.3",
+    "@types/bun": "^1.2.18",
+    "bumpp": "^10.2.0",
+    "bun-plugin-dtsx": "^0.21.12",
+    "changelogen": "^0.6.2",
+    "lint-staged": "^15.5.2",
+    "simple-git-hooks": "^2.13.0",
+    "typescript": "^5.8.3"
+  },
+  "overrides": {
+    "unconfig": "0.3.10"
+  },
+  "lint-staged": {
+    "*.{js,ts}": "bunx --bun eslint . --fix"
+  }
+}
