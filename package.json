@@ -32,10 +32,15 @@
     "typecheck": "bun --bun tsc --noEmit"
   },
   "devDependencies": {
+    "@stacksjs/bumpx": "^0.1.2",
     "@stacksjs/docs": "^0.70.23",
     "@stacksjs/eslint-config": "^4.14.0-beta.3",
+    "@stacksjs/gitlint": "^0.1.5",
+    "@stacksjs/logsmith": "^0.1.4",
     "@types/bun": "^1.2.18",
+    "buddy-bot": "^0.7.7",
     "bumpp": "^10.2.0",
+    "bun-git-hooks": "^0.2.19",
     "bun-plugin-dtsx": "^0.21.12",
     "changelogen": "^0.6.2",
     "lint-staged": "^15.5.2",
@@ -45,7 +50,12 @@
   "overrides": {
     "unconfig": "0.3.10"
   },
-  "lint-staged": {
-    "*.{js,ts}": "bunx --bun eslint . --fix"
+  "git-hooks": {
+    "pre-commit": {
+      "staged-lint": {
+        "*.{js,ts,yaml,yml}": "bun lint:fix"
+      }
+    },
+    "commit-msg": "bunx gitlint --edit $1"
   }
 }

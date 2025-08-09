@@ -1,22 +1,22 @@
 {
-  "name": "ts-starter-monorepo",
+  "name": "@stacksjs/pickier",
   "type": "module",
   "version": "0.0.0",
-  "description": "Like our `ts-starter`, but optimized for monorepos.",
+  "description": "Format, lint and more in a fraction of seconds.",
   "author": "Chris Breuer <chris@stacksjs.org>",
   "license": "MIT",
-  "homepage": "https://github.com/stacksjs/ts-starter-monorepo#readme",
+  "homepage": "https://github.com/stacksjs/pickier#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/stacksjs/ts-starter-monorepo.git"
+    "url": "git+https://github.com/stacksjs/pickier.git"
   },
   "bugs": {
-    "url": "https://github.com/stacksjs/ts-starter-monorepo/issues"
+    "url": "https://github.com/stacksjs/pickier/issues"
   },
   "keywords": [
     "monorepo",
     "ts-starter",
-    "ts-starter-monorepo",
+    "pickier",
     "template"
   ],
   "exports": {
@@ -31,7 +31,7 @@
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "bin": {
-    "ts-starter-monorepo": "./dist/bin/cli.js"
+    "pickier": "./dist/bin/cli.js"
   },
   "files": [
     "README.md",
@@ -56,9 +56,10 @@
     "lint": "bunx --bun eslint .",
     "lint:fix": "bunx --bun eslint . --fix",
     "fresh": "bunx rimraf node_modules/ bun.lock && bun i",
-    "changelog": "bunx changelogen --output CHANGELOG.md",
+    "changelog": "bunx logsmith --output CHANGELOG.md --theme github --exclude-authors \"dependabot[bot],github-actions[bot]\" --exclude-types \"chore\" --max-commits 50",
+    "changelog:generate": "bunx logsmith --output CHANGELOG.md --theme github --exclude-authors \"dependabot[bot],github-actions[bot]\" --exclude-types \"chore\" --max-commits 50",
     "prepublishOnly": "bun --bun run build && bun run compile:all && bun run zip",
-    "release": "bun run changelog && bunx bumpp package.json --all",
+    "release": "bun run changelog:generate && git add CHANGELOG.md && git commit --amend --no-edit && bunx bumpx prompt --no-push --yes",
     "test": "bun test"
   },
   "devDependencies": {
