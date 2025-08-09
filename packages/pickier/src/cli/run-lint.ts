@@ -2,6 +2,7 @@ import { readFileSync, writeFileSync } from 'node:fs'
 import { relative } from 'node:path'
 import process from 'node:process'
 import fg from 'fast-glob'
+import { pickierConfig } from '../config'
 import { colors } from '../utils'
 
 export interface LintOptions {
@@ -65,16 +66,18 @@ function scanContent(filePath: string, content: string): LintIssue[] {
       })
     }
 
-    const conCol = line.indexOf('console.')
-    if (conCol !== -1) {
-      issues.push({
-        filePath,
-        line: lineNo,
-        column: conCol + 1,
-        ruleId: 'no-console',
-        message: 'Unexpected console usage.',
-        severity: 'warning',
-      })
+    if (pickierConfig.rules.noConsole !== 'off') {
+      const conCol = line.indexOf('console.')
+      if (conCol !== -1) {
+        issues.push({
+          filePath,
+          line: lineNo,
+          column: conCol + 1,
+          ruleId: 'no-console',
+          message: 'Unexpected console usage.',
+          severity: pickierConfig.rules.noConsole === 'error' ? 'error' : 'warning',
+        })
+      }
     }
   }
 
@@ -111,11 +114,12 @@ function formatStylish(issues: LintIssue[]): string {
 export async function runLint(globs: string[], options: LintOptions): Promise<number> {
   const raw = globs.length ? globs : ['.']
   const patterns = expandPatterns(raw)
-  const extSet = new Set((options.ext || '.ts,.tsx,.js,.jsx').split(',').map(s => s.trim()))
+  const extCsv = options.ext || pickierConfig.lint.extensions.join(',')
+  const extSet = new Set(extCsv.split(',').map(s => s.trim()))
 
   const entries = await fg(patterns, {
     dot: false,
-    ignore: ['**/node_modules/**', '**/dist/**', '**/build/**'],
+    ignore: pickierConfig.ignores,
     onlyFiles: true,
     unique: true,
     absolute: true,
@@ -146,10 +150,11 @@ export async function runLint(globs: string[], options: LintOptions): Promise<nu
   const errors = allIssues.filter(i => i.severity === 'error').length
   const warnings = allIssues.filter(i => i.severity === 'warning').length
 
-  if (options.reporter === 'json') {
+  const reporter = options.reporter || pickierConfig.lint.reporter
+  if (reporter === 'json') {
     console.log(JSON.stringify({ errors, warnings, issues: allIssues }, null, 2))
   }
-  else if (options.reporter === 'compact') {
+  else if (reporter === 'compact') {
     for (const i of allIssues) {
       console.log(`${relative(process.cwd(), i.filePath)}:${i.line}:${i.column} ${i.severity} ${i.ruleId} ${i.message}`)
     }
@@ -158,13 +163,14 @@ export async function runLint(globs: string[], options: LintOptions): Promise<nu
     console.log(formatStylish(allIssues))
   }
 
-  if (options.verbose) {
+  if (options.verbose || pickierConfig.verbose) {
     console.log(colors.gray(`Scanned ${files.length} files, found ${errors} errors and ${warnings} warnings.`))
   }
 
+  const maxWarnings = options.maxWarnings ?? pickierConfig.lint.maxWarnings
   if (errors > 0)
     return 1
-  if ((options.maxWarnings ?? -1) >= 0 && warnings > (options.maxWarnings ?? -1))
+  if (maxWarnings >= 0 && warnings > maxWarnings)
     return 1
   return 0
 }
