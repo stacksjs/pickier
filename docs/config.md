@@ -1,67 +1,64 @@
 # Configuration
 
-_This is just an example of the ts-starter docs._
+Pickier can be configured using a `pickier.config.ts` (or `.js` / `.json`) file in your project root.
 
-The Reverse Proxy can be configured using a `reverse-proxy.config.ts` _(or `reverse-proxy.config.js`)_ file and it will be automatically loaded when running the `reverse-proxy` command.
+## Example (TypeScript)
 
 ```ts
-// reverse-proxy.config.{ts,js}
-import type { ReverseProxyOptions } from '@stacksjs/rpx'
-import os from 'node:os'
-import path from 'node:path'
+// pickier.config.ts
+import type { PickierConfig } from '@stacksjs/pickier'
 
-const config: ReverseProxyOptions = {
-  /**
-   * The from URL to proxy from.
-   * Default: localhost:5173
-   */
-  from: 'localhost:5173',
-
-  /**
-   * The to URL to proxy to.
-   * Default: stacks.localhost
-   */
-  to: 'stacks.localhost',
-
-  /**
-   * The HTTPS settings.
-   * Default: true
-   * If set to false, the proxy will use HTTP.
-   * If set to true, the proxy will use HTTPS.
-   * If set to an object, the proxy will use HTTPS with the provided settings.
-   */
-  https: {
-    domain: 'stacks.localhost',
-    hostCertCN: 'stacks.localhost',
-    caCertPath: path.join(os.homedir(), '.stacks', 'ssl', `stacks.localhost.ca.crt`),
-    certPath: path.join(os.homedir(), '.stacks', 'ssl', `stacks.localhost.crt`),
-    keyPath: path.join(os.homedir(), '.stacks', 'ssl', `stacks.localhost.crt.key`),
-    altNameIPs: ['127.0.0.1'],
-    altNameURIs: ['localhost'],
-    organizationName: 'stacksjs.org',
-    countryName: 'US',
-    stateName: 'California',
-    localityName: 'Playa Vista',
-    commonName: 'stacks.localhost',
-    validityDays: 180,
-    verbose: false,
-  },
-
-  /**
-   * The verbose setting.
-   * Default: false
-   * If set to true, the proxy will log more information.
-   */
+const config: PickierConfig = {
   verbose: false,
+  ignores: ['**/node_modules/**', '**/dist/**', '**/build/**'],
+  lint: {
+    extensions: ['.ts', '.tsx', '.js', '.jsx'],
+    reporter: 'stylish',
+    cache: false,
+    maxWarnings: -1,
+  },
+  format: {
+    extensions: ['.ts', '.tsx', '.js', '.jsx', '.json', '.md', '.yaml', '.yml'],
+    trimTrailingWhitespace: true,
+    maxConsecutiveBlankLines: 1,
+    finalNewline: 'one', // 'one' | 'two' | 'none'
+  },
+  rules: {
+    noDebugger: 'error', // 'off' | 'warn' | 'error'
+    noConsole: 'warn',
+  },
 }
 
 export default config
 ```
 
-_Then run:_
+## JSON config
 
-```bash
-./rpx start
+```json
+{
+  "verbose": false,
+  "ignores": ["**/node_modules/**", "**/dist/**", "**/build/**"],
+  "lint": {
+    "extensions": [".ts", ".tsx", ".js", ".jsx"],
+    "reporter": "stylish",
+    "cache": false,
+    "maxWarnings": -1
+  },
+  "format": {
+    "extensions": [".ts", ".tsx", ".js", ".jsx", ".json", ".md", ".yaml", ".yml"],
+    "trimTrailingWhitespace": true,
+    "maxConsecutiveBlankLines": 1,
+    "finalNewline": "one"
+  },
+  "rules": {
+    "noDebugger": "error",
+    "noConsole": "warn"
+  }
+}
 ```
 
-To learn more, head over to the [documentation](https://reverse-proxy.sh/).
+## Notes
+
+- `--config <path>` can point to any of the supported formats.
+- When `--ext` is not provided on the CLI, Pickier uses `lint.extensions` or `format.extensions` from your config.
+- `ignores` are passed to the file scanner to skip matching paths.

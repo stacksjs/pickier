@@ -1,89 +1,71 @@
-# Get Started
+# Usage
 
-There are two ways of using this reverse proxy: _as a library or as a CLI._
+Pickier exposes two primary commands: `lint` and `format`. Both accept file globs and share several flags.
 
-## Library
+## Lint
 
-Given the npm package is installed:
-
-```ts
-import type { TlsConfig } from '@stacksjs/rpx'
-import { startProxy } from '@stacksjs/rpx'
-
-export interface CleanupConfig {
-  hosts: boolean // clean up /etc/hosts, defaults to false
-  certs: boolean // clean up certificates, defaults to false
-}
-
-export interface ReverseProxyConfig {
-  from: string // domain to proxy from, defaults to localhost:3000
-  to: string // domain to proxy to, defaults to stacks.localhost
-  cleanUrls?: boolean // removes the .html extension from URLs, defaults to false
-  https: boolean | TlsConfig // automatically uses https, defaults to true, also redirects http to https
-  cleanup?: boolean | CleanupConfig // automatically cleans up /etc/hosts, defaults to false
-  verbose: boolean // log verbose output, defaults to false
-}
-
-const config: ReverseProxyOptions = {
-  from: 'localhost:3000',
-  to: 'my-docs.localhost',
-  cleanUrls: true,
-  https: true,
-  cleanup: false,
-}
-
-startProxy(config)
-```
-
-In case you are trying to start multiple proxies, you may use this configuration:
-
-```ts
-// reverse-proxy.config.{ts,js}
-import type { ReverseProxyOptions } from '@stacksjs/rpx'
-import os from 'node:os'
-import path from 'node:path'
-
-const config: ReverseProxyOptions = {
-  https: { // https: true -> also works with sensible defaults
-    caCertPath: path.join(os.homedir(), '.stacks', 'ssl', `stacks.localhost.ca.crt`),
-    certPath: path.join(os.homedir(), '.stacks', 'ssl', `stacks.localhost.crt`),
-    keyPath: path.join(os.homedir(), '.stacks', 'ssl', `stacks.localhost.crt.key`),
-  },
-
-  cleanup: {
-    hosts: true,
-    certs: false,
-  },
-
-  proxies: [
-    {
-      from: 'localhost:5173',
-      to: 'my-app.localhost',
-      cleanUrls: true,
-    },
-    {
-      from: 'localhost:5174',
-      to: 'my-api.local',
-    },
-  ],
-
-  verbose: true,
-}
-
-export default config
-```
-
-## CLI
+Detects simple issues such as `debugger` statements and `console` usage.
 
 ```bash
-rpx --from localhost:3000 --to my-project.localhost
-rpx --from localhost:8080 --to my-project.test --keyPath ./key.pem --certPath ./cert.pem
-rpx --help
-rpx --version
+# lint everything under src
+pickier lint src
+
+# auto-fix debugger statements; do not write changes, just simulate
+pickier lint . --fix --dry-run
+
+# set a warning threshold (non-zero exit when exceeded)
+pickier lint "src/**/*.{ts,tsx}" --max-warnings 0
+
+# output as JSON
+pickier lint . --reporter json
+
+# compact reporter (one-line per issue)
+pickier lint . --reporter compact
 ```
 
-## Testing
+Supported flags:
+
+- `--fix`: apply auto-fixes (removes `debugger` lines)
+- `--dry-run`: simulate fixes without writing
+- `--max-warnings <n>`: fail if warnings exceed `n` (default `-1` disables)
+- `--reporter <stylish|json|compact>`: output format
+- `--config <path>`: path to `pickier` config file
+- `--ignore-path <file>`: ignore file (gitignore-style)
+- `--ext <exts>`: comma-separated extensions (defaults from config)
+- `--cache`: enable cache (reserved)
+- `--verbose`: verbose output
+
+## Format
+
+Normalizes whitespace quickly and consistently.
 
 ```bash
-bun test
+# check formatting without modifying files (exit 1 if changes needed)
+pickier format . --check
+
+# write changes to disk
+pickier format src --write
+
+# limit to specific extensions
+pickier format . --ext .ts,.tsx,.js
+```
+
+Supported flags:
+
+- `--write`: write changes to files
+- `--check`: check without writing (non-zero exit if changes would be made)
+- `--config <path>`: path to `pickier` config file
+- `--ignore-path <file>`: ignore file (gitignore-style)
+- `--ext <exts>`: comma-separated extensions
+- `--verbose`: verbose output
+
+## Globs
+
+Both commands accept one or more globs. If a path without glob magic is passed, it is treated as a directory and expanded to `**/*`.
+
+Examples:
+
+```bash
+pickier lint .
+pickier format "src/**/*.{ts,tsx,js}"
 ```

@@ -1,5 +1,5 @@
 import type { HeadConfig } from 'vitepress'
-import { transformerTwoslash } from '@shikijs/vitepress-twoslash'
+// import { transformerTwoslash } from '@shikijs/vitepress-twoslash'
 import { withPwa } from '@vite-pwa/vitepress'
 import { defineConfig } from 'vitepress'
 
@@ -18,72 +18,28 @@ const analyticsHead: HeadConfig[] = [
   ],
 ]
 
-const nav = [
-  { text: 'News', link: 'https://stacksjs.org/news' },
-  {
-    text: 'Changelog',
-    link: 'https://github.com/stacksjs/ts-starter-monorepo/blob/main/CHANGELOG.md',
-  },
-  // { text: 'Blog', link: 'https://updates.ow3.org' },
-  {
-    text: 'Resources',
-    items: [
-      { text: 'Team', link: '/team' },
-      { text: 'Sponsors', link: '/sponsors' },
-      { text: 'Partners', link: '/partners' },
-      { text: 'Postcardware', link: '/postcardware' },
-      { text: 'Stargazers', link: '/stargazers' },
-      { text: 'License', link: '/license' },
-      {
-        items: [
-          {
-            text: 'Awesome Stacks',
-            link: 'https://github.com/stacksjs/awesome-stacks',
-          },
-          {
-            text: 'Contributing',
-            link: 'https://github.com/stacksjs/stacks/blob/main/.github/CONTRIBUTING.md',
-          },
-        ],
-      },
-    ],
-  },
-]
-
-const sidebar = [
-  {
-    text: 'Get Started',
-    items: [
-      { text: 'Intro', link: '/intro' },
-      { text: 'Install', link: '/install' },
-      { text: 'Usage', link: '/usage' },
-      { text: 'Config', link: '/config' },
-    ],
-  },
-  { text: 'Showcase', link: '/Showcase' },
-]
-const description = 'A TypeScript Starter Kit. For a better Development Experience.'
-const title = 'ts-starter | A TypeScript Starter Kit. For a better Development Experience.'
+const description = 'Format, lint, and more in a fraction of seconds.'
+const title = 'Pickier | Fast formatter and linter'
 
 export default withPwa(
   defineConfig({
     lang: 'en-US',
-    title: 'ts-starter',
+    title: 'Pickier',
     description,
     metaChunk: true,
     cleanUrls: true,
     lastUpdated: true,
 
     head: [
-      ['link', { rel: 'icon', type: 'image/svg+xml', href: './images/logo-mini.svg' }],
-      ['link', { rel: 'icon', type: 'image/png', href: './images/logo.png' }],
+      ['link', { rel: 'icon', type: 'image/svg+xml', href: '/images/logo-mini.svg' }],
+      ['link', { rel: 'icon', type: 'image/png', href: '/images/logo.png' }],
       ['meta', { name: 'theme-color', content: '#0A0ABC' }],
       ['meta', { name: 'title', content: title }],
       ['meta', { name: 'description', content: description }],
       ['meta', { name: 'author', content: 'Stacks.js, Inc.' }],
       ['meta', {
         name: 'tags',
-        content: 'ts-starter, stacksjs, reverse proxy, modern, lightweight, zero-config, local development',
+        content: 'pickier, linter, formatter, bun, fast',
       }],
 
       ['meta', { property: 'og:type', content: 'website' }],
@@ -91,9 +47,9 @@ export default withPwa(
       ['meta', { property: 'og:title', content: title }],
       ['meta', { property: 'og:description', content: description }],
 
-      ['meta', { property: 'og:site_name', content: 'ts-starter' }],
-      ['meta', { property: 'og:image', content: './images/og-image.jpg' }],
-      ['meta', { property: 'og:url', content: 'https://reverse-proxy.sh/' }],
+      ['meta', { property: 'og:site_name', content: 'Pickier' }],
+      ['meta', { property: 'og:image', content: '/images/og-image.png' }],
+      ['meta', { property: 'og:url', content: 'https://github.com/stacksjs/pickier' }],
       // ['script', { 'src': 'https://cdn.usefathom.com/script.js', 'data-site': '', 'data-spa': 'auto', 'defer': '' }],
       ...analyticsHead,
     ],
@@ -103,15 +59,63 @@ export default withPwa(
         provider: 'local',
       },
       logo: {
-        light: './images/logo-transparent.svg',
-        dark: './images/logo-white-transparent.svg',
+        light: '/images/logo-transparent.svg',
+        dark: '/images/logo-white-transparent.svg',
       },
 
-      nav,
-      sidebar,
+      nav: [
+        {
+          text: 'Changelog',
+          link: 'https://github.com/stacksjs/pickier/blob/main/CHANGELOG.md',
+        },
+        {
+          text: 'Resources',
+          items: [
+            { text: 'Team', link: '/team' },
+            { text: 'Sponsors', link: '/sponsors' },
+            { text: 'Partners', link: '/partners' },
+            { text: 'Postcardware', link: '/postcardware' },
+            { text: 'Stargazers', link: '/stargazers' },
+            { text: 'License', link: '/license' },
+          ],
+        },
+        {
+          text: 'API',
+          items: [
+            { text: 'Overview', link: '/api/overview' },
+            { text: 'Programmatic Usage', link: '/api/programmatic' },
+            { text: 'Functions', link: '/api/functions' },
+            { text: 'Types', link: '/api/types' },
+            { text: 'Defaults', link: '/api/defaults' },
+          ],
+        },
+      ],
+      sidebar: [
+        {
+          text: 'Get Started',
+          items: [
+            { text: 'Intro', link: '/intro' },
+            { text: 'Install', link: '/install' },
+            { text: 'Usage', link: '/usage' },
+            { text: 'CLI', link: '/cli' },
+            { text: 'Config', link: '/config' },
+          ],
+        },
+        {
+          text: 'API',
+          items: [
+            { text: 'Overview', link: '/api/overview' },
+            { text: 'Programmatic Usage', link: '/api/programmatic' },
+            { text: 'Functions', link: '/api/functions' },
+            { text: 'Types', link: '/api/types' },
+            { text: 'Defaults', link: '/api/defaults' },
+          ],
+        },
+        { text: 'Showcase', link: '/showcase' },
+      ],
 
       editLink: {
-        pattern: 'https://github.com/stacksjs/stacks/edit/main/docs/docs/:path',
+        pattern: 'https://github.com/stacksjs/pickier/edit/main/docs/:path',
         text: 'Edit this page on GitHub',
       },
 
@@ -123,7 +127,7 @@ export default withPwa(
       socialLinks: [
         { icon: 'twitter', link: 'https://twitter.com/stacksjs' },
         { icon: 'bluesky', link: 'https://bsky.app/profile/chrisbreuer.dev' },
-        { icon: 'github', link: 'https://github.com/stacksjs/ts-starter' },
+        { icon: 'github', link: 'https://github.com/stacksjs/pickier' },
         { icon: 'discord', link: 'https://discord.gg/stacksjs' },
       ],
 
@@ -146,10 +150,10 @@ export default withPwa(
         light: 'github-light',
         dark: 'github-dark',
       },
-
-      codeTransformers: [
-        transformerTwoslash(),
-      ],
+      // Disabled due to type mismatches across shiki versions in deps
+      // codeTransformers: [
+      //   transformerTwoslash(),
+      // ],
     },
 
     vite: viteConfig,
