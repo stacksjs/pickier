@@ -1,16 +1,12 @@
-import type { BinaryConfig, PickierConfig } from './types'
+import type { PickierConfig } from './types'
 import { loadConfig } from 'bunfig'
 
-export const defaultConfig: BinaryConfig = {
-  from: 'localhost:5173',
-  verbose: true,
-}
 
-export const pickierDefaults: PickierConfig = {
+export const defaultConfig: PickierConfig = {
   verbose: false,
   ignores: ['**/node_modules/**', '**/dist/**', '**/build/**'],
   lint: {
-    extensions: ['.ts', '.tsx', '.js', '.jsx'],
+    extensions: ['ts', 'js', 'html', 'css', 'json', 'jsonc', 'md', 'yaml', 'yml', 'stx'],
     reporter: 'stylish',
     cache: false,
     maxWarnings: -1,
@@ -28,13 +24,7 @@ export const pickierDefaults: PickierConfig = {
 }
 
 // eslint-disable-next-line antfu/no-top-level-await
-export const config: BinaryConfig = await loadConfig({
-  name: 'binary',
-  defaultConfig,
-})
-
-// eslint-disable-next-line antfu/no-top-level-await
-export const pickierConfig: PickierConfig = await loadConfig({
+export const config: PickierConfig = await loadConfig({
   name: 'pickier',
-  defaultConfig: pickierDefaults,
+  defaultConfig,
 })

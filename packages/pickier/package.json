@@ -1,5 +1,5 @@
 {
-  "name": "@stacksjs/pickier",
+  "name": "pickier",
   "type": "module",
   "version": "0.0.0",
   "description": "Format, lint and more in a fraction of seconds.",
@@ -65,10 +65,7 @@
   },
   "dependencies": {
     "@stacksjs/clapp": "^0.1.16",
-    "estree-walker": "^3.0.3",
-    "fast-glob": "^3.3.2",
-    "magic-string": "^0.30.12",
-    "meriyah": "^6.0.3"
+    "fast-glob": "^3.3.2"
   },
   "devDependencies": {
     "bunfig": "^0.10.1"

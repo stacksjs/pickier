@@ -14,7 +14,7 @@ const config: PickierConfig = {
   // Lint-specific options
   lint: {
     // File extensions to lint
-    extensions: ['.ts', '.tsx', '.js', '.jsx'],
+    extensions: ['ts', 'js', 'html', 'css', 'json', 'jsonc', 'md', 'yaml', 'yml', 'stx'],
     // Output format: 'stylish' | 'json' | 'compact'
     reporter: 'stylish',
     // Enable caching (not yet used, reserved)

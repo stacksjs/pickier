@@ -1,8 +1,3 @@
-export interface BinaryConfig {
-  from: string
-  verbose: boolean
-}
-
 export type RuleSeverity = 'off' | 'warn' | 'error'
 
 export interface PickierRulesConfig {
@@ -11,8 +6,10 @@ export interface PickierRulesConfig {
   noConsole: RuleSeverity
 }
 
+export type Extension = 'ts' | 'js' | 'html' | 'css' | 'json' | 'jsonc' | 'md' | 'yaml' | 'yml' | 'stx'
+
 export interface PickierLintConfig {
-  extensions: string[]
+  extensions: Extension[]
   reporter: 'stylish' | 'json' | 'compact'
   cache: boolean
   maxWarnings: number

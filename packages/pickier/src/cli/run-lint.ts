@@ -3,7 +3,7 @@ import { readFileSync, writeFileSync } from 'node:fs'
 import { extname, isAbsolute, relative, resolve } from 'node:path'
 import process from 'node:process'
 import fg from 'fast-glob'
-import { pickierConfig as defaultPickierConfig } from '../config'
+import { config } from '../config'
 import { colors } from '../utils'
 
 export interface LintOptions {
@@ -29,13 +29,16 @@ interface LintIssue {
 
 async function loadConfigFromPath(pathLike: string | undefined): Promise<PickierConfig> {
   if (!pathLike)
-    return defaultPickierConfig
+    return config
+
   const abs = isAbsolute(pathLike) ? pathLike : resolve(process.cwd(), pathLike)
   const ext = extname(abs).toLowerCase()
+
   if (ext === '.json') {
     const raw = readFileSync(abs, 'utf8')
     return JSON.parse(raw) as PickierConfig
   }
+
   const mod = await import(abs)
   return (mod.default || mod) as PickierConfig
 }
