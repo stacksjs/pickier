@@ -6,7 +6,7 @@ Pickier can be configured using a `pickier.config.ts` (or `.js` / `.json`) file 
 
 ```ts
 // pickier.config.ts
-import type { PickierConfig } from '@stacksjs/pickier'
+import type { PickierConfig } from 'pickier'
 
 const config: PickierConfig = {
   verbose: false,

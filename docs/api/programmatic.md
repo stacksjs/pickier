@@ -1,12 +1,12 @@
 # Programmatic Usage
 
-Import from `@stacksjs/pickier` to run Pickier from your own scripts.
+Import from `pickier` to run Pickier from your own scripts.
 
 ## Format
 
 ```ts
-import type { FormatOptions } from '@stacksjs/pickier'
-import { runFormat } from '@stacksjs/pickier'
+import type { FormatOptions } from 'pickier'
+import { runFormat } from 'pickier'
 
 async function main() {
   const globs = ['src', 'README.md']
@@ -33,8 +33,8 @@ Notes:
 ## Lint
 
 ```ts
-import type { LintOptions } from '@stacksjs/pickier'
-import { runLint } from '@stacksjs/pickier'
+import type { LintOptions } from 'pickier'
+import { runLint } from 'pickier'
 
 async function main() {
   const globs = ['src', 'scripts/**/*.{ts,js}']

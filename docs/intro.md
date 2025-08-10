@@ -12,10 +12,10 @@ Pickier is a fast formatter and linter that helps you keep your codebase clean a
 
 ```bash
 # add to your project (dev dependency)
-bun add -d @stacksjs/pickier
-# pnpm add -D @stacksjs/pickier
-# npm i -D @stacksjs/pickier
-# yarn add -D @stacksjs/pickier
+bun add -d pickier
+# pnpm add -D pickier
+# npm i -D pickier
+# yarn add -D pickier
 ```
 
 Run Pickier from your project root:

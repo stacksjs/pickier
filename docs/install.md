@@ -9,19 +9,19 @@ Choose your package manager of choice:
 ::: code-group
 
 ```sh [npm]
-npm i -D @stacksjs/pickier
+npm i -D pickier
 ```
 
 ```sh [bun]
-bun add -d @stacksjs/pickier
+bun add -d pickier
 ```
 
 ```sh [pnpm]
-pnpm add -D @stacksjs/pickier
+pnpm add -D pickier
 ```
 
 ```sh [yarn]
-yarn add -D @stacksjs/pickier
+yarn add -D pickier
 ```
 
 :::
@@ -31,19 +31,19 @@ Optionally install globally:
 ::: code-group
 
 ```sh [npm]
-npm i -g @stacksjs/pickier
+npm i -g pickier
 ```
 
 ```sh [bun]
-bun add -g @stacksjs/pickier
+bun add -g pickier
 ```
 
 ```sh [pnpm]
-pnpm add -g @stacksjs/pickier
+pnpm add -g pickier
 ```
 
 ```sh [yarn]
-yarn global add @stacksjs/pickier
+yarn global add pickier
 ```
 
 :::

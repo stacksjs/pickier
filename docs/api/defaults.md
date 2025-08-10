@@ -3,7 +3,7 @@
 Pickier ships with sensible defaults. You can import and inspect them if needed.
 
 ```ts
-import { pickierConfig as loadedConfig } from '@stacksjs/pickier'
+import { pickierConfig as loadedConfig } from 'pickier'
 ```
 
 The static defaults are:
