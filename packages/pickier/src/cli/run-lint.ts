@@ -150,7 +150,7 @@ function applyPlugins(filePath: string, content: string, cfg: PickierConfig): Pl
                     const same = keys.length <= 1 || keys.every((k, idx) => k === sorted[idx])
                     if (!same && g.props.length > 0) {
                       const first = g.props[0]
-                      out.push({ filePath: ctx.filePath, line: first.line, column: 1, ruleId: 'pickier/sort-objects', message: 'Object keys are not sorted', severity: 'warning' })
+                      out.push({ filePath: ctx.filePath, line: first.line, column: 1, ruleId: 'sort-objects', message: 'Object keys are not sorted', severity: 'warning' })
                     }
                   }
                   i = j + 1
@@ -180,7 +180,7 @@ function applyPlugins(filePath: string, content: string, cfg: PickierConfig): Pl
           const reconstructed = `${block}\n${rest}`
           const formatted = formatImports(reconstructed)
           if (formatted !== reconstructed) {
-            return [{ filePath: ctx.filePath, line: start + 1, column: 1, ruleId: 'pickier/sort-imports', message: 'Imports are not sorted/grouped consistently', severity: 'warning' }]
+            return [{ filePath: ctx.filePath, line: start + 1, column: 1, ruleId: 'sort-imports', message: 'Imports are not sorted/grouped consistently', severity: 'warning' }]
           }
           return []
         },
@@ -227,7 +227,7 @@ function applyPlugins(filePath: string, content: string, cfg: PickierConfig): Pl
             const sorted = [...names].sort(cmp)
             const same = names.every((n, idx) => n === sorted[idx])
             if (!same) {
-              out.push({ filePath: ctx.filePath, line: i + 1, column: 1, ruleId: 'pickier/sort-named-imports', message: 'Named imports are not sorted', severity: 'warning' })
+              out.push({ filePath: ctx.filePath, line: i + 1, column: 1, ruleId: 'sort-named-imports', message: 'Named imports are not sorted', severity: 'warning' })
             }
           }
           return out
@@ -322,7 +322,7 @@ function applyPlugins(filePath: string, content: string, cfg: PickierConfig): Pl
               .map(x => x.n)
             const same = names.every((n, i) => n === orderByGroup[i])
             if (!same) {
-              issues.push({ filePath: ctx.filePath, line: lineNo, column: 1, ruleId: 'pickier/sort-heritage-clauses', message: 'Heritage clauses are not sorted', severity: 'warning' })
+              issues.push({ filePath: ctx.filePath, line: lineNo, column: 1, ruleId: 'sort-heritage-clauses', message: 'Heritage clauses are not sorted', severity: 'warning' })
             }
           }
 
@@ -470,10 +470,165 @@ function applyPlugins(filePath: string, content: string, cfg: PickierConfig): Pl
               const sorted = [...keyLines].sort(cmp)
               const same = keyLines.every((ln, idx) => ln === sorted[idx])
               if (!same) {
-                issues.push({ filePath: ctx.filePath, line: start + 1, column: 1, ruleId: 'pickier/sort-exports', message: 'Export statements are not sorted', severity: 'warning' })
+                issues.push({ filePath: ctx.filePath, line: start + 1, column: 1, ruleId: 'sort-exports', message: 'Export statements are not sorted', severity: 'warning' })
               }
             }
           }
+          return issues
+        },
+      },
+      'no-unused-vars': {
+        meta: { docs: 'Report variables and parameters that are declared/assigned but never used' },
+        check: (text, ctx) => {
+          const issues: PluginLintIssue[] = []
+          const opts: any = ctx.options || {}
+          const varsIgnorePattern = typeof opts.varsIgnorePattern === 'string' ? opts.varsIgnorePattern : '^_'
+          const argsIgnorePattern = typeof opts.argsIgnorePattern === 'string' ? opts.argsIgnorePattern : '^_'
+          const varIgnoreRe = new RegExp(varsIgnorePattern, 'u')
+          const argIgnoreRe = new RegExp(argsIgnorePattern, 'u')
+
+          const lines = text.split(/\r?\n/)
+          const full = text
+
+          // collect variable declarations (const/let/var)
+          for (let i = 0; i < lines.length; i++) {
+            const line = lines[i]
+            const decl = line.match(/^\s*(?:const|let|var)\s+(.+?);?\s*$/)
+            if (!decl)
+              continue
+            const after = decl[1]
+            // split by ',' at top level (ignore inside braces/brackets roughly)
+            const parts = after.split(',')
+            for (const partRaw of parts) {
+              const part = partRaw.trim()
+              if (!part)
+                continue
+              // capture identifiers in simple or destructuring forms
+              const simple = part.match(/^([$A-Z_][\w$]*)/i)
+              const destruct = part.match(/^[{[](.+)[}\]]/)
+              const names: string[] = []
+              if (simple) {
+                names.push(simple[1])
+              }
+              else if (destruct) {
+                const inner = destruct[1]
+                const tokens = inner.split(/[^$\w]+/).filter(Boolean)
+                for (const t of tokens) names.push(t)
+              }
+              for (const name of names) {
+                if (varIgnoreRe.test(name))
+                  continue
+                const restStartIdx = full.indexOf(line)
+                const rest = full.slice(restStartIdx + line.length)
+                const refRe = new RegExp(`\\b${name}\\b`, 'g')
+                if (!refRe.test(rest)) {
+                  issues.push({
+                    filePath: ctx.filePath,
+                    line: i + 1,
+                    column: Math.max(1, line.indexOf(name) + 1),
+                    ruleId: 'no-unused-vars',
+                    message: `'${name}' is assigned a value but never used. Allowed unused vars must match /${varsIgnorePattern}/u`,
+                    severity: 'error',
+                  })
+                }
+              }
+            }
+          }
+
+          // function decl params
+          const funcDeclRe = /function\s+[A-Za-z_$][\w$]*\s*\(([^)]*)\)\s*\{/g
+          let m: RegExpExecArray | null
+          while ((m = funcDeclRe.exec(full))) {
+            const paramsSrc = m[1]
+            const paramNames = paramsSrc.split(',').map(s => s.trim()).filter(Boolean).map((p) => {
+              const simple = p.match(/^([$A-Z_][\w$]*)/i)
+              if (simple)
+                return simple[1]
+              const id = p.match(/\b([$A-Z_][\w$]*)\b/i)
+              return id ? id[1] : ''
+            }).filter(Boolean)
+            const bodyStart = full.indexOf('{', m.index)
+            if (bodyStart === -1)
+              continue
+            let depth = 0
+            let bodyEnd = -1
+            for (let i = bodyStart; i < full.length; i++) {
+              const ch = full[i]
+              if (ch === '{') {
+                depth++
+              }
+              else if (ch === '}') { depth--; if (depth === 0) { bodyEnd = i; break } }
+            }
+            const body = bodyEnd > bodyStart ? full.slice(bodyStart + 1, bodyEnd) : ''
+            for (const name of paramNames) {
+              if (!name || argIgnoreRe.test(name))
+                continue
+              const refRe = new RegExp(`\\b${name}\\b`, 'g')
+              if (!refRe.test(body)) {
+                const startText = full.slice(0, m.index)
+                const baseLine = (startText.match(/\n/g) || []).length + 1
+                const lineOffset = (m[0].slice(0, m[0].indexOf('(')).match(/\n/g) || []).length
+                issues.push({
+                  filePath: ctx.filePath,
+                  line: baseLine + lineOffset,
+                  column: 1,
+                  ruleId: 'no-unused-vars',
+                  message: `'${name}' is assigned a value but never used. Allowed unused vars must match /${argsIgnorePattern}/u`,
+                  severity: 'error',
+                })
+              }
+            }
+          }
+
+          // arrow/function expressions params
+          const arrowRe = /\(([^)]*)\)\s*=>\s*(\{)?/g
+          while ((m = arrowRe.exec(full))) {
+            const paramsSrc = m[1]
+            const paramNames = paramsSrc.split(',').map(s => s.trim()).filter(Boolean).map((p) => {
+              const simple = p.match(/^([$A-Z_][\w$]*)/i)
+              if (simple)
+                return simple[1]
+              const id = p.match(/\b([$A-Z_][\w$]*)\b/i)
+              return id ? id[1] : ''
+            }).filter(Boolean)
+            let body = ''
+            if (m[2] === '{') {
+              const bodyStart = full.indexOf('{', m.index)
+              let depth = 0
+              let bodyEnd = -1
+              for (let i = bodyStart; i < full.length; i++) {
+                const ch = full[i]
+                if (ch === '{') {
+                  depth++
+                }
+                else if (ch === '}') { depth--; if (depth === 0) { bodyEnd = i; break } }
+              }
+              body = bodyEnd > bodyStart ? full.slice(bodyStart + 1, bodyEnd) : ''
+            }
+            else {
+              const rest = full.slice(m.index + m[0].length)
+              const endIdx = rest.search(/[\n;]/)
+              body = endIdx === -1 ? rest : rest.slice(0, endIdx)
+            }
+            for (const name of paramNames) {
+              if (!name || argIgnoreRe.test(name))
+                continue
+              const refRe = new RegExp(`\\b${name}\\b`, 'g')
+              if (!refRe.test(body)) {
+                const before = full.slice(0, m.index)
+                const baseLine = (before.match(/\n/g) || []).length + 1
+                issues.push({
+                  filePath: ctx.filePath,
+                  line: baseLine,
+                  column: 1,
+                  ruleId: 'no-unused-vars',
+                  message: `'${name}' is assigned a value but never used. Allowed unused vars must match /${argsIgnorePattern}/u`,
+                  severity: 'error',
+                })
+              }
+            }
+          }
+
           return issues
         },
       },
@@ -554,7 +709,7 @@ function applyPlugins(filePath: string, content: string, cfg: PickierConfig): Pl
                 filePath: ctx.filePath,
                 line: i + 1,
                 column: 1,
-                ruleId: 'style/max-statements-per-line',
+                ruleId: 'max-statements-per-line',
                 message: `This line has ${num} statements. Maximum allowed is ${max}`,
                 severity: 'warning',
               })
@@ -566,177 +721,7 @@ function applyPlugins(filePath: string, content: string, cfg: PickierConfig): Pl
     },
   }
   pluginDefs.push(stylePlugin)
-  // Built-in unused-imports-like plugin (no-unused-vars subset)
-  const unusedImportsPlugin: PickierPlugin = {
-    name: 'unused-imports',
-    rules: {
-      'no-unused-vars': {
-        meta: { docs: 'Report variables and parameters that are declared/assigned but never used' },
-        check: (text, ctx) => {
-          const issues: PluginLintIssue[] = []
-          const opts: any = ctx.options || {}
-          const varsIgnorePattern = typeof opts.varsIgnorePattern === 'string' ? opts.varsIgnorePattern : '^_'
-          const argsIgnorePattern = typeof opts.argsIgnorePattern === 'string' ? opts.argsIgnorePattern : '^_'
-          const varIgnoreRe = new RegExp(varsIgnorePattern, 'u')
-          const argIgnoreRe = new RegExp(argsIgnorePattern, 'u')
-
-          const lines = text.split(/\r?\n/)
-          const full = text
-          const idRe = /[$A-Z_][\w$]*/gi
-
-          // collect variable declarations (const/let/var)
-          for (let i = 0; i < lines.length; i++) {
-            const line = lines[i]
-            const decl = line.match(/^\s*(?:const|let|var)\s+(.+?);?\s*$/)
-            if (!decl)
-              continue
-            const after = decl[1]
-            // split by ',' at top level (ignore inside braces/brackets roughly)
-            const parts = after.split(',')
-            for (const partRaw of parts) {
-              const part = partRaw.trim()
-              if (!part)
-                continue
-              // capture identifiers in simple or destructuring forms
-              const simple = part.match(/^([$A-Z_][\w$]*)/i)
-              const destruct = part.match(/^[{[](.+)[}\]]/)
-              const names: string[] = []
-              if (simple) {
-                names.push(simple[1])
-              }
-              else if (destruct) {
-                const inner = destruct[1]
-                // pick bare identifiers and aliases like a: b
-                const tokens = inner.split(/[^$\w]+/).filter(Boolean)
-                for (const t of tokens) names.push(t)
-              }
-              for (const name of names) {
-                if (varIgnoreRe.test(name))
-                  continue
-                // search usage after this line within the file (exclude declaration occurrence on this line)
-                const restStartIdx = full.indexOf(line)
-                const rest = full.slice(restStartIdx + line.length)
-                const refRe = new RegExp(`\\b${name}\\b`, 'g')
-                if (!refRe.test(rest)) {
-                  issues.push({
-                    filePath: ctx.filePath,
-                    line: i + 1,
-                    column: Math.max(1, line.indexOf(name) + 1),
-                    ruleId: 'unused-imports/no-unused-vars',
-                    message: `'${name}' is assigned a value but never used. Allowed unused vars must match /${varsIgnorePattern}/u`,
-                    severity: 'error',
-                  })
-                }
-              }
-            }
-          }
-
-          // collect function parameters and check their usage within function body
-          // function decl: function name(params) { ... }
-          const funcDeclRe = /function\s+[A-Za-z_$][\w$]*\s*\(([^)]*)\)\s*\{/g
-          let m: RegExpExecArray | null
-          while ((m = funcDeclRe.exec(full))) {
-            const paramsSrc = m[1]
-            const paramNames = paramsSrc.split(',').map(s => s.trim()).filter(Boolean).map((p) => {
-              // strip default and type after colon, and destructuring keep bare names
-              const simple = p.match(/^([$A-Z_][\w$]*)/i)
-              if (simple)
-                return simple[1]
-              const id = p.match(/\b([$A-Z_][\w$]*)\b/i)
-              return id ? id[1] : ''
-            }).filter(Boolean)
-            // find body start at m.index of '{' and balance braces
-            const bodyStart = full.indexOf('{', m.index)
-            if (bodyStart === -1)
-              continue
-            let depth = 0
-            let bodyEnd = -1
-            for (let i = bodyStart; i < full.length; i++) {
-              const ch = full[i]
-              if (ch === '{') {
-                depth++
-              }
-              else if (ch === '}') { depth--; if (depth === 0) { bodyEnd = i; break } }
-            }
-            const body = bodyEnd > bodyStart ? full.slice(bodyStart + 1, bodyEnd) : ''
-            for (const name of paramNames) {
-              if (!name || argIgnoreRe.test(name))
-                continue
-              const refRe = new RegExp(`\\b${name}\\b`, 'g')
-              if (!refRe.test(body)) {
-                // compute line number from start
-                const startText = full.slice(0, m.index)
-                const baseLine = (startText.match(/\n/g) || []).length + 1
-                const lineOffset = (m[0].slice(0, m[0].indexOf('(')).match(/\n/g) || []).length
-                issues.push({
-                  filePath: ctx.filePath,
-                  line: baseLine + lineOffset,
-                  column: 1,
-                  ruleId: 'unused-imports/no-unused-vars',
-                  message: `'${name}' is assigned a value but never used. Allowed unused vars must match /${argsIgnorePattern}/u`,
-                  severity: 'error',
-                })
-              }
-            }
-          }
-
-          // simple arrow/function expressions: const f = (params) => { ... }
-          const arrowRe = /\(([^)]*)\)\s*=>\s*(\{)?/g
-          while ((m = arrowRe.exec(full))) {
-            const paramsSrc = m[1]
-            const paramNames = paramsSrc.split(',').map(s => s.trim()).filter(Boolean).map((p) => {
-              const simple = p.match(/^([$A-Z_][\w$]*)/i)
-              if (simple)
-                return simple[1]
-              const id = p.match(/\b([$A-Z_][\w$]*)\b/i)
-              return id ? id[1] : ''
-            }).filter(Boolean)
-            let body = ''
-            if (m[2] === '{') {
-              const bodyStart = full.indexOf('{', m.index)
-              let depth = 0
-              let bodyEnd = -1
-              for (let i = bodyStart; i < full.length; i++) {
-                const ch = full[i]
-                if (ch === '{') {
-                  depth++
-                }
-                else if (ch === '}') { depth--; if (depth === 0) { bodyEnd = i; break } }
-              }
-              body = bodyEnd > bodyStart ? full.slice(bodyStart + 1, bodyEnd) : ''
-            }
-            else {
-              // concise body expression up to end of line or semicolon
-              const rest = full.slice(m.index + m[0].length)
-              const endIdx = rest.search(/[\n;]/)
-              body = endIdx === -1 ? rest : rest.slice(0, endIdx)
-            }
-            for (const name of paramNames) {
-              if (!name || argIgnoreRe.test(name))
-                continue
-              const refRe = new RegExp(`\\b${name}\\b`, 'g')
-              if (!refRe.test(body)) {
-                // compute approximate line
-                const before = full.slice(0, m.index)
-                const baseLine = (before.match(/\n/g) || []).length + 1
-                issues.push({
-                  filePath: ctx.filePath,
-                  line: baseLine,
-                  column: 1,
-                  ruleId: 'unused-imports/no-unused-vars',
-                  message: `'${name}' is assigned a value but never used. Allowed unused vars must match /${argsIgnorePattern}/u`,
-                  severity: 'error',
-                })
-              }
-            }
-          }
-
-          return issues
-        },
-      },
-    },
-  }
-  pluginDefs.push(unusedImportsPlugin)
+  // moved no-unused-vars into pickier plugin above (legacy 'unused-imports' prefix still accepted in config)
   // Built-in regexp plugin subset
   const regexpPlugin: PickierPlugin = {
     name: 'regexp',
@@ -745,12 +730,12 @@ function applyPlugins(filePath: string, content: string, cfg: PickierConfig): Pl
         meta: { docs: 'Detects potentially super-linear backtracking patterns in regex literals (heuristic)' },
         check: (text, ctx) => {
           const issues: PluginLintIssue[] = []
-          const regexLiteral = /\/[^\/\\]*(?:\\.[^\/\\]*)*\//g
+          const regexLiteral = /\/[^/\\]*(?:\\.[^/\\]*)*\//g
           const mark = (idx: number, len: number, msg: string) => {
             const before = text.slice(0, idx)
             const line = (before.match(/\n/g) || []).length + 1
             const col = idx - before.lastIndexOf('\n')
-            issues.push({ filePath: ctx.filePath, line, column: col, ruleId: 'regexp/no-super-linear-backtracking', message: msg, severity: 'error' })
+            issues.push({ filePath: ctx.filePath, line, column: col, ruleId: 'no-super-linear-backtracking', message: msg, severity: 'error' })
           }
           let m: RegExpExecArray | null
           while ((m = regexLiteral.exec(text))) {
@@ -761,7 +746,7 @@ function applyPlugins(filePath: string, content: string, cfg: PickierConfig): Pl
             // Heuristics:
             // 1) Overlapping adjacent unlimited quantifiers that can exchange characters (e.g., .+?\s*, \s*.+?, .*\s*, \s*.*)
             const exch = flat.includes('.+?\\s*') || flat.includes('\\s*.+?') || flat.includes('.*\\s*') || flat.includes('\\s*.*')
-            if (exch) { mark(idx, literal.length, "The combination of '.*' or '.+?' with '\\s*' can cause super-linear backtracking due to exchangeable characters"); continue }
+            if (exch) { mark(idx, literal.length, 'The combination of \'.*\' or \'.+?\' with \'\\s*\' can cause super-linear backtracking due to exchangeable characters'); continue }
             // 2) Repeated wildcards next to each other: ".*.*" or variations
             const collapsed = flat.replace(/\s+/g, '')
             if (/(?:\.\*\??){2,}/.test(collapsed) || /(?:\.\+\??){2,}/.test(collapsed) || /\.\*\??\.\+\??|\.\+\??\.\*\??/.test(collapsed)) {
@@ -769,7 +754,7 @@ function applyPlugins(filePath: string, content: string, cfg: PickierConfig): Pl
               continue
             }
             // 3) Nested unlimited quantifiers like (.+)+, (.*)+, (?:...+)+
-            if (/\((?:\?:)?[^)]*?[+*][^)]*?\)\s*[+*]/.test(flat)) {
+            if (/\((?:\?:)?[^)]*?[+*][^)]*\)\s*[+*]/.test(flat)) {
               mark(idx, literal.length, 'Nested unlimited quantifiers detected (e.g., (.+)+) which can cause catastrophic backtracking')
               continue
             }
@@ -794,7 +779,7 @@ function applyPlugins(filePath: string, content: string, cfg: PickierConfig): Pl
   for (const plugin of pluginDefs) {
     for (const [ruleName, rule] of Object.entries(plugin.rules)) {
       const fullName = `${plugin.name}/${ruleName}`
-      const conf = configured[fullName]
+      const conf = (configured as any)[ruleName] ?? (configured as any)[fullName]
       const sev = Array.isArray(conf) ? conf[0] : conf
       const options = Array.isArray(conf) ? conf[1] : undefined
       if (!conf || sev === 'off')
@@ -877,14 +862,16 @@ function scanContent(filePath: string, content: string, cfg: PickierConfig): Lin
       // indentation diagnostics
       const leadingMatch = line.match(/^[ \t]*/)
       const leading = leadingMatch ? leadingMatch[0] : ''
-      if (hasIndentIssue(leading, cfg.format.indent)) {
+      if (hasIndentIssue(leading, cfg.format.indent, cfg.format.indentStyle || 'spaces')) {
         const firstNonWs = line.search(/\S|$/)
         issues.push({
           filePath,
           line: lineNo,
           column: Math.max(1, firstNonWs),
           ruleId: 'indent',
-          message: `Indentation must be a multiple of ${cfg.format.indent} spaces.`,
+          message: cfg.format.indentStyle === 'tabs'
+            ? 'Indentation must use tabs.'
+            : `Indentation must be a multiple of ${cfg.format.indent} spaces.`,
           severity: 'warning',
         })
       }

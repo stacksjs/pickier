@@ -9,7 +9,7 @@ function tmp(): string {
 }
 
 describe('regexp/no-super-linear-backtracking', () => {
-  it("flags '.+?' with \\s* exchangeable quantifiers", async () => {
+  it('flags \'.+?\' with \\s* exchangeable quantifiers', async () => {
     const dir = tmp()
     const file = 'a.ts'
     const src = String.raw`const r = /foo.+?\s*bar/`
@@ -51,5 +51,3 @@ describe('regexp/no-super-linear-backtracking', () => {
     expect(code).toBe(0)
   })
 })
-
-

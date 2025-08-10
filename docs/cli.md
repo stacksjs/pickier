@@ -49,6 +49,10 @@ pickier format src --write
 pickier format "**/*.{ts,tsx,js}" --write
 ```
 
+Notes:
+
+- When `--ext` is omitted, the CLI uses its built-in default shown above. To include more file types (html, css, json, md, yaml, yml, stx), pass `--ext` explicitly or configure `format.extensions` / `lint.extensions` in your `pickier` config.
+
 ### `pickier version`
 
 Print the CLI version.

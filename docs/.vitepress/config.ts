@@ -102,6 +102,44 @@ export default withPwa(
           ],
         },
         {
+          text: 'Features',
+          items: [
+            { text: 'Formatting', link: '/features/formatting' },
+            { text: 'Import Management', link: '/features/imports' },
+            { text: 'JSON & Config Sorting', link: '/features/json-and-config-sorting' },
+            { text: 'Linting Basics', link: '/features/linting-basics' },
+            { text: 'Performance', link: '/features/performance' },
+          ],
+        },
+        {
+          text: 'Advanced',
+          items: [
+            { text: 'Configuration Deep Dive', link: '/advanced/configuration-deep-dive' },
+            { text: 'Globbing & Ignores', link: '/advanced/globbing-and-ignores' },
+            { text: 'Plugin System', link: '/advanced/plugin-system' },
+            { text: 'CI Usage', link: '/advanced/ci' },
+          ],
+        },
+        {
+          text: 'Rules',
+          items: [
+            { text: 'Overview', link: '/rules/overview' },
+            { text: 'noDebugger', link: '/rules/no-debugger' },
+            { text: 'noConsole', link: '/rules/no-console' },
+            { text: 'noCondAssign', link: '/rules/no-cond-assign' },
+            { text: 'regexp/noUnusedCapturingGroup', link: '/rules/regexp-no-unused-capturing-group' },
+            { text: 'sort-objects', link: '/rules/sort-objects' },
+            { text: 'sort-imports', link: '/rules/sort-imports' },
+            { text: 'sort-named-imports', link: '/rules/sort-named-imports' },
+            { text: 'sort-heritage-clauses', link: '/rules/sort-heritage-clauses' },
+            { text: 'sort-keys', link: '/rules/sort-keys' },
+            { text: 'sort-exports', link: '/rules/sort-exports' },
+            { text: 'max-statements-per-line', link: '/rules/style-max-statements-per-line' },
+            { text: 'no-unused-vars', link: '/rules/no-unused-vars' },
+            { text: 'no-super-linear-backtracking', link: '/rules/regexp-no-super-linear-backtracking' },
+          ],
+        },
+        {
           text: 'API',
           items: [
             { text: 'Overview', link: '/api/overview' },
@@ -109,6 +147,7 @@ export default withPwa(
             { text: 'Functions', link: '/api/functions' },
             { text: 'Types', link: '/api/types' },
             { text: 'Defaults', link: '/api/defaults' },
+            { text: 'API Reference', link: '/api/reference' },
           ],
         },
         { text: 'Showcase', link: '/showcase' },

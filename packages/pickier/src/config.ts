@@ -15,6 +15,7 @@ export const defaultConfig: PickierConfig = {
     maxConsecutiveBlankLines: 1,
     finalNewline: 'one',
     indent: 2,
+    indentStyle: 'spaces',
     quotes: 'single',
     semi: false,
   },

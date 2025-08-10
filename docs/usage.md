@@ -4,7 +4,7 @@ Pickier exposes two primary commands: `lint` and `format`. Both accept file glob
 
 ## Lint
 
-Detects simple issues such as `debugger` statements and `console` usage.
+Detects simple issues such as `debugger` statements and `console` usage. Optional checks include assignment-in-conditions and RegExp heuristics. Plugin rules can add sorting and style checks. See the Rules section for details on each rule.
 
 ```bash
 # lint everything under src
@@ -37,7 +37,7 @@ Supported flags:
 
 ## Format
 
-Normalizes whitespace quickly and consistently.
+Normalizes whitespace quickly and consistently. For TS/JS, also applies quote style, indentation, and import management. Known JSON files are ordered deterministically.
 
 ```bash
 # check formatting without modifying files (exit 1 if changes needed)
@@ -69,3 +69,5 @@ Examples:
 pickier lint .
 pickier format "src/**/*.{ts,tsx,js}"
 ```
+
+Ignored paths come from your config `ignores`. The CLI defaults for `--ext` are `.ts,.tsx,.js,.jsx`.

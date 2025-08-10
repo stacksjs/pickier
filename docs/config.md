@@ -10,23 +10,37 @@ import type { PickierConfig } from 'pickier'
 
 const config: PickierConfig = {
   verbose: false,
-  ignores: ['**/node_modules/**', '**/dist/**', '**/build/**'],
+  ignores: ['**/node_modules/**', '**/dist/**', '**/build/**', '**/vendor/**', '**/coverage/**'],
   lint: {
-    extensions: ['.ts', '.tsx', '.js', '.jsx'],
+    extensions: ['ts', 'js', 'html', 'css', 'json', 'jsonc', 'md', 'yaml', 'yml', 'stx'],
     reporter: 'stylish',
     cache: false,
     maxWarnings: -1,
   },
   format: {
-    extensions: ['.ts', '.tsx', '.js', '.jsx', '.json', '.md', '.yaml', '.yml'],
+    extensions: ['ts', 'js', 'html', 'css', 'json', 'jsonc', 'md', 'yaml', 'yml', 'stx'],
     trimTrailingWhitespace: true,
     maxConsecutiveBlankLines: 1,
     finalNewline: 'one', // 'one' | 'two' | 'none'
+    indent: 2,
+    indentStyle: 'spaces', // 'spaces' | 'tabs'
+    quotes: 'single', // 'single' | 'double'
+    semi: false,
   },
   rules: {
     noDebugger: 'error', // 'off' | 'warn' | 'error'
     noConsole: 'warn',
+    // optional additional checks
+    // noUnusedCapturingGroup: 'warn',
+    // noCondAssign: 'error',
   },
+  // Enable plugin rules (built-ins and custom)
+  // plugins: [myPlugin],
+  // pluginRules: {
+  //   'pickier/sort-objects': ['warn', { type: 'alphabetical', order: 'asc', ignoreCase: true }],
+  //   'style/max-statements-per-line': ['warn', { max: 1 }],
+  //   'regexp/no-super-linear-backtracking': 'error',
+  // },
 }
 
 export default config
@@ -37,18 +51,22 @@ export default config
 ```json
 {
   "verbose": false,
-  "ignores": ["**/node_modules/**", "**/dist/**", "**/build/**"],
+  "ignores": ["**/node_modules/**", "**/dist/**", "**/build/**", "**/vendor/**", "**/coverage/**"],
   "lint": {
-    "extensions": [".ts", ".tsx", ".js", ".jsx"],
+    "extensions": ["ts", "js", "html", "css", "json", "jsonc", "md", "yaml", "yml", "stx"],
     "reporter": "stylish",
     "cache": false,
     "maxWarnings": -1
   },
   "format": {
-    "extensions": [".ts", ".tsx", ".js", ".jsx", ".json", ".md", ".yaml", ".yml"],
+    "extensions": ["ts", "js", "html", "css", "json", "jsonc", "md", "yaml", "yml", "stx"],
     "trimTrailingWhitespace": true,
     "maxConsecutiveBlankLines": 1,
-    "finalNewline": "one"
+    "finalNewline": "one",
+    "indent": 2,
+    "indentStyle": "spaces",
+    "quotes": "single",
+    "semi": false
   },
   "rules": {
     "noDebugger": "error",
@@ -62,3 +80,4 @@ export default config
 - `--config <path>` can point to any of the supported formats.
 - When `--ext` is not provided on the CLI, Pickier uses `lint.extensions` or `format.extensions` from your config.
 - `ignores` are passed to the file scanner to skip matching paths.
+ - The CLI default for `--ext` is `.ts,.tsx,.js,.jsx`. To lint/format additional file types, pass `--ext` or set `extensions` above.

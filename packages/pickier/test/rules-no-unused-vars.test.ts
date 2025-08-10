@@ -8,7 +8,7 @@ function tmp(): string {
   return mkdtempSync(join(tmpdir(), 'pickier-rule-unused-vars-'))
 }
 
-describe('unused-imports/no-unused-vars', () => {
+describe('pickier/no-unused-vars', () => {
   it('flags unused variable with default pattern ^_', async () => {
     const dir = tmp()
     const file = 'a.ts'
@@ -22,8 +22,8 @@ describe('unused-imports/no-unused-vars', () => {
       lint: { extensions: ['ts'], reporter: 'json', cache: false, maxWarnings: -1 },
       format: { extensions: ['ts'], trimTrailingWhitespace: true, maxConsecutiveBlankLines: 1, finalNewline: 'one', indent: 2, quotes: 'single', semi: false },
       rules: { noDebugger: 'off', noConsole: 'off' },
-      plugins: [{ name: 'unused-imports', rules: {} }],
-      pluginRules: { 'unused-imports/no-unused-vars': 'error' },
+      plugins: [{ name: 'pickier', rules: {} }],
+      pluginRules: { 'pickier/no-unused-vars': 'error' },
     }, null, 2), 'utf8')
 
     const code = await runLint([dir], { config: cfgPath, reporter: 'json' })
@@ -43,8 +43,8 @@ describe('unused-imports/no-unused-vars', () => {
       lint: { extensions: ['ts'], reporter: 'json', cache: false, maxWarnings: -1 },
       format: { extensions: ['ts'], trimTrailingWhitespace: true, maxConsecutiveBlankLines: 1, finalNewline: 'one', indent: 2, quotes: 'single', semi: false },
       rules: { noDebugger: 'off', noConsole: 'off' },
-      plugins: [{ name: 'unused-imports', rules: {} }],
-      pluginRules: { 'unused-imports/no-unused-vars': ['error', { varsIgnorePattern: '^_' }] },
+      plugins: [{ name: 'pickier', rules: {} }],
+      pluginRules: { 'pickier/no-unused-vars': ['error', { varsIgnorePattern: '^_' }] },
     }, null, 2), 'utf8')
 
     const code = await runLint([dir], { config: cfgPath, reporter: 'json' })
@@ -64,8 +64,8 @@ describe('unused-imports/no-unused-vars', () => {
       lint: { extensions: ['ts'], reporter: 'json', cache: false, maxWarnings: -1 },
       format: { extensions: ['ts'], trimTrailingWhitespace: true, maxConsecutiveBlankLines: 1, finalNewline: 'one', indent: 2, quotes: 'single', semi: false },
       rules: { noDebugger: 'off', noConsole: 'off' },
-      plugins: [{ name: 'unused-imports', rules: {} }],
-      pluginRules: { 'unused-imports/no-unused-vars': ['error', { argsIgnorePattern: '^_' }] },
+      plugins: [{ name: 'pickier', rules: {} }],
+      pluginRules: { 'pickier/no-unused-vars': ['error', { argsIgnorePattern: '^_' }] },
     }, null, 2), 'utf8')
 
     const code = await runLint([dir], { config: cfgPath, reporter: 'json' })

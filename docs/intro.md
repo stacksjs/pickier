@@ -4,9 +4,10 @@
 
 Pickier is a fast formatter and linter that helps you keep your codebase clean and consistent.
 
-- **Fast**: runs on Bun and uses efficient scanning
+- **Fast**: Bun runtime + `fast-glob` scanning
 - **Simple**: one CLI, two core commands: `lint` and `format`
-- **Configurable**: customize behavior via `pickier.config.{ts,js,json}`
+- **Smart**: import management, JSON/tsconfig sorting, whitespace normalization
+- **Configurable**: quotes, indent, final newlines, semicolons, rules, and plugins
 
 ## Quickstart
 

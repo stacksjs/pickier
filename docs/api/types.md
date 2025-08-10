@@ -1,6 +1,8 @@
 # Types
 
-## `FormatOptions`
+All types are exported from `pickier` and defined in `packages/pickier/src/types.ts`.
+
+## CLI Options
 
 ```ts
 export interface FormatOptions {
@@ -11,11 +13,7 @@ export interface FormatOptions {
   ext?: string
   verbose?: boolean
 }
-```
 
-## `LintOptions`
-
-```ts
 export interface LintOptions {
   fix?: boolean
   dryRun?: boolean
@@ -29,45 +27,73 @@ export interface LintOptions {
 }
 ```
 
-## `PickierConfig`
+## Core Config Types
 
 ```ts
+export type RuleSeverity = 'off' | 'warn' | 'error'
+
+export type Extension =
+  | 'ts' | 'js' | 'html' | 'css' | 'json' | 'jsonc' | 'md' | 'yaml' | 'yml' | 'stx'
+
+export interface PickierRulesConfig {
+  noDebugger: RuleSeverity
+  noConsole: RuleSeverity
+  noUnusedCapturingGroup?: RuleSeverity
+  noCondAssign?: RuleSeverity
+}
+
+export interface PickierLintConfig {
+  extensions: Extension[]
+  reporter: 'stylish' | 'json' | 'compact'
+  cache: boolean
+  maxWarnings: number
+}
+
+export interface PickierFormatConfig {
+  extensions: Extension[]
+  trimTrailingWhitespace: boolean
+  maxConsecutiveBlankLines: number
+  finalNewline: 'one' | 'two' | 'none'
+  indent: number
+  indentStyle?: 'spaces' | 'tabs'
+  quotes: 'single' | 'double'
+  semi: boolean
+}
+
 export interface PickierConfig {
   verbose: boolean
   ignores: string[]
   lint: PickierLintConfig
   format: PickierFormatConfig
   rules: PickierRulesConfig
+  plugins?: Array<PickierPlugin | string>
+  pluginRules?: RulesConfigMap
 }
 ```
 
-### `PickierLintConfig`
+## Plugin Authoring Types
 
 ```ts
-export interface PickierLintConfig {
-  extensions: string[]
-  reporter: 'stylish' | 'json' | 'compact'
-  cache: boolean
-  maxWarnings: number
+export type RulesConfigMap = Record<string, RuleSeverity | [RuleSeverity, unknown]>
+
+export interface RuleMeta { docs?: string, recommended?: boolean, wip?: boolean }
+
+export interface RuleContext {
+  filePath: string
+  config: PickierConfig
+  options?: unknown
 }
-```
 
-### `PickierFormatConfig`
-
-```ts
-export interface PickierFormatConfig {
-  extensions: string[]
-  trimTrailingWhitespace: boolean
-  maxConsecutiveBlankLines: number
-  finalNewline: 'one' | 'two' | 'none'
+export interface LintIssue {
+  filePath: string
+  line: number
+  column: number
+  ruleId: string
+  message: string
+  severity: 'warning' | 'error'
 }
-```
 
-### `PickierRulesConfig`
+export interface RuleModule { meta?: RuleMeta, check: (content: string, context: RuleContext) => LintIssue[] }
 
-```ts
-export interface PickierRulesConfig {
-  noDebugger: 'off' | 'warn' | 'error'
-  noConsole: 'off' | 'warn' | 'error'
-}
+export interface PickierPlugin { name: string, rules: Record<string, RuleModule> }
 ```

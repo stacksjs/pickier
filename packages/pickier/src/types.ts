@@ -29,14 +29,18 @@ export interface PickierLintConfig {
 }
 
 export interface PickierFormatConfig {
+  // file extensions to format
   extensions: Extension[]
+  // trim trailing whitespace
   trimTrailingWhitespace: boolean
   // maximum number of consecutive blank lines to keep
   maxConsecutiveBlankLines: number
   // final newline policy: 'one' ensures 1; 'two' ensures a blank line + final newline; 'none' ensures no trailing newline
   finalNewline: 'one' | 'two' | 'none'
-  // indentation size in spaces for code files (ts/js/tsx/jsx). Tabs will be converted to this many spaces
+  // indentation size in spaces per level (when indentStyle is 'spaces') or the visual width of a tab level (when 'tabs')
   indent: number
+  // indentation style for code files (ts/js/tsx/jsx)
+  indentStyle?: 'spaces' | 'tabs'
   // preferred quote style for code files (ts/js/tsx/jsx). JSON is always kept as double quotes
   quotes: 'single' | 'double'
   // when true, remove stylistic semicolons at end of statements (for/for-in headers unaffected)
@@ -51,6 +55,7 @@ export interface PickierConfig {
   rules: PickierRulesConfig
   // Plugin system (optional)
   plugins?: Array<PickierPlugin | string>
+  // Support both bare rule IDs (preferred) and legacy plugin-prefixed IDs
   pluginRules?: RulesConfigMap
 }
 

@@ -20,6 +20,13 @@ function toSpaces(count: number): string {
   return ' '.repeat(Math.max(0, count))
 }
 
+function makeIndent(visualLevels: number, cfg: PickierConfig): string {
+  const style = cfg.format.indentStyle || 'spaces'
+  if (style === 'tabs')
+    return '\t'.repeat(Math.max(0, visualLevels))
+  return toSpaces(Math.max(0, visualLevels * cfg.format.indent))
+}
+
 function convertDoubleToSingle(str: string): string {
   // strip surrounding quotes
   const inner = str.slice(1, -1)
@@ -50,10 +57,10 @@ function fixQuotes(content: string, preferred: 'single' | 'double', filePath: st
   }
 }
 
-function fixIndentation(content: string, indentSize: number): string {
+function fixIndentation(content: string, indentSize: number, cfg: PickierConfig): string {
   const lines = content.split('\n')
   const out: string[] = []
-  let indentLevel = 0 // in spaces
+  let indentLevel = 0 // visual levels
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i]
     if (line.length === 0) {
@@ -67,15 +74,14 @@ function fixIndentation(content: string, indentSize: number): string {
 
     // If line starts with a closing brace, decrease indent before applying
     if (/^\}/.test(trimmed))
-      indentLevel = Math.max(0, indentLevel - indentSize)
+      indentLevel = Math.max(0, indentLevel - 1)
 
-    const targetSpaces = Math.max(0, indentLevel)
-    const fixed = `${toSpaces(targetSpaces)}${trimmed}`
+    const fixed = `${makeIndent(indentLevel, cfg)}${trimmed}`
     out.push(fixed)
 
     // Increase indentation after opening braces for subsequent lines
     if (/\{\s*$/.test(trimmed))
-      indentLevel += indentSize
+      indentLevel += 1
   }
   return out.join('\n')
 }
@@ -110,6 +116,8 @@ export function formatCode(src: string, cfg: PickierConfig, filePath: string): s
   // collapse blank lines
   const collapsed = collapseBlankLines(trimmed, Math.max(0, cfg.format.maxConsecutiveBlankLines))
   let joined = collapsed.join('\n')
+  // Remove any leading blank lines at the top of the file
+  joined = joined.replace(/^(?:[ \t]*\n)+/, '')
 
   // import management (ts/js only)
   if (isCodeFileExt(filePath))
@@ -126,7 +134,7 @@ export function formatCode(src: string, cfg: PickierConfig, filePath: string): s
   joined = fixQuotes(joined, cfg.format.quotes, filePath)
   // indentation only for code files (ts/js)
   if (isCodeFileExt(filePath)) {
-    joined = fixIndentation(joined, cfg.format.indent)
+    joined = fixIndentation(joined, cfg.format.indent, cfg)
     joined = normalizeCodeSpacing(joined)
     if (cfg.format.semi === true)
       joined = removeStylisticSemicolons(joined)
@@ -167,7 +175,15 @@ export function detectQuoteIssues(line: string, preferred: 'single' | 'double'):
   return indices
 }
 
-export function hasIndentIssue(leading: string, indentSize: number): boolean {
+export function hasIndentIssue(
+  leading: string,
+  indentSize: number,
+  indentStyle: 'spaces' | 'tabs' = 'spaces',
+): boolean {
+  if (indentStyle === 'tabs') {
+    // For tabs style, require leading indentation to be tabs only
+    return /[^\t]/.test(leading)
+  }
   if (/\t/.test(leading))
     return true
   const spaces = leading.length
