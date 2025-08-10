@@ -4,7 +4,7 @@ layout: home
 
 hero:
   name: "Pickier"
-  text: "Format, lint, and more in seconds."
+  text: "Format, lint, and more in a fraction of seconds."
   tagline: "Fast CLI for consistent codebases."
   image: /images/logo-white.png
   actions:
