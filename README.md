@@ -18,6 +18,8 @@ Fast Bun‑native linting and formatting. Minimal defaults. Extensible. Built fo
 - Simple, typed `pickier.config.ts` for overrides
 - Dry‑run mode for safe previews
 - Thorough tests
+- Import organization: splits type/value imports, sorts modules/specifiers, removes unused named imports
+- Optional stylistic semicolon cleanup (`format.semi`)
 
 ## Install
 
@@ -112,6 +114,13 @@ const config: PickierConfig = {
     maxConsecutiveBlankLines: 1,
     // one | two | none
     finalNewline: 'one',
+    // 2-space indentation (code files)
+    indent: 2,
+    // preferred string quotes in code files: 'single' | 'double'
+    quotes: 'single',
+    // when true, safely remove stylistic semicolons
+    // (never touches for(;;) headers; removes duplicate/empty semicolon statements)
+    semi: false,
   },
 
   rules: {
@@ -123,6 +132,29 @@ const config: PickierConfig = {
 
 export default config
 ```
+
+### Formatting details
+
+- Semicolons
+  - Controlled by `format.semi` (default `false`). When `true`, Pickier removes only stylistic semicolons safely:
+    - preserves `for (init; test; update)` headers
+    - removes duplicate trailing semicolons (e.g. `foo();;` → `foo();`)
+    - removes lines that are just empty statements (`;`)
+    - keeps normal end-of-line semicolons otherwise (non-destructive)
+
+- Imports (TypeScript/JavaScript)
+  - Groups and rewrites the top import block:
+    - Splits type-only specifiers into `import type { ... } from 'x'`
+    - Keeps default and namespace imports
+    - Removes unused named specifiers only when they have no alias
+    - Merges multiple imports from the same module
+  - Sorting
+    - Order by kind: type imports, side-effect imports, value imports
+    - For modules: external before relative
+    - For specifiers: A→Z by identifier; minor normalization for consistent ordering
+  - Spacing/newlines
+    - Ensures a single blank line between the import block and the rest of the file
+    - Respects `format.finalNewline` at EOF
 
 Notes:
 
