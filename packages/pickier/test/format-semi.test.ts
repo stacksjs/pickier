@@ -8,7 +8,7 @@ function tmp(): string {
   return mkdtempSync(join(tmpdir(), 'pickier-semi-'))
 }
 
-function list(dir: string): string[] {
+function _list(dir: string): string[] {
   return readdirSync(dir).filter(f => !f.startsWith('.'))
 }
 

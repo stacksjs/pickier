@@ -109,7 +109,7 @@ function scanContent(filePath: string, content: string, cfg: PickierConfig): Lin
     }
 
     // quote preference diagnostics (only for code files)
-    if (/\.(ts|tsx|js|jsx)$/.test(filePath)) {
+    if (/\.(?:ts|tsx|js|jsx)$/.test(filePath)) {
       const quoteIdx = detectQuoteIssues(line, cfg.format.quotes)
       for (const idx of quoteIdx) {
         issues.push({

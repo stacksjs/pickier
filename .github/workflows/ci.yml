@@ -107,4 +107,5 @@ jobs:
         run: bun run build
 
       - name: Publish Commit
-        run: bunx pkg-pr-new publish
+        run: bunx pkg-pr-new publish './packages/pickier'
+        # run: bunx pkg-pr-new publish './packages/action' './packages/launchpad'

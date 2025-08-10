@@ -143,18 +143,14 @@ export function detectQuoteIssues(line: string, preferred: 'single' | 'double'):
   // return character indices (0-based) where offending quote starts
   const indices: number[] = []
   if (preferred === 'single') {
-    const re = /"([^"\\]|\\.)*"/g
-    let m: RegExpExecArray | null
-    while ((m = re.exec(line))) {
-      indices.push(m.index)
-    }
+    const re = /"(?:[^"\\]|\\.)*"/g
+    for (const match of line.matchAll(re))
+      indices.push(match.index || 0)
   }
   else {
-    const re = /'([^'\\]|\\.)*'/g
-    let m: RegExpExecArray | null
-    while ((m = re.exec(line))) {
-      indices.push(m.index)
-    }
+    const re = /'(?:[^'\\]|\\.)*'/g
+    for (const match of line.matchAll(re))
+      indices.push(match.index || 0)
   }
   return indices
 }
@@ -174,33 +170,37 @@ function maskStrings(input: string): { text: string, strings: string[] } {
   let start = 0
   while (i < input.length) {
     const ch = input[i]
-    if (mode === 'none') {
-      if (ch === '\'' || ch === '"') {
-        mode = ch === '\'' ? 'single' : 'double'
-        start = i
-        i++
-        while (i < input.length) {
-          const c = input[i]
-          if (c === '\\') { i += 2; continue }
-          if ((mode === 'single' && c === '\'') || (mode === 'double' && c === '"')) { i++; break }
-          i++
-        }
-        const s = input.slice(start, i)
-        const token = `@@S${strings.length}@@`
-        strings.push(s)
-        out += token
-        mode = 'none'
-        continue
-      }
-      out += ch
+    if (mode === 'none' && (ch === '\'' || ch === '"')) {
+      mode = ch === '\'' ? 'single' : 'double'
+      start = i
       i++
+      while (i < input.length) {
+        const c = input[i]
+        if (c === '\\') {
+          i += 2
+          continue
+        }
+        if ((mode === 'single' && c === '\'') || (mode === 'double' && c === '"')) {
+          i++
+          break
+        }
+        i++
+      }
+      const s = input.slice(start, i)
+      const token = `@@S${strings.length}@@`
+      strings.push(s)
+      out += token
+      mode = 'none'
+      continue
     }
+    out += ch
+    i++
   }
   return { text: out, strings }
 }
 
 function unmaskStrings(text: string, strings: string[]): string {
-  return text.replace(/@@S(\d+)@@/g, (_, idx) => strings[Number(idx)] ?? '')
+  return text.replace(/@@S(\d+)@@/g, (_, idx: string) => strings[Number(idx)] ?? '')
 }
 
 function normalizeCodeSpacing(input: string): string {
@@ -220,10 +220,10 @@ function normalizeCodeSpacing(input: string): string {
   // keep object literal inner spacing as-is
   // collapse multiple spaces to single, but not leading indentation
   t = t.split('\n').map((line) => {
-    const m = line.match(/^(\s*)(.*)$/)
-    if (!m)
-      return line
-    const [, lead, rest] = m
+    const trimmedStart = line.trimStart()
+    const leadLength = line.length - trimmedStart.length
+    const lead = line.slice(0, leadLength)
+    const rest = line.slice(leadLength)
     return lead + rest.replace(/\s{2,}/g, ' ')
   }).join('\n')
   return unmaskStrings(t, strings)
@@ -346,7 +346,7 @@ function formatImports(source: string): string {
 
   // build output imports
   const entries: ParsedImport[] = []
-  for (const [sourcePath, bucket] of bySource) {
+  for (const [_sourcePath, bucket] of bySource) {
     if (bucket.side)
       entries.push(...bucket.side)
     if (bucket.value) {
@@ -461,7 +461,7 @@ function parseImportStatement(stmt: string): ParsedImport | undefined {
     return { kind: 'side-effect', source: m[1], named: [], namedTypes: [], original: stmt }
   }
   // type-only: import type { A, B as C } from 'x'
-  m = stmt.match(/^\s*import\s+type\s+\{([\s\S]*?)\}\s+from\s+['"]([^'"]+)['"]/)
+  m = stmt.match(/^\s*import\s+type\s+\{([^}]*)\}\s+from\s+['"]([^'"]+)['"]/)
   if (m) {
     const spec = m[1]
     const source = m[2]
@@ -472,18 +472,20 @@ function parseImportStatement(stmt: string): ParsedImport | undefined {
     return { kind: 'type', source, named: [], namedTypes, original: stmt }
   }
   // value import: default/namespace/named (with possible "type" in named)
-  m = stmt.match(/^\s*import\s+([\s\S]+?)\s+from\s+['"]([^'"]+)['"]/)
-  if (!m)
+  // Use non-backtracking parsing: locate the leading "import" and trailing "from 'src'" and slice
+  const importLead = stmt.match(/^\s*import\s+/)
+  const fromMatch = stmt.match(/\sfrom\s+['"]([^'"]+)['"]\s*;?$/)
+  if (!importLead || !fromMatch)
     return undefined
-  let left = m[1].trim()
-  const source = m[2]
+  const source = fromMatch[1]
+  let left = stmt.slice(importLead[0].length, fromMatch.index).trim()
   let defaultName: string | undefined
   let namespaceName: string | undefined
   const named: Array<{ name: string, alias?: string }> = []
   const namedTypes: Array<{ name: string, alias?: string }> = []
 
   // extract named group if any
-  const namedMatch = left.match(/\{([\s\S]*?)\}/)
+  const namedMatch = left.match(/\{([^}]*)\}/)
   if (namedMatch) {
     const inner = namedMatch[1]
     const items = inner.split(',').map(s => s.trim()).filter(Boolean)
