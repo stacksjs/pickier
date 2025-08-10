@@ -478,7 +478,7 @@ function applyPlugins(filePath: string, content: string, cfg: PickierConfig): Pl
         },
       },
       'prefer-const': {
-        meta: { docs: "Suggest 'const' for variables that are never reassigned (heuristic)" },
+        meta: { docs: 'Suggest \'const\' for variables that are never reassigned (heuristic)' },
         check: (text, ctx) => {
           const issues: PluginLintIssue[] = []
           const lines = text.split(/\r?\n/)
@@ -535,6 +535,1017 @@ function applyPlugins(filePath: string, content: string, cfg: PickierConfig): Pl
                 })
               }
             }
+          }
+          return issues
+        },
+      },
+      'sort-classes': {
+        meta: { docs: 'Enforce sorted class members (heuristic)' },
+        check: (text, ctx) => {
+          const issues: PluginLintIssue[] = []
+          const opts: any = ctx.options || {}
+          const type: 'alphabetical' | 'natural' | 'line-length' | 'custom' | 'unsorted' = opts.type || 'alphabetical'
+          const order: 'asc' | 'desc' = opts.order || 'asc'
+          const ignoreCase: boolean = opts.ignoreCase !== false
+          const specialCharacters: 'keep' | 'trim' | 'remove' = opts.specialCharacters || 'keep'
+          const partitionByNewLine: boolean = Boolean(opts.partitionByNewLine)
+          const alphabet: string = typeof opts.alphabet === 'string' ? opts.alphabet : ''
+
+          const dir = (n: number) => (order === 'asc' ? n : -n)
+          const normalizeKey = (s: string): string => {
+            let k = s
+            if (specialCharacters === 'trim')
+              k = k.replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, '')
+            else if (specialCharacters === 'remove')
+              k = k.replace(/[^\p{L}\p{N}]+/gu, '')
+            return ignoreCase ? k.toLowerCase() : k
+          }
+          const cmpAlpha = (a: string, b: string) => a.localeCompare(b)
+          const cmpNat = (a: string, b: string) => a.localeCompare(b, undefined, { numeric: true })
+          const cmpCustom = (a: string, b: string) => {
+            if (!alphabet)
+              return cmpAlpha(a, b)
+            const ai = (c: string) => {
+              const i = alphabet.indexOf(c)
+              return i === -1 ? alphabet.length + c.codePointAt(0)! : i
+            }
+            const len = Math.min(a.length, b.length)
+            for (let i = 0; i < len; i++) {
+              const da = ai(a[i])
+              const db = ai(b[i])
+              if (da !== db)
+                return da - db
+            }
+            return a.length - b.length
+          }
+          const cmpKey = (ka: string, kb: string): number => {
+            if (type === 'unsorted')
+              return 0
+            if (type === 'line-length')
+              return dir(ka.length - kb.length)
+            if (type === 'natural')
+              return dir(cmpNat(ka, kb))
+            if (type === 'custom')
+              return dir(cmpCustom(ka, kb))
+            return dir(cmpAlpha(ka, kb))
+          }
+
+          const lines = text.split(/\r?\n/)
+          // naive class scanner with brace balancing
+          for (let i = 0; i < lines.length; i++) {
+            const line = lines[i]
+            const cls = line.match(/^\s*class\s+[A-Za-z_$][\w$]*/)
+            if (!cls)
+              continue
+            // find opening brace
+            let bodyStart = line.indexOf('{')
+            let startLine = i
+            if (bodyStart === -1) {
+              // search next lines for '{'
+              let j = i + 1
+              for (; j < lines.length; j++) {
+                const k = lines[j].indexOf('{')
+                if (k !== -1) { bodyStart = k; startLine = j; break }
+              }
+              if (bodyStart === -1)
+                continue
+            }
+            // balance braces to find body end
+            let depth = 0
+            let endLine = -1
+            for (let j = startLine; j < lines.length; j++) {
+              const ln = lines[j]
+              for (const ch of ln) {
+                if (ch === '{')
+                  depth++
+                else if (ch === '}')
+                  depth--
+              }
+              if (depth === 0) { endLine = j; break }
+            }
+            if (endLine === -1)
+              continue
+            const body = lines.slice(startLine + 1, endLine) // exclude braces
+            // collect member heads (first non-empty/non-decorator line of each member)
+            const members: Array<{ name: string, line: number }> = []
+            let idx = 0
+            const nameFromSig = (sig: string): string => {
+              // remove modifiers
+              let s = sig.trim()
+              s = s.replace(/^(public|protected|private|readonly|abstract|static|declare|async|override|accessor)\s+/g, '')
+              if (/^constructor\b/.test(s))
+                return 'constructor'
+              const acc = s.match(/^(get|set)\s+([A-Za-z_$][\w$]*)/)
+              if (acc)
+                return acc[2]
+              const meth = s.match(/^([A-Z_$][\w$]*)\s*\(/i)
+              if (meth)
+                return meth[1]
+              const prop = s.match(/^([A-Z_$][\w$]*)\s*[:=]/i)
+              if (prop)
+                return prop[1]
+              return s.split(/\s+/)[0] || 'unknown'
+            }
+            while (idx < body.length) {
+              // skip blank lines and decorators
+              while (idx < body.length && (/^\s*$/.test(body[idx]) || /^\s*@/.test(body[idx]))) idx++
+              if (idx >= body.length)
+                break
+              const headLine = body[idx]
+              const name = nameFromSig(headLine)
+              members.push({ name, line: startLine + 1 + idx + 1 })
+              // advance until next plausible member start: naive, stop at next line that looks like a member head or a blank separator
+              idx++
+            }
+
+            // Partition by blank lines if requested
+            const groups: Array<typeof members> = []
+            if (partitionByNewLine) {
+              let current: Array<{ name: string, line: number }> = []
+              let lastNonEmpty = -2
+              for (let j = 0; j < body.length; j++) {
+                const isEmpty = /^\s*$/.test(body[j])
+                if (!isEmpty)
+                  lastNonEmpty = j
+                const m = members.find(mm => mm.line === startLine + 1 + j + 1)
+                if (m)
+                  current.push(m)
+                const nextIsEmpty = j + 1 < body.length ? /^\s*$/.test(body[j + 1]) : true
+                if (partitionByNewLine && !isEmpty && nextIsEmpty) {
+                  if (current.length)
+                    groups.push(current)
+                  current = []
+                }
+              }
+              if (current.length)
+                groups.push(current)
+            }
+            else {
+              groups.push(members)
+            }
+
+            // Check each group ordering
+            for (const g of groups) {
+              if (g.length <= 1)
+                continue
+              const keys = g.map(m => normalizeKey(m.name))
+              const sorted = [...keys].sort((a, b) => cmpKey(a, b))
+              const same = keys.every((k, idx2) => k === sorted[idx2])
+              if (!same) {
+                const first = g[0]
+                issues.push({
+                  filePath: ctx.filePath,
+                  line: first.line,
+                  column: 1,
+                  ruleId: 'sort-classes',
+                  message: 'Class members are not sorted',
+                  severity: 'warning',
+                })
+              }
+            }
+            i = endLine
+          }
+          return issues
+        },
+      },
+      'sort-enums': {
+        meta: { docs: 'Enforce sorted TypeScript enum members (heuristic)' },
+        check: (text, ctx) => {
+          const issues: PluginLintIssue[] = []
+          const opts: any = ctx.options || {}
+          const type: 'alphabetical' | 'natural' | 'line-length' | 'custom' | 'unsorted' = opts.type || 'alphabetical'
+          const order: 'asc' | 'desc' = opts.order || 'asc'
+          const ignoreCase: boolean = opts.ignoreCase !== false
+          const specialCharacters: 'keep' | 'trim' | 'remove' = opts.specialCharacters || 'keep'
+          const alphabet: string = typeof opts.alphabet === 'string' ? opts.alphabet : ''
+          const partitionByNewLine: boolean = Boolean(opts.partitionByNewLine)
+          const sortByValue: boolean = Boolean(opts.sortByValue)
+          const forceNumericSort: boolean = Boolean(opts.forceNumericSort)
+
+          const dir = (n: number) => (order === 'asc' ? n : -n)
+          const normalizeKey = (s: string): string => {
+            let k = s
+            if (specialCharacters === 'trim')
+              k = k.replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, '')
+            else if (specialCharacters === 'remove')
+              k = k.replace(/[^\p{L}\p{N}]+/gu, '')
+            return ignoreCase ? k.toLowerCase() : k
+          }
+          const cmpAlpha = (a: string, b: string) => a.localeCompare(b)
+          const cmpNat = (a: string, b: string) => a.localeCompare(b, undefined, { numeric: true })
+          const cmpCustom = (a: string, b: string) => {
+            if (!alphabet)
+              return cmpAlpha(a, b)
+            const ai = (c: string) => {
+              const i = alphabet.indexOf(c)
+              return i === -1 ? alphabet.length + c.codePointAt(0)! : i
+            }
+            const len = Math.min(a.length, b.length)
+            for (let i = 0; i < len; i++) {
+              const da = ai(a[i])
+              const db = ai(b[i])
+              if (da !== db)
+                return da - db
+            }
+            return a.length - b.length
+          }
+          const cmpKey = (ka: string, kb: string): number => {
+            if (type === 'unsorted')
+              return 0
+            if (type === 'line-length')
+              return dir(ka.length - kb.length)
+            if (type === 'natural')
+              return dir(cmpNat(ka, kb))
+            if (type === 'custom')
+              return dir(cmpCustom(ka, kb))
+            return dir(cmpAlpha(ka, kb))
+          }
+
+          const lines = text.split(/\r?\n/)
+          for (let i = 0; i < lines.length; i++) {
+            const line = lines[i]
+            const enumStart = line.match(/^\s*enum\s+[A-Za-z_$][\w$]*/)
+            if (!enumStart)
+              continue
+            // find opening brace
+            let bodyStart = line.indexOf('{')
+            let startLine = i
+            if (bodyStart === -1) {
+              let j = i + 1
+              for (; j < lines.length; j++) {
+                const k = lines[j].indexOf('{')
+                if (k !== -1) { bodyStart = k; startLine = j; break }
+              }
+              if (bodyStart === -1)
+                continue
+            }
+            // balance braces
+            let depth = 0
+            let endLine = -1
+            for (let j = startLine; j < lines.length; j++) {
+              const ln = lines[j]
+              for (const ch of ln) {
+                if (ch === '{')
+                  depth++
+                else if (ch === '}')
+                  depth--
+              }
+              if (depth === 0) { endLine = j; break }
+            }
+            if (endLine === -1)
+              continue
+            const body = lines.slice(startLine + 1, endLine) // exclude braces
+
+            // collect enum members (NAME [= value])
+            interface Member { name: string, value?: string, line: number }
+            const members: Member[] = []
+            for (let j = 0; j < body.length; j++) {
+              const ln = body[j]
+              if (/^\s*$/.test(ln) || /^\s*\/\//.test(ln) || /^\s*\*/.test(ln))
+                continue
+              const m = ln.match(/^\s*([A-Z_$][\w$]*)\s*(?:=\s*([^,/]+)\s*)?,?\s*(?:\/\/.*)?$/i)
+              if (!m)
+                continue
+              const name = m[1]
+              const value = m[2] ? m[2].trim() : undefined
+              members.push({ name, value, line: startLine + 1 + j + 1 })
+            }
+
+            // partition groups by blank line if requested
+            const groups: Array<Member[]> = []
+            if (partitionByNewLine) {
+              let current: Member[] = []
+              for (let j = 0; j < body.length; j++) {
+                const ln = body[j]
+                const mem = members.find(m => m.line === startLine + 1 + j + 1)
+                if (mem)
+                  current.push(mem)
+                const nextEmpty = j + 1 < body.length ? /^\s*$/.test(body[j + 1]) : true
+                if (!/^\s*$/.test(ln) && nextEmpty) { groups.push(current); current = [] }
+              }
+              if (current.length)
+                groups.push(current)
+            }
+            else {
+              groups.push(members)
+            }
+
+            // detect numeric enum values
+            const isNumericValue = (v?: string): boolean => v != null && /^-?\d+(?:_\d+)*$/.test(v.trim())
+            for (const g of groups) {
+              if (g.length <= 1)
+                continue
+              const allNumericValues = g.every(m => isNumericValue(m.value))
+              // build keys by name or value
+              const keys = g.map((m) => {
+                if (forceNumericSort || (sortByValue && allNumericValues)) {
+                  const num = Number((m.value || '').replace(/_/g, ''))
+                  return String(num)
+                }
+                const raw = sortByValue && m.value != null ? m.value : m.name
+                return normalizeKey(String(raw))
+              })
+              const sorted = [...keys].sort((a, b) => cmpKey(a, b))
+              const same = keys.every((k, idx2) => k === sorted[idx2])
+              if (!same) {
+                const first = g[0]
+                issues.push({
+                  filePath: ctx.filePath,
+                  line: first.line,
+                  column: 1,
+                  ruleId: 'sort-enums',
+                  message: 'Enum members are not sorted',
+                  severity: 'warning',
+                })
+              }
+            }
+            i = endLine
+          }
+          return issues
+        },
+      },
+      'sort-array-includes': {
+        meta: { docs: 'Enforce sorted array values when immediately used with .includes(...) (heuristic)' },
+        check: (text, ctx) => {
+          const issues: PluginLintIssue[] = []
+          const opts: any = ctx.options || {}
+          const type: 'alphabetical' | 'natural' | 'line-length' | 'custom' | 'unsorted' = opts.type || 'alphabetical'
+          const order: 'asc' | 'desc' = opts.order || 'asc'
+          const ignoreCase: boolean = opts.ignoreCase !== false
+          const specialCharacters: 'keep' | 'trim' | 'remove' = opts.specialCharacters || 'keep'
+          const alphabet: string = typeof opts.alphabet === 'string' ? opts.alphabet : ''
+          const partitionByNewLine: boolean = Boolean(opts.partitionByNewLine)
+
+          const dir = (n: number) => (order === 'asc' ? n : -n)
+          const normalizeKey = (s: string): string => {
+            let k = s
+            if (specialCharacters === 'trim')
+              k = k.replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, '')
+            else if (specialCharacters === 'remove')
+              k = k.replace(/[^\p{L}\p{N}]+/gu, '')
+            return ignoreCase ? k.toLowerCase() : k
+          }
+          const cmpAlpha = (a: string, b: string) => a.localeCompare(b)
+          const cmpNat = (a: string, b: string) => a.localeCompare(b, undefined, { numeric: true })
+          const cmpCustom = (a: string, b: string) => {
+            if (!alphabet)
+              return cmpAlpha(a, b)
+            const ai = (c: string) => {
+              const i = alphabet.indexOf(c)
+              return i === -1 ? alphabet.length + c.codePointAt(0)! : i
+            }
+            const len = Math.min(a.length, b.length)
+            for (let i = 0; i < len; i++) {
+              const da = ai(a[i])
+              const db = ai(b[i])
+              if (da !== db)
+                return da - db
+            }
+            return a.length - b.length
+          }
+          const cmpKey = (ka: string, kb: string): number => {
+            if (type === 'unsorted')
+              return 0
+            if (type === 'line-length')
+              return dir(ka.length - kb.length)
+            if (type === 'natural')
+              return dir(cmpNat(ka, kb))
+            if (type === 'custom')
+              return dir(cmpCustom(ka, kb))
+            return dir(cmpAlpha(ka, kb))
+          }
+
+          // Scan for array literals immediately followed by .includes(
+          const content = text
+          const lines = content.split(/\r?\n/)
+          const lineOf = (idx: number) => (content.slice(0, idx).match(/\n/g) || []).length + 1
+          let i = 0
+          while (i < content.length) {
+            const start = content.indexOf('[', i)
+            if (start === -1)
+              break
+            // find closing matching ']' with minimal parsing
+            let j = start + 1
+            let depth = 1
+            let mode: 'none' | 'single' | 'double' | 'backtick' = 'none'
+            let escape = false
+            for (; j < content.length; j++) {
+              const ch = content[j]
+              if (escape) { escape = false; continue }
+              if (ch === '\\') { escape = true; continue }
+              if (mode === 'none') {
+                if (ch === '\'') {
+                  mode = 'single'
+                }
+                else if (ch === '"') {
+                  mode = 'double'
+                }
+                else if (ch === '`') {
+                  mode = 'backtick'
+                }
+                else if (ch === '[') {
+                  depth++
+                }
+                else if (ch === ']') { depth--; if (depth === 0) { break } }
+              }
+              else {
+                if ((mode === 'single' && ch === '\'') || (mode === 'double' && ch === '"') || (mode === 'backtick' && ch === '`'))
+                  mode = 'none'
+              }
+            }
+            if (depth !== 0) { i = start + 1; continue }
+            // ensure immediate call to .includes
+            let k = j + 1
+            while (k < content.length && /\s/.test(content[k])) k++
+            if (!content.startsWith('.includes', k)) { i = j + 1; continue }
+            const arrText = content.slice(start + 1, j)
+            // Partition elements by blank lines if requested
+            const arrLines = arrText.split(/\r?\n/)
+            const groups: string[][] = []
+            if (partitionByNewLine) {
+              let current: string[] = []
+              for (let li = 0; li < arrLines.length; li++) {
+                const ln = arrLines[li]
+                if (/^\s*$/.test(ln)) { if (current.length) { groups.push(current); current = [] } continue }
+                current.push(ln)
+              }
+              if (current.length)
+                groups.push(current)
+            }
+            else {
+              groups.push(arrLines)
+            }
+            // Extract simple string or numeric literals split by commas per group
+            for (const g of groups) {
+              const textBlock = g.join('\n')
+              // split by commas not inside quotes (simple approach: match literals)
+              const literals: Array<{ raw: string, key: string }> = []
+              const litRe = /(['"])((?:\\.|(?!\1).)*)\1\s*,?/gs
+              let m: RegExpExecArray | null
+              while ((m = litRe.exec(textBlock))) {
+                const raw = m[0].trim().replace(/,\s*$/, '')
+                const val = m[2]
+                literals.push({ raw, key: normalizeKey(val) })
+              }
+              if (literals.length <= 1)
+                continue
+              const keys = literals.map(l => l.key)
+              const sorted = [...keys].sort((a, b) => cmpKey(a, b))
+              const same = keys.every((k2, idx) => k2 === sorted[idx])
+              if (!same) {
+                const reportLine = lineOf(start)
+                issues.push({ filePath: ctx.filePath, line: reportLine, column: 1, ruleId: 'sort-array-includes', message: 'Array passed to .includes(...) is not sorted', severity: 'warning' })
+              }
+            }
+            i = j + 1
+          }
+          return issues
+        },
+      },
+      'sort-switch-case': {
+        meta: { docs: 'Enforce sorted switch case statements (heuristic)' },
+        check: (text, ctx) => {
+          const issues: PluginLintIssue[] = []
+          const opts: any = ctx.options || {}
+          const type: 'alphabetical' | 'natural' | 'line-length' | 'custom' | 'unsorted' = opts.type || 'alphabetical'
+          const order: 'asc' | 'desc' = opts.order || 'asc'
+          const ignoreCase: boolean = opts.ignoreCase !== false
+          const specialCharacters: 'keep' | 'trim' | 'remove' = opts.specialCharacters || 'keep'
+          const alphabet: string = typeof opts.alphabet === 'string' ? opts.alphabet : ''
+
+          const dir = (n: number) => (order === 'asc' ? n : -n)
+          const normalizeKey = (s: string): string => {
+            let k = s
+            if (specialCharacters === 'trim')
+              k = k.replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, '')
+            else if (specialCharacters === 'remove')
+              k = k.replace(/[^\p{L}\p{N}]+/gu, '')
+            return ignoreCase ? k.toLowerCase() : k
+          }
+          const cmpAlpha = (a: string, b: string) => a.localeCompare(b)
+          const cmpNat = (a: string, b: string) => a.localeCompare(b, undefined, { numeric: true })
+          const cmpCustom = (a: string, b: string) => {
+            if (!alphabet)
+              return cmpAlpha(a, b)
+            const ai = (c: string) => {
+              const i = alphabet.indexOf(c)
+              return i === -1 ? alphabet.length + c.codePointAt(0)! : i
+            }
+            const len = Math.min(a.length, b.length)
+            for (let i = 0; i < len; i++) {
+              const da = ai(a[i])
+              const db = ai(b[i])
+              if (da !== db)
+                return da - db
+            }
+            return a.length - b.length
+          }
+          const cmpKey = (ka: string, kb: string): number => {
+            if (type === 'unsorted')
+              return 0
+            if (type === 'line-length')
+              return dir(ka.length - kb.length)
+            if (type === 'natural')
+              return dir(cmpNat(ka, kb))
+            if (type === 'custom')
+              return dir(cmpCustom(ka, kb))
+            return dir(cmpAlpha(ka, kb))
+          }
+
+          const content = text
+          let i = 0
+          const lineOf = (idx: number) => (content.slice(0, idx).match(/\n/g) || []).length + 1
+          while (i < content.length) {
+            const sw = content.indexOf('switch', i)
+            if (sw === -1)
+              break
+            // ensure followed by whitespace and '('
+            const after = content.slice(sw)
+            const m = after.match(/^switch\s*\(/)
+            if (!m) { i = sw + 6; continue }
+            // find '{' for switch body
+            let p = sw + m[0].length
+            let paren = 1
+            while (p < content.length && paren > 0) {
+              const ch = content[p]
+              if (ch === '(')
+                paren++
+              else if (ch === ')')
+                paren--
+              p++
+            }
+            // now expect optional ws then '{'
+            while (p < content.length && /\s/.test(content[p])) p++
+            if (content[p] !== '{') { i = p + 1; continue }
+            const bodyStart = p
+            // balance braces for switch
+            let depth = 0
+            let q = bodyStart
+            for (; q < content.length; q++) {
+              const ch = content[q]
+              if (ch === '{') {
+                depth++
+              }
+              else if (ch === '}') { depth--; if (depth === 0) { q++; break } }
+            }
+            const body = content.slice(bodyStart + 1, q - 1)
+            // extract top-level case labels in this switch
+            const caseRe = /^\s*case\s+([\s\S]*?):/gm
+            const cases: Array<{ raw: string, key: string, idx: number }> = []
+            let mm: RegExpExecArray | null
+            while ((mm = caseRe.exec(body))) {
+              const raw = mm[1].trim()
+              // name for comparison: try to get string literal content or identifier
+              let name = raw
+              const str = raw.match(/^(['"])((?:\\.|(?!\1).)*)\1/)
+              if (str)
+                name = str[2]
+              else name = raw.split(/[\s|&+\-*/%<>=,;]+/)[0]
+              const key = normalizeKey(name)
+              cases.push({ raw: name, key, idx: mm.index })
+            }
+            if (cases.length > 1) {
+              const keys = cases.map(c => c.key)
+              const sorted = [...keys].sort((a, b) => cmpKey(a, b))
+              const same = keys.every((k2, idx2) => k2 === sorted[idx2])
+              if (!same) {
+                const report = lineOf(bodyStart + 1 + (cases[0]?.idx || 0))
+                issues.push({ filePath: ctx.filePath, line: report, column: 1, ruleId: 'sort-switch-case', message: 'Switch cases are not sorted', severity: 'warning' })
+              }
+            }
+            i = q
+          }
+          return issues
+        },
+      },
+      'sort-interfaces': {
+        meta: { docs: 'Enforce sorted TypeScript interface properties (heuristic)' },
+        check: (text, ctx) => {
+          const issues: PluginLintIssue[] = []
+          const opts: any = ctx.options || {}
+          const type: 'alphabetical' | 'natural' | 'line-length' | 'custom' | 'unsorted' = opts.type || 'alphabetical'
+          const order: 'asc' | 'desc' = opts.order || 'asc'
+          const ignoreCase: boolean = opts.ignoreCase !== false
+          const specialCharacters: 'keep' | 'trim' | 'remove' = opts.specialCharacters || 'keep'
+          const alphabet: string = typeof opts.alphabet === 'string' ? opts.alphabet : ''
+          const partitionByNewLine: boolean = Boolean(opts.partitionByNewLine)
+          const sortBy: 'name' | 'value' = (opts.sortBy === 'value' ? 'value' : 'name')
+
+          const dir = (n: number) => (order === 'asc' ? n : -n)
+          const normalizeKey = (s: string): string => {
+            let k = s
+            if (specialCharacters === 'trim')
+              k = k.replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, '')
+            else if (specialCharacters === 'remove')
+              k = k.replace(/[^\p{L}\p{N}]+/gu, '')
+            return ignoreCase ? k.toLowerCase() : k
+          }
+          const cmpAlpha = (a: string, b: string) => a.localeCompare(b)
+          const cmpNat = (a: string, b: string) => a.localeCompare(b, undefined, { numeric: true })
+          const cmpCustom = (a: string, b: string) => {
+            if (!alphabet)
+              return cmpAlpha(a, b)
+            const ai = (c: string) => {
+              const i = alphabet.indexOf(c)
+              return i === -1 ? alphabet.length + c.codePointAt(0)! : i
+            }
+            const len = Math.min(a.length, b.length)
+            for (let i = 0; i < len; i++) {
+              const da = ai(a[i])
+              const db = ai(b[i])
+              if (da !== db)
+                return da - db
+            }
+            return a.length - b.length
+          }
+          const cmpKey = (ka: string, kb: string): number => {
+            if (type === 'unsorted')
+              return 0
+            if (type === 'line-length')
+              return dir(ka.length - kb.length)
+            if (type === 'natural')
+              return dir(cmpNat(ka, kb))
+            if (type === 'custom')
+              return dir(cmpCustom(ka, kb))
+            return dir(cmpAlpha(ka, kb))
+          }
+
+          const content = text
+          const lines = content.split(/\r?\n/)
+          const lineOf = (idx: number) => (content.slice(0, idx).match(/\n/g) || []).length + 1
+          let i = 0
+          while (i < content.length) {
+            const pos = content.indexOf('interface ', i)
+            if (pos === -1)
+              break
+            // ensure keyword at boundary
+            const prev = pos > 0 ? content[pos - 1] : ' '
+            if (/\w/.test(prev)) { i = pos + 1; continue }
+            // find name and opening brace
+            const j = pos + 'interface'.length
+            // move to '{'
+            const braceIdx = content.indexOf('{', j)
+            if (braceIdx === -1) { i = pos + 1; continue }
+            // balance braces
+            let depth = 0
+            let k = braceIdx
+            for (; k < content.length; k++) {
+              const ch = content[k]
+              if (ch === '{') {
+                depth++
+              }
+              else if (ch === '}') { depth--; if (depth === 0) { k++; break } }
+            }
+            const body = content.slice(braceIdx + 1, k - 1)
+            const bodyLines = body.split(/\r?\n/)
+            interface Member { name: string, value?: string, line: number }
+            const members: Member[] = []
+            // parse simple property/method signatures per line
+            for (let bi = 0; bi < bodyLines.length; bi++) {
+              const ln = bodyLines[bi]
+              if (/^\s*$/.test(ln))
+                continue
+              if (/^\s*\//.test(ln) || /^\s*\*/.test(ln))
+                continue // skip comment lines
+              const signature = ln.trim()
+              // property: name ... : type
+              let m = signature.match(/^([A-Z_$][\w$]*)(\??)\s*:\s*([^;]+)/i)
+              if (m) {
+                const name = m[1]
+                const value = m[3].trim()
+                members.push({ name, value, line: lineOf(braceIdx + 1) + bi })
+                continue
+              }
+              // method: name(...)
+              m = signature.match(/^([A-Z_$][\w$]*)\s*\(/i)
+              if (m) {
+                const name = m[1]
+                members.push({ name, line: lineOf(braceIdx + 1) + bi })
+              }
+            }
+
+            // partition by blank lines if requested
+            const groups: Member[][] = []
+            if (partitionByNewLine) {
+              let current: Member[] = []
+              for (let bi = 0; bi < bodyLines.length; bi++) {
+                const ln = bodyLines[bi]
+                const mem = members.find(m => m.line === lineOf(braceIdx + 1) + bi)
+                if (mem)
+                  current.push(mem)
+                const nextEmpty = bi + 1 < bodyLines.length ? /^\s*$/.test(bodyLines[bi + 1]) : true
+                if (!/^\s*$/.test(ln) && nextEmpty) {
+                  if (current.length)
+                    groups.push(current); current = []
+                }
+              }
+              if (current.length)
+                groups.push(current)
+            }
+            else {
+              groups.push(members)
+            }
+
+            for (const g of groups) {
+              if (g.length <= 1)
+                continue
+              const keys = g.map((m) => {
+                if (sortBy === 'value' && m.value)
+                  return normalizeKey(m.value)
+                return normalizeKey(m.name)
+              })
+              const sorted = [...keys].sort((a, b) => cmpKey(a, b))
+              const same = keys.every((kk, idx2) => kk === sorted[idx2])
+              if (!same) {
+                const reportLine = g[0].line
+                issues.push({ filePath: ctx.filePath, line: reportLine, column: 1, ruleId: 'sort-interfaces', message: 'Interface members are not sorted', severity: 'warning' })
+              }
+            }
+            i = k
+          }
+          return issues
+        },
+      },
+      'sort-object-types': {
+        meta: { docs: 'Enforce sorted object type properties in TypeScript (heuristic)' },
+        check: (text, ctx) => {
+          const issues: PluginLintIssue[] = []
+          const opts: any = ctx.options || {}
+          const type: 'alphabetical' | 'natural' | 'line-length' | 'custom' | 'unsorted' = opts.type || 'alphabetical'
+          const order: 'asc' | 'desc' = opts.order || 'asc'
+          const ignoreCase: boolean = opts.ignoreCase !== false
+          const specialCharacters: 'keep' | 'trim' | 'remove' = opts.specialCharacters || 'keep'
+          const alphabet: string = typeof opts.alphabet === 'string' ? opts.alphabet : ''
+          const partitionByNewLine: boolean = Boolean(opts.partitionByNewLine)
+          const sortBy: 'name' | 'value' = (opts.sortBy === 'value' ? 'value' : 'name')
+
+          const dir = (n: number) => (order === 'asc' ? n : -n)
+          const normalizeKey = (s: string): string => {
+            let k = s
+            if (specialCharacters === 'trim')
+              k = k.replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, '')
+            else if (specialCharacters === 'remove')
+              k = k.replace(/[^\p{L}\p{N}]+/gu, '')
+            return ignoreCase ? k.toLowerCase() : k
+          }
+          const cmpAlpha = (a: string, b: string) => a.localeCompare(b)
+          const cmpNat = (a: string, b: string) => a.localeCompare(b, undefined, { numeric: true })
+          const cmpCustom = (a: string, b: string) => {
+            if (!alphabet)
+              return cmpAlpha(a, b)
+            const ai = (c: string) => {
+              const i = alphabet.indexOf(c)
+              return i === -1 ? alphabet.length + c.codePointAt(0)! : i
+            }
+            const len = Math.min(a.length, b.length)
+            for (let i = 0; i < len; i++) {
+              const da = ai(a[i])
+              const db = ai(b[i])
+              if (da !== db)
+                return da - db
+            }
+            return a.length - b.length
+          }
+          const cmpKey = (ka: string, kb: string): number => {
+            if (type === 'unsorted')
+              return 0
+            if (type === 'line-length')
+              return dir(ka.length - kb.length)
+            if (type === 'natural')
+              return dir(cmpNat(ka, kb))
+            if (type === 'custom')
+              return dir(cmpCustom(ka, kb))
+            return dir(cmpAlpha(ka, kb))
+          }
+
+          const content = text
+          const lineOf = (idx: number) => (content.slice(0, idx).match(/\n/g) || []).length + 1
+          let i = 0
+          while (i < content.length) {
+            const pos = content.indexOf('type ', i)
+            if (pos === -1)
+              break
+            // must have '=' and '{' after
+            const eq = content.indexOf('=', pos)
+            if (eq === -1) { i = pos + 1; continue }
+            // find first '{' after '='
+            const braceIdx = content.indexOf('{', eq)
+            if (braceIdx === -1) { i = eq + 1; continue }
+            // balance braces until matching '}'
+            let depth = 0
+            let k = braceIdx
+            for (; k < content.length; k++) {
+              const ch = content[k]
+              if (ch === '{') {
+                depth++
+              }
+              else if (ch === '}') { depth--; if (depth === 0) { k++; break } }
+            }
+            const body = content.slice(braceIdx + 1, k - 1)
+            const bodyLines = body.split(/\r?\n/)
+            interface Member { name: string, value?: string, line: number }
+            const members: Member[] = []
+            for (let bi = 0; bi < bodyLines.length; bi++) {
+              const ln = bodyLines[bi]
+              if (/^\s*$/.test(ln))
+                continue
+              if (/^\s*\//.test(ln) || /^\s*\*/.test(ln))
+                continue
+              const signature = ln.trim()
+              // property signature: name ... : type
+              let m = signature.match(/^([A-Z_$][\w$]*)(\??)\s*:\s*([^;]+)/i)
+              if (m) {
+                const name = m[1]
+                const value = m[3].trim()
+                members.push({ name, value, line: lineOf(braceIdx + 1) + bi })
+                continue
+              }
+              // method signature: name(...)
+              m = signature.match(/^([A-Z_$][\w$]*)\s*\(/i)
+              if (m) {
+                const name = m[1]
+                members.push({ name, line: lineOf(braceIdx + 1) + bi })
+              }
+            }
+            // grouping by new lines
+            const groups: Member[][] = []
+            if (partitionByNewLine) {
+              let current: Member[] = []
+              for (let bi = 0; bi < bodyLines.length; bi++) {
+                const ln = bodyLines[bi]
+                const mem = members.find(m => m.line === lineOf(braceIdx + 1) + bi)
+                if (mem)
+                  current.push(mem)
+                const nextEmpty = bi + 1 < bodyLines.length ? /^\s*$/.test(bodyLines[bi + 1]) : true
+                if (!/^\s*$/.test(ln) && nextEmpty) {
+                  if (current.length)
+                    groups.push(current); current = []
+                }
+              }
+              if (current.length)
+                groups.push(current)
+            }
+            else {
+              groups.push(members)
+            }
+
+            for (const g of groups) {
+              if (g.length <= 1)
+                continue
+              const keys = g.map(m => sortBy === 'value' && m.value ? normalizeKey(m.value) : normalizeKey(m.name))
+              const sorted = [...keys].sort((a, b) => cmpKey(a, b))
+              const same = keys.every((kk, idx2) => kk === sorted[idx2])
+              if (!same) {
+                const reportLine = g[0].line
+                issues.push({ filePath: ctx.filePath, line: reportLine, column: 1, ruleId: 'sort-object-types', message: 'Object type members are not sorted', severity: 'warning' })
+              }
+            }
+            i = k
+          }
+          return issues
+        },
+      },
+      'sort-maps': {
+        meta: { docs: 'Enforce sorted elements within JavaScript Map([...]) literals (heuristic)' },
+        check: (text, ctx) => {
+          const issues: PluginLintIssue[] = []
+          const opts: any = ctx.options || {}
+          const type: 'alphabetical' | 'natural' | 'line-length' | 'custom' | 'unsorted' = opts.type || 'alphabetical'
+          const order: 'asc' | 'desc' = opts.order || 'asc'
+          const ignoreCase: boolean = opts.ignoreCase !== false
+          const specialCharacters: 'keep' | 'trim' | 'remove' = opts.specialCharacters || 'keep'
+          const alphabet: string = typeof opts.alphabet === 'string' ? opts.alphabet : ''
+          const partitionByNewLine: boolean = Boolean(opts.partitionByNewLine)
+
+          const dir = (n: number) => (order === 'asc' ? n : -n)
+          const normalizeKey = (s: string): string => {
+            let k = s
+            if (specialCharacters === 'trim')
+              k = k.replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, '')
+            else if (specialCharacters === 'remove')
+              k = k.replace(/[^\p{L}\p{N}]+/gu, '')
+            return ignoreCase ? k.toLowerCase() : k
+          }
+          const cmpAlpha = (a: string, b: string) => a.localeCompare(b)
+          const cmpNat = (a: string, b: string) => a.localeCompare(b, undefined, { numeric: true })
+          const cmpCustom = (a: string, b: string) => {
+            if (!alphabet)
+              return cmpAlpha(a, b)
+            const ai = (c: string) => {
+              const i = alphabet.indexOf(c)
+              return i === -1 ? alphabet.length + c.codePointAt(0)! : i
+            }
+            const len = Math.min(a.length, b.length)
+            for (let i = 0; i < len; i++) {
+              const da = ai(a[i])
+              const db = ai(b[i])
+              if (da !== db)
+                return da - db
+            }
+            return a.length - b.length
+          }
+          const cmpKey = (ka: string, kb: string): number => {
+            if (type === 'unsorted')
+              return 0
+            if (type === 'line-length')
+              return dir(ka.length - kb.length)
+            if (type === 'natural')
+              return dir(cmpNat(ka, kb))
+            if (type === 'custom')
+              return dir(cmpCustom(ka, kb))
+            return dir(cmpAlpha(ka, kb))
+          }
+
+          const content = text
+          const lineOf = (idx: number) => (content.slice(0, idx).match(/\n/g) || []).length + 1
+          let i = 0
+          while (i < content.length) {
+            const pos = content.indexOf('new Map', i)
+            if (pos === -1)
+              break
+            // find opening '(' and then '[' for array literal
+            let p = content.indexOf('(', pos)
+            if (p === -1) { i = pos + 7; continue }
+            while (p < content.length && /\s/.test(content[p + 1] || '')) p++
+            const arrStart = content.indexOf('[', p)
+            if (arrStart === -1) { i = p + 1; continue }
+            // find matching ']' for array literal with simple bracket/string awareness
+            let depth = 0
+            let j = arrStart
+            let mode: 'none' | 'single' | 'double' | 'backtick' = 'none'
+            let escape = false
+            for (; j < content.length; j++) {
+              const ch = content[j]
+              if (escape) { escape = false; continue }
+              if (ch === '\\') { escape = true; continue }
+              if (mode === 'none') {
+                if (ch === '\'') {
+                  mode = 'single'
+                }
+                else if (ch === '"') {
+                  mode = 'double'
+                }
+                else if (ch === '`') {
+                  mode = 'backtick'
+                }
+                else if (ch === '[') {
+                  depth++
+                }
+                else if (ch === ']') { depth--; if (depth === 0) { j++; break } }
+              }
+              else {
+                if ((mode === 'single' && ch === '\'') || (mode === 'double' && ch === '"') || (mode === 'backtick' && ch === '`'))
+                  mode = 'none'
+              }
+            }
+            if (depth !== 0) { i = pos + 7; continue }
+            const arrayText = content.slice(arrStart + 1, j - 1)
+            const arrLines = arrayText.split(/\r?\n/)
+            // find entries of the form ['key', ...] or ["key", ...] or [number, ...]
+            const entries: Array<{ key: string, idx: number, line: number }> = []
+            const entryRe = /\[\s*(?:'([^']*)'|"([^"]*)"|(-?\d+(?:_\d+)*))\s*,/g
+            let m: RegExpExecArray | null
+            while ((m = entryRe.exec(arrayText))) {
+              const rawKey = (m[1] ?? m[2] ?? m[3] ?? '').toString()
+              const key = normalizeKey(rawKey)
+              const idxInArray = m.index
+              const line = (arrayText.slice(0, idxInArray).match(/\n/g) || []).length
+              entries.push({ key, idx: idxInArray, line })
+            }
+            if (entries.length > 1) {
+              if (partitionByNewLine) {
+                // group by blank-line separated blocks
+                const groups: Array<typeof entries> = []
+                let current: typeof entries = []
+                const isBlank = (ln: number) => /^\s*$/.test(arrLines[ln] || '')
+                for (let ei = 0; ei < entries.length; ei++) {
+                  current.push(entries[ei])
+                  const ln = entries[ei].line
+                  // if next line is blank, end group
+                  if (ln + 1 < arrLines.length && isBlank(ln + 1)) { groups.push(current); current = [] }
+                }
+                if (current.length)
+                  groups.push(current)
+                for (const g of groups) {
+                  const keys = g.map(e => e.key)
+                  const sorted = [...keys].sort((a, b) => cmpKey(a, b))
+                  const same = keys.every((kk, idx2) => kk === sorted[idx2])
+                  if (!same) {
+                    issues.push({ filePath: ctx.filePath, line: lineOf(arrStart), column: 1, ruleId: 'sort-maps', message: 'Map entries are not sorted', severity: 'warning' })
+                    break
+                  }
+                }
+              }
+              else {
+                const keys = entries.map(e => e.key)
+                const sorted = [...keys].sort((a, b) => cmpKey(a, b))
+                const same = keys.every((kk, idx2) => kk === sorted[idx2])
+                if (!same) {
+                  issues.push({ filePath: ctx.filePath, line: lineOf(arrStart), column: 1, ruleId: 'sort-maps', message: 'Map entries are not sorted', severity: 'warning' })
+                }
+              }
+            }
+            i = j + 1
           }
           return issues
         },
