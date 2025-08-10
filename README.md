@@ -8,31 +8,35 @@
 
 # Pickier
 
-Fast Bun‑native linting and formatting. Minimal defaults. Extensible. Built for speed.
+Fast linting and formatting. Minimal defaults. Extensible. Built for speed.
 
 ## Features
 
-- Fast, Bun-first CLI (no Node install required)
-- Lint and Format in one tool
-- Sensible defaults with zero-config usage
-- Simple, typed `pickier.config.ts` for overrides
-- Dry‑run mode for safe previews
-- Thorough tests
+- Fast CLI with instant feedback
+- Lint and format in one tool
+- Zero-config defaults; simple, typed `pickier.config.ts` when you need it
 - Import organization: splits type/value imports, sorts modules/specifiers, removes unused named imports
-- Optional stylistic semicolon cleanup (`format.semi`)
+- JSON and config sorting for common files _(e.g. `package.json`, `tsconfig.json`)_
+- Flexible formatting: `indent`, `indentStyle` _(tabs or spaces)_, `quotes`, `semi`, `trimTrailingWhitespace`, `maxConsecutiveBlankLines`, `finalNewline`
+- Smart whitespace cleanup
 - ESLint-style plugin system for lint rules _(load plugins, enable/disable rules, WIP labeling)_
+- CI-friendly reporters _(stylish, compact, JSON)_ and strict `--max-warnings` control
+- Programmatic API for custom tooling and editor integrations
 
 ## Install
 
 ```bash
 # as a dev dependency
 bun add -D pickier
-
-# or with npm/pnpm/yarn
+# or
 npm i -D pickier
+# or
+pnpm add -D pickier
+# or
+yarn add -D pickier
 ```
 
-You can also run it directly via npx/bunx without installing:
+You can also run it directly via npx without installing:
 
 ```bash
 npx pickier --help
