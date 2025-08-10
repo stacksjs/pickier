@@ -10,7 +10,7 @@
         "@stacksjs/gitlint": "^0.1.5",
         "@stacksjs/logsmith": "^0.1.4",
         "@types/bun": "^1.2.18",
-        "buddy-bot": "^0.7.7",
+        "buddy-bot": "^0.7.8",
         "bun-git-hooks": "^0.2.19",
         "bun-plugin-dtsx": "^0.21.12",
         "typescript": "^5.8.3",
@@ -805,7 +805,7 @@
 
     "browserslist": ["browserslist@4.24.4", "", { "dependencies": { "caniuse-lite": "^1.0.30001688", "electron-to-chromium": "^1.5.73", "node-releases": "^2.0.19", "update-browserslist-db": "^1.1.1" }, "bin": { "browserslist": "cli.js" } }, "sha512-KDi1Ny1gSePi1vm0q4oxSF8b4DR44GF4BbmS2YdhPLOEqd8pDviZOGH/GsmRwoWJ2+5Lr085X7naowMwKHDG1A=="],
 
-    "buddy-bot": ["buddy-bot@0.7.7", "", { "dependencies": { "@types/prompts": "^2.4.9", "bunfig": "^0.10.1", "cac": "6.7.13", "prompts": "^2.4.2", "ts-pkgx": "0.4.25" }, "bin": { "buddy-bot": "dist/bin/cli.js" } }, "sha512-A5XBWBcwGUVRBHaOw+Oe+PybhyQnX9AYZrzbPeZb8bAB32esuvIjxG80sq/7d8hTcOyXQbrwywXhAfFldup+RQ=="],
+    "buddy-bot": ["buddy-bot@0.7.8", "", { "dependencies": { "@types/prompts": "^2.4.9", "bunfig": "^0.10.1", "cac": "6.7.13", "prompts": "^2.4.2", "ts-pkgx": "0.4.25" }, "bin": { "buddy-bot": "dist/bin/cli.js" } }, "sha512-rCi4RlfaCaKGnoR0gCNyQlQGuAryMV3RdjYj97vdr3/lBBxyNhu5WcvZiYj5nS5WnG5ZZr+hYJL5X153pKrmhA=="],
 
     "buffer": ["buffer@5.7.1", "", { "dependencies": { "base64-js": "^1.3.1", "ieee754": "^1.1.13" } }, "sha512-EHcyIPBQ4BSGlvjB16k5KgAJ27CIsHY/2JBmCRReo48y9rQ3MaUzWX3KVlBa4U7MyX02HdVj0K7C3WaB3ju7FQ=="],
 
