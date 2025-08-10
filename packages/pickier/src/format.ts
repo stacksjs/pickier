@@ -212,8 +212,8 @@ function normalizeCodeSpacing(input: string): string {
   t = t.replace(/,(\S)/g, ', $1')
   // add spaces around equals but not for ==, ===, =>, <=, >=
   t = t.replace(/(?<![=!<>])=(?![=><])/g, ' = ')
-  // add spaces after semicolons in for headers
-  t = t.replace(/;(\S)/g, '; $1')
+  // add spaces after semicolons in for headers (but not between consecutive semicolons)
+  t = t.replace(/;([^\s;])/g, '; $1')
   // add spaces around simple comparison operators
   t = t.replace(/([\w\])])<(\S)/g, '$1 < $2')
   t = t.replace(/(\S)>([\w[(])/g, '$1 > $2')
