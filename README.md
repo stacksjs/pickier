@@ -8,7 +8,7 @@
 
 # Pickier
 
-Fast linting and formatting. Minimal defaults. Extensible. Built for speed.
+> Fast linting and formatting. Minimal defaults. Extensible. Built for speed.
 
 ## Features
 
