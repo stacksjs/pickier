@@ -26,13 +26,15 @@ const config: PickierConfig = {
   // Format-specific options
   format: {
     // File extensions to format
-    extensions: ['.ts', '.tsx', '.js', '.jsx', '.json', '.md', '.yaml', '.yml'],
+    extensions: ['ts', 'js', 'html', 'css', 'json', 'jsonc', 'md', 'yaml', 'yml', 'stx'],
     // Remove trailing whitespace
     trimTrailingWhitespace: true,
     // Keep at most this many consecutive blank lines
     maxConsecutiveBlankLines: 1,
     // Final newline policy: 'one' | 'two' | 'none'
     finalNewline: 'one',
+    indent: 2,
+    quotes: 'single',
   },
 
   // Rule severities
@@ -43,5 +45,3 @@ const config: PickierConfig = {
 }
 
 export default config
-
-// Just to make sure the config is valid

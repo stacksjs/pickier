@@ -1,5 +1,5 @@
 const a = 1;
 
-function test() {
-  console.log('ok')
+function test(){
+console.log('ok')
 }

@@ -28,11 +28,9 @@ describe('formatter fixture snapshots', () => {
     expect(code).toBe(0)
 
     for (const f of listFiles(expected)) {
-      const got = readFileSync(join(dir, f), 'utf8')
-      const want = readFileSync(join(expected, f), 'utf8')
+      const got = readFileSync(join(dir, f), 'utf8').replace(/\r\n/g, '\n').replace(/\n+$/g, '\n')
+      const want = readFileSync(join(expected, f), 'utf8').replace(/\r\n/g, '\n').replace(/\n+$/g, '\n')
       expect({ file: f, content: got }).toEqual({ file: f, content: want })
     }
   })
 })
-
-

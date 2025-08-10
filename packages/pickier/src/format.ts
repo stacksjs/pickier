@@ -1,6 +1,6 @@
 import type { PickierConfig } from './types'
 
-const CODE_EXTS = new Set(['.ts', '.tsx', '.js', '.jsx'])
+const CODE_EXTS = new Set(['.ts', '.js'])
 
 function getFileExt(filePath: string): string {
   const idx = filePath.lastIndexOf('.')
@@ -106,8 +106,9 @@ export function formatCode(src: string, cfg: PickierConfig, filePath: string): s
 
   // quotes first (independent of indentation)
   joined = fixQuotes(joined, cfg.format.quotes, filePath)
-  // indentation
-  joined = fixIndentation(joined, cfg.format.indent)
+  // indentation only for code files (ts/js)
+  if (isCodeFileExt(filePath))
+    joined = fixIndentation(joined, cfg.format.indent)
 
   // ensure final newline policy
   if (cfg.format.finalNewline === 'none') {
