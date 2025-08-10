@@ -2,7 +2,6 @@ import type { PickierConfig } from './types'
 import { loadConfig } from 'bunfig'
 
 export const defaultConfig: PickierConfig = {
-  verbose: false,
   ignores: ['**/node_modules/**', '**/dist/**', '**/build/**'],
   lint: {
     extensions: ['ts', 'js', 'html', 'css', 'json', 'jsonc', 'md', 'yaml', 'yml', 'stx'],
@@ -15,11 +14,14 @@ export const defaultConfig: PickierConfig = {
     trimTrailingWhitespace: true,
     maxConsecutiveBlankLines: 1,
     finalNewline: 'one',
+    indent: 2,
+    quotes: 'single',
   },
   rules: {
     noDebugger: 'error',
     noConsole: 'warn',
   },
+  verbose: false,
 }
 
 // eslint-disable-next-line antfu/no-top-level-await

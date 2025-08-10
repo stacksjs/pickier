@@ -3,8 +3,9 @@ import { readFileSync, writeFileSync } from 'node:fs'
 import { extname, isAbsolute, relative, resolve } from 'node:path'
 import process from 'node:process'
 import fg from 'fast-glob'
-import { config } from '../config'
+import { config as defaultConfig } from '../config'
 import { colors } from '../utils'
+import { detectQuoteIssues, hasIndentIssue } from '../format'
 
 export interface LintOptions {
   fix?: boolean
@@ -27,20 +28,30 @@ interface LintIssue {
   severity: 'warning' | 'error'
 }
 
+function mergeConfig(base: PickierConfig, override: Partial<PickierConfig>): PickierConfig {
+  return {
+    ...base,
+    ...override,
+    lint: { ...base.lint, ...(override.lint || {}) },
+    format: { ...base.format, ...(override.format || {}) },
+    rules: { ...base.rules, ...(override.rules || {}) },
+  }
+}
+
 async function loadConfigFromPath(pathLike: string | undefined): Promise<PickierConfig> {
   if (!pathLike)
-    return config
+    return defaultConfig
 
   const abs = isAbsolute(pathLike) ? pathLike : resolve(process.cwd(), pathLike)
   const ext = extname(abs).toLowerCase()
 
   if (ext === '.json') {
     const raw = readFileSync(abs, 'utf8')
-    return JSON.parse(raw) as PickierConfig
+    return mergeConfig(defaultConfig, JSON.parse(raw) as Partial<PickierConfig>)
   }
 
   const mod = await import(abs)
-  return (mod.default || mod) as PickierConfig
+  return mergeConfig(defaultConfig, (mod.default || mod) as Partial<PickierConfig>)
 }
 
 function expandPatterns(patterns: string[]): string[] {
@@ -96,12 +107,43 @@ function scanContent(filePath: string, content: string, cfg: PickierConfig): Lin
         })
       }
     }
+
+    // quote preference diagnostics (only for code files)
+    if (/\.(ts|tsx|js|jsx)$/.test(filePath)) {
+      const quoteIdx = detectQuoteIssues(line, cfg.format.quotes)
+      for (const idx of quoteIdx) {
+        issues.push({
+          filePath,
+          line: lineNo,
+          column: idx + 1,
+          ruleId: 'quotes',
+          message: `Strings must use ${cfg.format.quotes} quotes.`,
+          severity: 'warning',
+        })
+      }
+
+      // indentation diagnostics
+      const leadingMatch = line.match(/^[ \t]*/)
+      const leading = leadingMatch ? leadingMatch[0] : ''
+      if (hasIndentIssue(leading, cfg.format.indent)) {
+        const firstNonWs = line.search(/\S|$/)
+        issues.push({
+          filePath,
+          line: lineNo,
+          column: Math.max(1, firstNonWs),
+          ruleId: 'indent',
+          message: `Indentation must be a multiple of ${cfg.format.indent} spaces.`,
+          severity: 'warning',
+        })
+      }
+    }
   }
 
   return issues
 }
 
 function applyFixes(filePath: string, content: string, cfg: PickierConfig): string {
+  // Only remove debugger statements for --fix in lint. Formatting stays in formatter.
   const lines = content.split(/\r?\n/)
   const fixed: string[] = []
   const debuggerStmt = /^\s*debugger\b/
@@ -134,7 +176,10 @@ export async function runLint(globs: string[], options: LintOptions): Promise<nu
   const raw = globs.length ? globs : ['.']
   const patterns = expandPatterns(raw)
   const extCsv = options.ext || cfg.lint.extensions.join(',')
-  const extSet = new Set(extCsv.split(',').map(s => s.trim()))
+  const extSet = new Set(extCsv.split(',').map(s => {
+    const t = s.trim()
+    return t.startsWith('.') ? t : `.${t}`
+  }))
 
   const entries = await fg(patterns, {
     dot: false,
@@ -151,7 +196,7 @@ export async function runLint(globs: string[], options: LintOptions): Promise<nu
     const src = readFileSync(file, 'utf8')
     let issues = scanContent(file, src, cfg)
 
-    if (options.fix && issues.some(i => i.ruleId === 'no-debugger')) {
+    if (options.fix) {
       const fixed = applyFixes(file, src, cfg)
       if (!options.dryRun && fixed !== src)
         writeFileSync(file, fixed, 'utf8')

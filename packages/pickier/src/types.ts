@@ -22,6 +22,10 @@ export interface PickierFormatConfig {
   maxConsecutiveBlankLines: number
   // final newline policy: 'one' ensures 1; 'two' ensures a blank line + final newline; 'none' ensures no trailing newline
   finalNewline: 'one' | 'two' | 'none'
+  // indentation size in spaces for code files (ts/js/tsx/jsx). Tabs will be converted to this many spaces
+  indent: number
+  // preferred quote style for code files (ts/js/tsx/jsx). JSON is always kept as double quotes
+  quotes: 'single' | 'double'
 }
 
 export interface PickierConfig {

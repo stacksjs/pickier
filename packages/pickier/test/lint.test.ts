@@ -44,7 +44,7 @@ describe('runLint', () => {
     expect(out).toBe(src)
   })
 
-  it('does not remove "debugger" inside strings', async () => {
+  it('does not remove "debugger" inside strings (lint --fix does not format/quote-convert)', async () => {
     const dir = tmp()
     const file = join(dir, 'a.ts')
     const src = 'const s = "debugger"\n'

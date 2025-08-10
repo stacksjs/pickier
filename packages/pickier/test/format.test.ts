@@ -24,6 +24,6 @@ describe('runFormat', () => {
     const code = await runFormat([dir], { write: true })
     expect(code).toBe(0)
     const out = readFileSync(file, 'utf8')
-    expect(out).toBe('const a = 1;\n\n')
+    expect(out).toBe('const a = 1;\n')
   })
 })

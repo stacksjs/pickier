@@ -1,8 +1,12 @@
 import { readFileSync, writeFileSync } from 'node:fs'
 import { relative } from 'node:path'
-import process from 'node:process'
 import fg from 'fast-glob'
 import { colors } from '../utils'
+import { config as defaultConfig } from '../config'
+import type { PickierConfig } from '../types'
+import { formatCode } from '../format'
+import { extname, isAbsolute, resolve } from 'node:path'
+import process from 'node:process'
 
 export interface FormatOptions {
   write?: boolean
@@ -22,40 +26,26 @@ function expandPatterns(patterns: string[]): string[] {
   })
 }
 
-function normalizeWhitespace(src: string): string {
-  // basic, fast formatting strategy: trim trailing spaces, ensure LF, collapse excessive blank lines to max 1
-  if (src.length === 0)
-    return ''
-  const lines = src.replace(/\r\n/g, '\n').split('\n')
-  const out: string[] = []
-  let blank = 0
-  for (const l of lines) {
-    const t = l.replace(/[ \t]+$/g, '')
-    if (t === '') {
-      blank++
-      if (blank > 1)
-        continue
-      out.push('')
-    }
-    else {
-      blank = 0
-      out.push(t)
-    }
+async function loadConfigFromPath(pathLike: string | undefined): Promise<PickierConfig> {
+  if (!pathLike)
+    return defaultConfig
+  const abs = isAbsolute(pathLike) ? pathLike : resolve(process.cwd(), pathLike)
+  if (extname(abs).toLowerCase() === '.json') {
+    const { readFileSync } = await import('node:fs')
+    return JSON.parse(readFileSync(abs, 'utf8')) as PickierConfig
   }
-  const joined = out.join('\n')
-  const lastIsBlank = out[out.length - 1] === ''
-  if (lastIsBlank) {
-    // ensure two trailing newlines: one for blank line + one final newline
-    return joined.endsWith('\n\n') ? joined : joined.endsWith('\n') ? `${joined}\n` : `${joined}\n\n`
-  }
-  // ensure exactly one trailing newline
-  return joined.endsWith('\n') ? joined : `${joined}\n`
+  const mod = await import(abs)
+  return (mod.default || mod) as PickierConfig
 }
 
 export async function runFormat(globs: string[], options: FormatOptions): Promise<number> {
+  const cfg = await loadConfigFromPath(options.config)
   const raw = globs.length ? globs : ['.']
   const patterns = expandPatterns(raw)
-  const extSet = new Set((options.ext || '.ts,.tsx,.js,.jsx,.json,.md,.yaml,.yml').split(',').map(s => s.trim()))
+  const extSet = new Set((options.ext || cfg.format.extensions.join(',')).split(',').map((s) => {
+    const t = s.trim()
+    return t.startsWith('.') ? t : `.${t}`
+  }))
 
   const entries = await fg(patterns, {
     dot: false,
@@ -77,7 +67,7 @@ export async function runFormat(globs: string[], options: FormatOptions): Promis
   let checked = 0
   for (const file of files) {
     const src = readFileSync(file, 'utf8')
-    const fmt = normalizeWhitespace(src)
+    const fmt = formatCode(src, cfg, file)
     if (options.check) {
       if (fmt !== src) {
         console.log(`${relative(process.cwd(), file)} needs formatting`)
@@ -106,5 +96,6 @@ export async function runFormat(globs: string[], options: FormatOptions): Promis
     console.log(colors.gray(`Checked ${checked} files, ${changed} changed.`))
   }
 
-  return changed > 0 && options.check ? 1 : 0
+  // In check mode, non-zero exit when changes are needed; otherwise 0
+  return options.check && changed > 0 ? 1 : 0
 }

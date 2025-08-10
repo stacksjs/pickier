@@ -17,6 +17,8 @@ const config: PickierConfig = {
     trimTrailingWhitespace: true,
     maxConsecutiveBlankLines: 1,
     finalNewline: 'one',
+    indent: 2,
+    quotes: 'single',
   },
   rules: {
     noDebugger: 'error',
