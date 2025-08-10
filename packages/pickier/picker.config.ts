@@ -7,7 +7,7 @@ const config: PickierConfig = {
   verbose: false,
   ignores: ['**/node_modules/**', '**/dist/**', '**/build/**'],
   lint: {
-    extensions: ['.ts', '.tsx', '.js', '.jsx'],
+    extensions: ['ts', 'js', 'html', 'css', 'json', 'jsonc', 'md', 'yaml', 'yml', 'stx'],
     reporter: 'stylish',
     cache: false,
     maxWarnings: -1,

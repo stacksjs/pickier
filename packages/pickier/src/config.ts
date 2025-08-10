@@ -1,7 +1,6 @@
 import type { PickierConfig } from './types'
 import { loadConfig } from 'bunfig'
 
-
 export const defaultConfig: PickierConfig = {
   verbose: false,
   ignores: ['**/node_modules/**', '**/dist/**', '**/build/**'],
