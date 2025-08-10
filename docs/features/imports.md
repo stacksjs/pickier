@@ -137,7 +137,7 @@ This heuristic balances cleanliness with safety.
 - Keep imports at the very top of the file
 - Prefer explicit named imports over broad namespace imports unless needed
 - Avoid aliasing unless necessary, which helps the sorter and readers
-- Consider enabling `sort-named-imports` (lint) to alert when manual edits leave names unsorted
+- Consider enabling [`sort-named-imports`](/rules/pickier-sort-named-imports) (lint) to alert when manual edits leave names unsorted
 
 ## Troubleshooting
 

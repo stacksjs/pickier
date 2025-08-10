@@ -25,5 +25,12 @@ Plugin:
 - [`max-statements-per-line`](/rules/style-max-statements-per-line)
 - [`pickier/no-unused-vars`](/rules/no-unused-vars)
 - [`no-super-linear-backtracking`](/rules/regexp-no-super-linear-backtracking)
+- [`prefer-const`](/rules/prefer-const)
+
+Groups:
+
+- [`pickier`](/rules/pickier): sorting and hygiene rules
+- [`style`](/rules/style): stylistic constraints
+- [`regexp`](/rules/regexp): regex safety checks
 
 See Advanced » Plugin System for configuration details.

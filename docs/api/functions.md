@@ -54,8 +54,9 @@ Return value: `Promise<number>` — process-like exit code.
   - `sort-keys` — see [/rules/sort-keys](/rules/sort-keys)
   - `sort-exports` — see [/rules/sort-exports](/rules/sort-exports)
   - `max-statements-per-line` — see [/rules/style-max-statements-per-line](/rules/style-max-statements-per-line)
-  - `pickier/no-unused-vars` — see [/rules/no-unused-vars](/rules/no-unused-vars)
+  - `no-unused-vars` — see [/rules/no-unused-vars](/rules/no-unused-vars)
   - `no-super-linear-backtracking` — see [/rules/regexp-no-super-linear-backtracking](/rules/regexp-no-super-linear-backtracking)
+  - `prefer-const` — see [/rules/prefer-const](/rules/prefer-const)
 - Exit codes:
   - 1 if any errors
   - 1 if warnings exceed `maxWarnings`

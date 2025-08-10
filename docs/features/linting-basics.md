@@ -27,6 +27,7 @@ Enable via `pluginRules` in your config. See the Rules pages for details and exa
 - [/rules/max-statements-per-line](/rules/style-max-statements-per-line)
 - [/rules/no-unused-vars](/rules/no-unused-vars)
 - [/rules/no-super-linear-backtracking](/rules/regexp-no-super-linear-backtracking)
+- [/rules/prefer-const](/rules/prefer-const)
 
 - `sort-objects`: object literal key ordering checks
 - `sort-imports`: flags when the import block would be changed by the formatter

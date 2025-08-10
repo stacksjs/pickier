@@ -29,9 +29,9 @@ export default config
 
 Built-in plugins and rules (see the Rules section for details):
 
-- `pickier`: `sort-objects`, `sort-imports`, `sort-named-imports`, `sort-heritage-clauses`, `sort-keys`, `sort-exports`, `no-unused-vars`, `prefer-const`
-- `style`: `max-statements-per-line`
-- `regexp`: `no-super-linear-backtracking`
+- `pickier`: [`sort-objects`](/rules/pickier-sort-objects), [`sort-imports`](/rules/pickier-sort-imports), [`sort-named-imports`](/rules/pickier-sort-named-imports), [`sort-heritage-clauses`](/rules/pickier-sort-heritage-clauses), [`sort-keys`](/rules/sort-keys), [`sort-exports`](/rules/sort-exports), [`no-unused-vars`](/rules/no-unused-vars), [`prefer-const`](/rules/prefer-const)
+- `style`: [`max-statements-per-line`](/rules/style-max-statements-per-line)
+- `regexp`: [`no-super-linear-backtracking`](/rules/regexp-no-super-linear-backtracking)
 
 Authoring custom plugins is possible using `PickierPlugin`, `RuleModule`, and `RuleContext` types. Pass plugin objects via `plugins`.
 
