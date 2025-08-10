@@ -2,7 +2,7 @@
 // You can customize lint/format behavior and rule severities here.
 // All fields are optional; defaults are shown below.
 
-import type { PickierConfig } from './packages/pickier/src/types'
+import type { PickierConfig } from 'pickier'
 
 const config: PickierConfig = {
   // Increase verbosity of CLI outputs
