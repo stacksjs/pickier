@@ -136,6 +136,7 @@ export default withPwa(
             { text: 'sort-exports', link: '/rules/sort-exports' },
             { text: 'max-statements-per-line', link: '/rules/style-max-statements-per-line' },
             { text: 'no-unused-vars', link: '/rules/no-unused-vars' },
+            { text: 'prefer-const', link: '/rules/prefer-const' },
             { text: 'no-super-linear-backtracking', link: '/rules/regexp-no-super-linear-backtracking' },
           ],
         },

@@ -477,6 +477,68 @@ function applyPlugins(filePath: string, content: string, cfg: PickierConfig): Pl
           return issues
         },
       },
+      'prefer-const': {
+        meta: { docs: "Suggest 'const' for variables that are never reassigned (heuristic)" },
+        check: (text, ctx) => {
+          const issues: PluginLintIssue[] = []
+          const lines = text.split(/\r?\n/)
+          for (let i = 0; i < lines.length; i++) {
+            const line = lines[i]
+            // match let/var declarations only (skip const)
+            const decl = line.match(/^\s*(?:let|var)\s+(.+?);?\s*$/)
+            if (!decl)
+              continue
+            const after = decl[1]
+            // naive split by comma at top level
+            const parts = after.split(',')
+            for (const partRaw of parts) {
+              const part = partRaw.trim()
+              if (!part)
+                continue
+              // Determine if this variable has an initializer on the declaration
+              // Capture identifier name then see if '=' follows somewhere in this part
+              const simple = part.match(/^([$A-Z_][\w$]*)/i)
+              const destruct = part.match(/^[{[]/)
+              if (destruct)
+                continue // skip destructuring for now to avoid false positives
+              if (!simple)
+                continue
+              const name = simple[1]
+              const hasInitializer = /=/.test(part)
+              if (!hasInitializer)
+                continue // we only suggest const when initialized on the declaration
+              // search for reassignments after this line
+              const restStartIdx = text.indexOf(line)
+              const rest = text.slice(restStartIdx + line.length)
+              // operators like =, +=, -=, *=, /=, %=, **=, <<=, >>=, >>>=, &=, |=, ^= and ++/--
+              const assignOp = new RegExp(`\\b${name}\\s*([+\-*/%&|^]|<<|>>>?|\*\*)?=`, 'g')
+              const incDec = new RegExp(`(\\+\\+|--)(?=${name}\\b)|(?:\\b${name})(?:\\+\\+|--)`, 'g')
+              const directAssign = (() => {
+                let m: RegExpExecArray | null
+                while ((m = assignOp.exec(rest))) {
+                  const op = m[1]
+                  // '=' with no left operator implies reassignment
+                  if (op == null || op.length > 0)
+                    return true
+                }
+                return false
+              })()
+              const changed = directAssign || incDec.test(rest)
+              if (!changed) {
+                issues.push({
+                  filePath: ctx.filePath,
+                  line: i + 1,
+                  column: Math.max(1, line.indexOf(name) + 1),
+                  ruleId: 'prefer-const',
+                  message: `'${name}' is never reassigned. Use 'const' instead`,
+                  severity: 'error',
+                })
+              }
+            }
+          }
+          return issues
+        },
+      },
       'no-unused-vars': {
         meta: { docs: 'Report variables and parameters that are declared/assigned but never used' },
         check: (text, ctx) => {

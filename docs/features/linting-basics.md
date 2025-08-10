@@ -18,15 +18,15 @@ Optional heuristics via `rules`:
 
 Enable via `pluginRules` in your config. See the Rules pages for details and examples:
 
-- [/rules/sort-objects](/rules/sort-objects)
-- [/rules/sort-imports](/rules/sort-imports)
-- [/rules/sort-named-imports](/rules/sort-named-imports)
-- [/rules/sort-heritage-clauses](/rules/sort-heritage-clauses)
+- [/rules/sort-objects](/rules/pickier-sort-objects)
+- [/rules/sort-imports](/rules/pickier-sort-imports)
+- [/rules/sort-named-imports](/rules/pickier-sort-named-imports)
+- [/rules/sort-heritage-clauses](/rules/pickier-sort-heritage-clauses)
 - [/rules/sort-keys](/rules/sort-keys)
 - [/rules/sort-exports](/rules/sort-exports)
-- [/rules/style-max-statements-per-line](/rules/style-max-statements-per-line)
+- [/rules/max-statements-per-line](/rules/style-max-statements-per-line)
 - [/rules/no-unused-vars](/rules/no-unused-vars)
-- [/rules/regexp-no-super-linear-backtracking](/rules/regexp-no-super-linear-backtracking)
+- [/rules/no-super-linear-backtracking](/rules/regexp-no-super-linear-backtracking)
 
 - `sort-objects`: object literal key ordering checks
 - `sort-imports`: flags when the import block would be changed by the formatter
@@ -34,9 +34,9 @@ Enable via `pluginRules` in your config. See the Rules pages for details and exa
 - `sort-heritage-clauses`: sorts TypeScript `extends`/`implements`
 - `sort-keys`: ESLint-like object key sort check
 - `sort-exports`: sorts contiguous export groups
-- `style/max-statements-per-line`: enforces at most N statements per line
-- `pickier/no-unused-vars`: detects declared but unused variables/parameters (with ignore patterns)
-- `regexp/no-super-linear-backtracking`: flags regex patterns that may catastrophically backtrack
+- `max-statements-per-line`: enforces at most N statements per line
+- `no-unused-vars`: detects declared but unused variables/parameters (with ignore patterns)
+- `no-super-linear-backtracking`: flags regex patterns that may catastrophically backtrack
 
 See Advanced » Plugin System for options.
 

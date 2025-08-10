@@ -29,7 +29,7 @@ export default config
 
 Built-in plugins and rules (see the Rules section for details):
 
-- `pickier`: `sort-objects`, `sort-imports`, `sort-named-imports`, `sort-heritage-clauses`, `sort-keys`, `sort-exports`, `no-unused-vars`
+- `pickier`: `sort-objects`, `sort-imports`, `sort-named-imports`, `sort-heritage-clauses`, `sort-keys`, `sort-exports`, `no-unused-vars`, `prefer-const`
 - `style`: `max-statements-per-line`
 - `regexp`: `no-super-linear-backtracking`
 

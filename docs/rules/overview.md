@@ -16,10 +16,10 @@ Core:
 
 Plugin:
 
-- [`sort-objects`](/rules/sort-objects)
-- [`sort-imports`](/rules/sort-imports)
-- [`sort-named-imports`](/rules/sort-named-imports)
-- [`sort-heritage-clauses`](/rules/sort-heritage-clauses)
+- [`sort-objects`](/rules/pickier-sort-objects)
+- [`sort-imports`](/rules/pickier-sort-imports)
+- [`sort-named-imports`](/rules/pickier-sort-named-imports)
+- [`sort-heritage-clauses`](/rules/pickier-sort-heritage-clauses)
 - [`sort-keys`](/rules/sort-keys)
 - [`sort-exports`](/rules/sort-exports)
 - [`max-statements-per-line`](/rules/style-max-statements-per-line)
