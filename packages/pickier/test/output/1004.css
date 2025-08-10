@@ -1,0 +1,3 @@
+/* CSS complex fixture */
+.container {  display:  flex;  }
+.container .item{  padding: 10px;  }

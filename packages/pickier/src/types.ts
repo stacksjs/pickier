@@ -26,6 +26,8 @@ export interface PickierFormatConfig {
   indent: number
   // preferred quote style for code files (ts/js/tsx/jsx). JSON is always kept as double quotes
   quotes: 'single' | 'double'
+  // when true, remove stylistic semicolons at end of statements (for/for-in headers unaffected)
+  semi: boolean
 }
 
 export interface PickierConfig {

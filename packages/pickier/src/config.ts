@@ -16,6 +16,7 @@ export const defaultConfig: PickierConfig = {
     finalNewline: 'one',
     indent: 2,
     quotes: 'single',
+    semi: false,
   },
   rules: {
     noDebugger: 'error',
