@@ -4,6 +4,10 @@ export interface PickierRulesConfig {
   // linter rules (subset for now)
   noDebugger: RuleSeverity
   noConsole: RuleSeverity
+  // RegExp best practices
+  noUnusedCapturingGroup?: RuleSeverity
+  // Disallow assignments in conditional expressions
+  noCondAssign?: RuleSeverity
 }
 
 export interface LintIssue {

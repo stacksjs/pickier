@@ -24,6 +24,8 @@ const config: PickierConfig = {
   rules: {
     noDebugger: 'error',
     noConsole: 'warn',
+    noUnusedCapturingGroup: 'error',
+    noCondAssign: 'error',
   },
 }
 

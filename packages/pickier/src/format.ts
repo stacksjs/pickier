@@ -1,6 +1,7 @@
 import type { PickierConfig } from './types'
 
 const CODE_EXTS = new Set(['.ts', '.js'])
+const JSON_EXTS = new Set(['.json', '.jsonc'])
 
 function getFileExt(filePath: string): string {
   const idx = filePath.lastIndexOf('.')
@@ -9,6 +10,10 @@ function getFileExt(filePath: string): string {
 
 function isCodeFileExt(filePath: string): boolean {
   return CODE_EXTS.has(getFileExt(filePath))
+}
+
+function isJsonFileExt(filePath: string): boolean {
+  return JSON_EXTS.has(getFileExt(filePath))
 }
 
 function toSpaces(count: number): string {
@@ -109,6 +114,13 @@ export function formatCode(src: string, cfg: PickierConfig, filePath: string): s
   // import management (ts/js only)
   if (isCodeFileExt(filePath))
     joined = formatImports(joined)
+
+  // json/package/tsconfig sorting
+  if (isJsonFileExt(filePath)) {
+    const sorted = trySortKnownJson(joined, filePath)
+    if (sorted != null)
+      joined = sorted
+  }
 
   // quotes first (independent of indentation)
   joined = fixQuotes(joined, cfg.format.quotes, filePath)
@@ -264,7 +276,7 @@ interface ParsedImport {
   original: string
 }
 
-function formatImports(source: string): string {
+export function formatImports(source: string): string {
   const lines = source.split('\n')
   const imports: ParsedImport[] = []
   let idx = 0
@@ -515,4 +527,246 @@ function parseImportStatement(stmt: string): ParsedImport | undefined {
     }
   }
   return { kind: 'value', source, defaultName, namespaceName, named, namedTypes, original: stmt }
+}
+
+// Sort known JSON files according to curated orders
+function trySortKnownJson(input: string, filePath: string): string | null {
+  if (/package\.json$/i.test(filePath))
+    return sortPackageJsonContent(input)
+  if (/[jt]sconfig(\..+)?\.json$/i.test(filePath))
+    return sortTsconfigContent(input)
+  return null
+}
+
+function parseJsonSafe(text: string): any | null {
+  try {
+    return JSON.parse(text)
+  }
+  catch {
+    return null
+  }
+}
+
+function sortObjectKeys(obj: Record<string, any>, order: string[], extraAscPatterns: RegExp[] = []): Record<string, any> {
+  const out: Record<string, any> = {}
+  // place ordered keys first
+  for (const k of order) {
+    if (Object.prototype.hasOwnProperty.call(obj, k))
+      out[k] = obj[k]
+  }
+  // then keys matching extra patterns in asc
+  for (const rx of extraAscPatterns) {
+    const keys = Object.keys(obj).filter(k => rx.test(k) && !(k in out)).sort()
+    for (const k of keys)
+      out[k] = obj[k]
+  }
+  // finally remaining keys asc
+  const remaining = Object.keys(obj).filter(k => !(k in out)).sort()
+  for (const k of remaining)
+    out[k] = obj[k]
+  return out
+}
+
+function sortDepsAsc(obj: Record<string, any>): Record<string, any> {
+  const out: Record<string, any> = {}
+  for (const k of Object.keys(obj).sort())
+    out[k] = obj[k]
+  return out
+}
+
+function sortPackageJsonContent(text: string): string {
+  const data = parseJsonSafe(text)
+  if (!data || typeof data !== 'object')
+    return text
+  const topOrder = [
+    'publisher',
+    'name',
+    'displayName',
+    'type',
+    'version',
+    'private',
+    'packageManager',
+    'description',
+    'author',
+    'contributors',
+    'license',
+    'funding',
+    'homepage',
+    'repository',
+    'bugs',
+    'keywords',
+    'categories',
+    'sideEffects',
+    'imports',
+    'exports',
+    'main',
+    'module',
+    'unpkg',
+    'jsdelivr',
+    'types',
+    'typesVersions',
+    'bin',
+    'icon',
+    'files',
+    'engines',
+    'activationEvents',
+    'contributes',
+    'scripts',
+    'peerDependencies',
+    'peerDependenciesMeta',
+    'dependencies',
+    'optionalDependencies',
+    'devDependencies',
+    'pnpm',
+    'overrides',
+    'resolutions',
+    'husky',
+    'simple-git-hooks',
+    'lint-staged',
+    'eslintConfig',
+  ]
+  const sortedTop = sortObjectKeys(data, topOrder)
+  // sort files array asc
+  if (Array.isArray(sortedTop.files)) {
+    const allStrings = sortedTop.files.every((v: any) => typeof v === 'string')
+    if (allStrings)
+      sortedTop.files = [...sortedTop.files].sort()
+  }
+  // sort deps blocks A-Z
+  for (const k of Object.keys(sortedTop)) {
+    if (/^(?:dev|peer|optional|bundled)?[Dd]ependencies(Meta)?$/.test(k) || /^(?:resolutions|overrides|pnpm\.overrides)$/.test(k)) {
+      if (sortedTop[k] && typeof sortedTop[k] === 'object')
+        sortedTop[k] = sortDepsAsc(sortedTop[k])
+    }
+  }
+  // pnpm.overrides nested
+  if (sortedTop.pnpm && typeof sortedTop.pnpm === 'object' && sortedTop.pnpm.overrides && typeof sortedTop.pnpm.overrides === 'object')
+    sortedTop.pnpm.overrides = sortDepsAsc(sortedTop.pnpm.overrides)
+  // exports specific sub-key order
+  if (sortedTop.exports && typeof sortedTop.exports === 'object') {
+    const exp = sortedTop.exports
+    const subOrder = ['types', 'import', 'require', 'default']
+    if (!Array.isArray(exp)) {
+      const out: Record<string, any> = {}
+      for (const key of Object.keys(exp)) {
+        const val = exp[key]
+        if (val && typeof val === 'object' && !Array.isArray(val))
+          out[key] = sortObjectKeys(val, subOrder)
+        else out[key] = val
+      }
+      sortedTop.exports = out
+    }
+  }
+  // git hooks order inside known containers
+  const hookOrder = ['pre-commit', 'prepare-commit-msg', 'commit-msg', 'post-commit', 'pre-rebase', 'post-rewrite', 'post-checkout', 'post-merge', 'pre-push', 'pre-auto-gc']
+  for (const hk of ['gitHooks', 'husky', 'simple-git-hooks']) {
+    if (sortedTop[hk] && typeof sortedTop[hk] === 'object')
+      sortedTop[hk] = sortObjectKeys(sortedTop[hk], hookOrder)
+  }
+  return JSON.stringify(sortedTop, null, 2)
+}
+
+function sortTsconfigContent(text: string): string {
+  const data = parseJsonSafe(text)
+  if (!data || typeof data !== 'object')
+    return text
+  const topOrder = ['extends', 'compilerOptions', 'references', 'files', 'include', 'exclude']
+  const outTop = sortObjectKeys(data, topOrder)
+  if (outTop.compilerOptions && typeof outTop.compilerOptions === 'object') {
+    const compilerOrder = [
+      'incremental',
+      'composite',
+      'tsBuildInfoFile',
+      'disableSourceOfProjectReferenceRedirect',
+      'disableSolutionSearching',
+      'disableReferencedProjectLoad',
+      'target',
+      'jsx',
+      'jsxFactory',
+      'jsxFragmentFactory',
+      'jsxImportSource',
+      'lib',
+      'moduleDetection',
+      'noLib',
+      'reactNamespace',
+      'useDefineForClassFields',
+      'emitDecoratorMetadata',
+      'experimentalDecorators',
+      'libReplacement',
+      'baseUrl',
+      'rootDir',
+      'rootDirs',
+      'customConditions',
+      'module',
+      'moduleResolution',
+      'moduleSuffixes',
+      'noResolve',
+      'paths',
+      'resolveJsonModule',
+      'resolvePackageJsonExports',
+      'resolvePackageJsonImports',
+      'typeRoots',
+      'types',
+      'allowArbitraryExtensions',
+      'allowImportingTsExtensions',
+      'allowUmdGlobalAccess',
+      'allowJs',
+      'checkJs',
+      'maxNodeModuleJsDepth',
+      'strict',
+      'strictBindCallApply',
+      'strictFunctionTypes',
+      'strictNullChecks',
+      'strictPropertyInitialization',
+      'allowUnreachableCode',
+      'allowUnusedLabels',
+      'alwaysStrict',
+      'exactOptionalPropertyTypes',
+      'noFallthroughCasesInSwitch',
+      'noImplicitAny',
+      'noImplicitOverride',
+      'noImplicitReturns',
+      'noImplicitThis',
+      'noPropertyAccessFromIndexSignature',
+      'noUncheckedIndexedAccess',
+      'noUnusedLocals',
+      'noUnusedParameters',
+      'useUnknownInCatchVariables',
+      'declaration',
+      'declarationDir',
+      'declarationMap',
+      'downlevelIteration',
+      'emitBOM',
+      'emitDeclarationOnly',
+      'importHelpers',
+      'importsNotUsedAsValues',
+      'inlineSourceMap',
+      'inlineSources',
+      'mapRoot',
+      'newLine',
+      'noEmit',
+      'noEmitHelpers',
+      'noEmitOnError',
+      'outDir',
+      'outFile',
+      'preserveConstEnums',
+      'preserveValueImports',
+      'removeComments',
+      'sourceMap',
+      'sourceRoot',
+      'stripInternal',
+      'allowSyntheticDefaultImports',
+      'esModuleInterop',
+      'forceConsistentCasingInFileNames',
+      'isolatedDeclarations',
+      'isolatedModules',
+      'preserveSymlinks',
+      'verbatimModuleSyntax',
+      'erasableSyntaxOnly',
+      'skipDefaultLibCheck',
+      'skipLibCheck',
+    ]
+    outTop.compilerOptions = sortObjectKeys(outTop.compilerOptions, compilerOrder)
+  }
+  return JSON.stringify(outTop, null, 2)
 }
