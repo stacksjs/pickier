@@ -11,7 +11,8 @@ const config: ESLintConfig = stacks({
   jsonc: true,
   yaml: true,
   ignores: [
-    'fixtures/**',
+    '**/test/fixtures/**',
+    '**/test/output/**',
   ],
 })
 

@@ -1,12 +1,11 @@
-import { readFileSync, writeFileSync } from 'node:fs'
-import { relative } from 'node:path'
-import fg from 'fast-glob'
-import { colors } from '../utils'
-import { config as defaultConfig } from '../config'
 import type { PickierConfig } from '../types'
-import { formatCode } from '../format'
-import { extname, isAbsolute, resolve } from 'node:path'
+import { readFileSync, writeFileSync } from 'node:fs'
+import { extname, isAbsolute, relative, resolve } from 'node:path'
 import process from 'node:process'
+import fg from 'fast-glob'
+import { config as defaultConfig } from '../config'
+import { formatCode } from '../format'
+import { colors } from '../utils'
 
 export interface FormatOptions {
   write?: boolean

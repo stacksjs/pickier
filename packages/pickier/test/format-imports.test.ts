@@ -37,5 +37,3 @@ describe('format imports', () => {
     expect(got).toBe(want)
   })
 })
-
-

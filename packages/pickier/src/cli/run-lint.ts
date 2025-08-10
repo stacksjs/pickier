@@ -4,8 +4,8 @@ import { extname, isAbsolute, relative, resolve } from 'node:path'
 import process from 'node:process'
 import fg from 'fast-glob'
 import { config as defaultConfig } from '../config'
-import { colors } from '../utils'
 import { detectQuoteIssues, hasIndentIssue } from '../format'
+import { colors } from '../utils'
 
 export interface LintOptions {
   fix?: boolean
@@ -176,7 +176,7 @@ export async function runLint(globs: string[], options: LintOptions): Promise<nu
   const raw = globs.length ? globs : ['.']
   const patterns = expandPatterns(raw)
   const extCsv = options.ext || cfg.lint.extensions.join(',')
-  const extSet = new Set(extCsv.split(',').map(s => {
+  const extSet = new Set(extCsv.split(',').map((s) => {
     const t = s.trim()
     return t.startsWith('.') ? t : `.${t}`
   }))

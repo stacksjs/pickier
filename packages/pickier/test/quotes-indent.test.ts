@@ -2,8 +2,8 @@ import { describe, expect, it } from 'bun:test'
 import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { runLint } from '../src/cli/run-lint'
 import { runFormat } from '../src/cli/run-format'
+import { runLint } from '../src/cli/run-lint'
 
 function tmp(): string {
   return mkdtempSync(join(tmpdir(), 'pickier-quotes-indent-'))

@@ -19,15 +19,15 @@ function convertDoubleToSingle(str: string): string {
   // strip surrounding quotes
   const inner = str.slice(1, -1)
   // unescape escaped double quotes, keep other escapes intact
-  const unescaped = inner.replace(/\\\"/g, '"')
+  const unescaped = inner.replace(/\\"/g, '"')
   // escape single quotes
-  const escapedSingles = unescaped.replace(/'/g, "\\'")
+  const escapedSingles = unescaped.replace(/'/g, '\\\'')
   return `'${escapedSingles}'`
 }
 
 function convertSingleToDouble(str: string): string {
   const inner = str.slice(1, -1)
-  const unescaped = inner.replace(/\\'/g, "'")
+  const unescaped = inner.replace(/\\'/g, '\'')
   const escapedDoubles = unescaped.replace(/"/g, '\\"')
   return `"${escapedDoubles}"`
 }
@@ -38,10 +38,10 @@ function fixQuotes(content: string, preferred: 'single' | 'double', filePath: st
 
   // do not touch template literals or backticks
   if (preferred === 'single') {
-    return content.replace(/"([^"\\]|\\.)*"/g, (m) => convertDoubleToSingle(m))
+    return content.replace(/"([^"\\]|\\.)*"/g, m => convertDoubleToSingle(m))
   }
   else {
-    return content.replace(/'([^'\\]|\\.)*'/g, (m) => convertSingleToDouble(m))
+    return content.replace(/'([^'\\]|\\.)*'/g, m => convertSingleToDouble(m))
   }
 }
 
@@ -132,8 +132,10 @@ export function formatCode(src: string, cfg: PickierConfig, filePath: string): s
     return endsWithNewline ? joined : `${joined}\n`
   }
   // ensure two final newlines
-  if (/\n\n$/.test(joined)) return joined
-  if (endsWithNewline) return `${joined}\n`
+  if (/\n\n$/.test(joined))
+    return joined
+  if (endsWithNewline)
+    return `${joined}\n`
   return `${joined}\n\n`
 }
 
@@ -213,13 +215,14 @@ function normalizeCodeSpacing(input: string): string {
   // add spaces after semicolons in for headers
   t = t.replace(/;(\S)/g, '; $1')
   // add spaces around simple comparison operators
-  t = t.replace(/([\w\]\)])<(\S)/g, '$1 < $2')
-  t = t.replace(/(\S)>([\w\[\(])/g, '$1 > $2')
+  t = t.replace(/([\w\])])<(\S)/g, '$1 < $2')
+  t = t.replace(/(\S)>([\w[(])/g, '$1 > $2')
   // keep object literal inner spacing as-is
   // collapse multiple spaces to single, but not leading indentation
   t = t.split('\n').map((line) => {
     const m = line.match(/^(\s*)(.*)$/)
-    if (!m) return line
+    if (!m)
+      return line
     const [, lead, rest] = m
     return lead + rest.replace(/\s{2,}/g, ' ')
   }).join('\n')
@@ -242,7 +245,7 @@ function removeStylisticSemicolons(input: string): string {
       continue
     }
     // Collapse duplicate trailing semicolons to a single one
-    line = line.replace(/;;+\s*$/, ';')
+    line = line.replace(/;{2,}\s*$/, ';')
     // Do not strip the final single stylistic semicolon. Keeping it preserves current fixtures.
     out.push(line)
   }
@@ -289,11 +292,13 @@ function formatImports(source: string): string {
   const codeText = rest
   const used = (name: string): boolean => new RegExp(`\\b${name}\\b`).test(codeText)
   for (const imp of imports) {
-    if (imp.kind !== 'value') continue
+    if (imp.kind !== 'value')
+      continue
     // keep default and namespace regardless
     imp.named = imp.named.filter((s) => {
       // if alias present, keep
-      if (s.alias) return true
+      if (s.alias)
+        return true
       return used(s.name)
     })
     // keep all type specifiers
@@ -317,17 +322,22 @@ function formatImports(source: string): string {
       bucket.side.push(imp)
     }
     else if (imp.kind === 'type') {
-      if (!bucket.type) bucket.type = { kind: 'type', source: imp.source, named: [], namedTypes: [], original: '' }
+      if (!bucket.type)
+        bucket.type = { kind: 'type', source: imp.source, named: [], namedTypes: [], original: '' }
       bucket.type.namedTypes = (bucket.type.namedTypes || []).concat(imp.namedTypes)
     }
     else {
-      if (!bucket.value) bucket.value = { kind: 'value', source: imp.source, named: [], namedTypes: [], original: '' }
-      if (imp.defaultName) bucket.value.defaultName = imp.defaultName
-      if (imp.namespaceName) bucket.value.namespaceName = imp.namespaceName
+      if (!bucket.value)
+        bucket.value = { kind: 'value', source: imp.source, named: [], namedTypes: [], original: '' }
+      if (imp.defaultName)
+        bucket.value.defaultName = imp.defaultName
+      if (imp.namespaceName)
+        bucket.value.namespaceName = imp.namespaceName
       bucket.value.named = (bucket.value.named || []).concat(imp.named)
       // if imp has namedTypes mixed in value, move them to type bucket
       if (imp.namedTypes.length > 0) {
-        if (!bucket.type) bucket.type = { kind: 'type', source: imp.source, named: [], namedTypes: [], original: '' }
+        if (!bucket.type)
+          bucket.type = { kind: 'type', source: imp.source, named: [], namedTypes: [], original: '' }
         bucket.type.namedTypes = bucket.type.namedTypes.concat(imp.namedTypes)
       }
     }
@@ -342,8 +352,9 @@ function formatImports(source: string): string {
     if (bucket.value) {
       // flip alias direction only for simple one-letter aliases in value named specifiers
       const flipIfSimple = (s: { name: string, alias?: string }) => {
-        if (!s.alias) return s
-        const simple = /^[A-Za-z]$/.test(s.name) && /^[A-Za-z]$/.test(s.alias)
+        if (!s.alias)
+          return s
+        const simple = /^[A-Z]$/i.test(s.name) && /^[A-Z]$/i.test(s.alias)
         return simple ? { name: s.alias, alias: s.name } : s
       }
       bucket.value.named = bucket.value.named.map(flipIfSimple)
@@ -355,17 +366,19 @@ function formatImports(source: string): string {
       // dedupe and sort
       const seen = new Set<string>()
       const flipIfSimple = (s: { name: string, alias?: string }) => {
-        if (!s.alias) return s
-        const simple = /^[A-Za-z]$/.test(s.name) && /^[A-Za-z]$/.test(s.alias)
+        if (!s.alias)
+          return s
+        const simple = /^[A-Z]$/i.test(s.name) && /^[A-Z]$/i.test(s.alias)
         return simple ? { name: s.alias, alias: s.name } : s
       }
       bucket.type.namedTypes = bucket.type.namedTypes.map(flipIfSimple)
         .filter((s) => {
-        const k = `${s.name}|${s.alias || ''}`
-        if (seen.has(k)) return false
-        seen.add(k)
-        return true
-      })
+          const k = `${s.name}|${s.alias || ''}`
+          if (seen.has(k))
+            return false
+          seen.add(k)
+          return true
+        })
       bucket.type.namedTypes.sort((a, b) => a.name.localeCompare(b.name))
       entries.push(bucket.type)
     }
@@ -375,31 +388,41 @@ function formatImports(source: string): string {
   // Within type and value kinds, sort externals before relatives. For values with same rank, sort by form (default, namespace, named), then by source.
   const rank = (p: string) => p.startsWith('.') ? 2 : (p.startsWith('node:') ? 0 : 1)
   const formRank = (imp: ParsedImport): number => {
-    if (imp.kind !== 'value') return 99
-    if (imp.defaultName) return 0
-    if (imp.namespaceName) return 1
+    if (imp.kind !== 'value')
+      return 99
+    if (imp.defaultName)
+      return 0
+    if (imp.namespaceName)
+      return 1
     return 2
   }
   entries.sort((a, b) => {
     if (a.kind !== b.kind) {
-      if (a.kind === 'type') return -1
-      if (b.kind === 'type') return 1
-      if (a.kind === 'side-effect') return -1
-      if (b.kind === 'side-effect') return 1
+      if (a.kind === 'type')
+        return -1
+      if (b.kind === 'type')
+        return 1
+      if (a.kind === 'side-effect')
+        return -1
+      if (b.kind === 'side-effect')
+        return 1
     }
     if (a.kind === 'type' && b.kind === 'type') {
       const ra = rank(a.source)
       const rb = rank(b.source)
-      if (ra !== rb) return ra - rb
+      if (ra !== rb)
+        return ra - rb
       return a.source.localeCompare(b.source)
     }
     if (a.kind === 'value' && b.kind === 'value') {
       const ra = rank(a.source)
       const rb = rank(b.source)
-      if (ra !== rb) return ra - rb
+      if (ra !== rb)
+        return ra - rb
       const fa = formRank(a)
       const fb = formRank(b)
-      if (fa !== fb) return fa - fb
+      if (fa !== fb)
+        return fa - fb
       return a.source.localeCompare(b.source)
     }
     return a.source.localeCompare(b.source)
@@ -468,9 +491,11 @@ function parseImportStatement(stmt: string): ParsedImport | undefined {
       const isType = /^type\s+/.test(it)
       const t = it.replace(/^type\s+/, '')
       const mm = t.match(/^(\w+)(?:\s+as\s+(\w+))?$/)
-      if (!mm) continue
+      if (!mm)
+        continue
       const entry = { name: mm[1], alias: mm[2] }
-      if (isType) namedTypes.push(entry)
+      if (isType)
+        namedTypes.push(entry)
       else named.push(entry)
     }
     // remove named portion from left
@@ -489,5 +514,3 @@ function parseImportStatement(stmt: string): ParsedImport | undefined {
   }
   return { kind: 'value', source, defaultName, namespaceName, named, namedTypes, original: stmt }
 }
-
-
