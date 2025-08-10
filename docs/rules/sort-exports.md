@@ -34,3 +34,4 @@ export const z = 1
 ## Best practices
 
 - Keep related exports grouped and separated by blank lines; the rule respects contiguous groups
+- Export constants/types first, then functions, then classes for clarity (project convention)

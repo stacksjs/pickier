@@ -39,6 +39,8 @@ export default { rules: { noConsole: 'off' } }
 - Consider allowing `console.error` in CLI tools while warning on other calls
 - Wrap logging behind a utility to centralize behavior and enable silencing in production
 - Keep the rule at `warn` during adoption to avoid blocking merges
+- Use environment flags to silence logs in production builds
+- In libraries, forward logs to consumer-provided hooks instead of writing directly
 
 ## Troubleshooting
 

@@ -45,6 +45,8 @@ if (x === compute()) {
 
 - Prefer explicit comparisons (`===`, `!==`) in conditions
 - If you intentionally assign and test in one expression, make it obvious and consider disabling the rule locally with a comment for that line
+- Split complex conditions across lines; readability reduces accidental assignments
+- Consider extracting the computed value before the condition: `const v = compute(); if (v) { ... }`
 
 ## Troubleshooting
 

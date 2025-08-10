@@ -33,3 +33,4 @@ const obj = { a: 1, z: 1 }
 
 - Keep `minKeys` > 1 to avoid noise on small literals
 - Consider `natural: true` when mixing numbered keys
+- Prefer sorting only within semantically homogeneous objects; avoid forcing sort on configuration-like literals if it harms readability

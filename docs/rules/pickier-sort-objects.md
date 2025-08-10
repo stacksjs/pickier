@@ -46,3 +46,5 @@ Reports two groups out of order.
 
 - Prefer alphabetical ASC with `ignoreCase: true` to minimize diffs
 - Use the formatter’s JSON sorting for config files instead of this rule
+- Partition by blank lines when grouping semantically distinct fields
+- Avoid mixing spread and explicit keys within a sortable group; place spreads at group boundaries

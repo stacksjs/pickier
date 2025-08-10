@@ -31,3 +31,5 @@ const r = /\d{4}-\d{2}-\d{2}/
 ## Best practices
 
 - Name only the groups you need to reference; prefer non-capturing groups otherwise
+- Consider `?:` for grouping without capture to reduce backreference complexity
+- Keep complex regexes commented or broken into smaller parts for maintainability

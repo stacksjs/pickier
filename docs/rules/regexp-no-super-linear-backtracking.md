@@ -34,3 +34,4 @@ const r = /(.*)(.*)/ // flagged
 
 - Keep this rule at `error` in performance-sensitive code (routers, parsers)
 - Add tests for worst-case regex inputs to catch regressions
+- Prefer explicit tokenization over complex single-shot regexes when performance is critical

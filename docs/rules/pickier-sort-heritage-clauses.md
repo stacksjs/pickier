@@ -41,3 +41,4 @@ class C implements App, Bar, Zoo {}
 
 - Use `groups`/`customGroups` to keep framework/base classes first
 - Prefer `alphabetical` for predictable diffs
+- Use `natural` sort when names include numeric suffixes (e.g., `Foo2`, `Foo10`)

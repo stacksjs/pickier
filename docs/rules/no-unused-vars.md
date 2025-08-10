@@ -46,3 +46,5 @@ function run(used: number, _unused: number) {
 
 - Start with `'warn'` to measure noise, then upgrade to `'error'`
 - Use `^_` prefix for intentionally unused names
+- Avoid overly broad ignore patterns; prefer targeted prefixes to keep signal high
+- Consider separate configs for tests to allow common unused patterns (e.g., `_t` in table-driven tests)

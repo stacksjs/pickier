@@ -47,3 +47,4 @@ function work() {
 
 - Keep severity at `error` to prevent shipping `debugger`
 - Use `--fix` locally before committing
+- Add a pre-commit hook to run `pickier lint --fix` to automatically remove stray `debugger` lines

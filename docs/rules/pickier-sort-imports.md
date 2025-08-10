@@ -39,3 +39,5 @@ import { a, b, c } from './x'
 
 - Pair with the formatter to auto-apply canonical import order
 - Keep imports at the top of files so the rule/formatter can analyze them
+- Group external and relative modules separately to improve readability
+- Avoid mixing value and type imports in one statement; separate for clarity

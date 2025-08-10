@@ -29,3 +29,4 @@ Report: with `{ max: 1 }`, the second statement should be on a new line.
 
 - Keep `{ max: 1 }` for readability; increase only if your team prefers compact style in specific files (e.g., config scripts)
 - Pair with the formatter so semicolon normalization is consistent
+- Apply selectively to sources where readability is paramount; relax in generated or compact utility scripts

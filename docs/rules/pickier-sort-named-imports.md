@@ -32,3 +32,5 @@ import { a, m, z } from 'x'
 ## Best practices
 
 - Use `ignoreAlias: true` if you frequently alias names and want sorting by the alias instead
+- Keep `type` and value specifiers separate when possible for clarity
+- Prefer consistent casing and naming across modules to maximize sorting stability

@@ -34,3 +34,11 @@ Groups:
 - [`regexp`](/rules/regexp): regex safety checks
 
 See Advanced » Plugin System for configuration details.
+
+## Best practices
+
+- Start new rules at `warn` to gauge noise, then tighten to `error` where appropriate
+- Prefer bare rule IDs in config (e.g., `'sort-imports'`), leverage category prefixes for discoverability (e.g., `'regexp/no-super-linear-backtracking'`)
+- Keep sorting rules (`sort-objects`, `sort-keys`, `sort-exports`, `sort-imports`) enabled to reduce merge conflicts and diff noise
+- Pair rules with the formatter for auto-fixes where supported
+- Use group pages — [`pickier`](/rules/pickier), [`style`](/rules/style), [`regexp`](/rules/regexp) — to navigate related options and examples
