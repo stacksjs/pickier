@@ -10,7 +10,7 @@ export const defaultConfig: PickierConfig = {
     maxWarnings: -1,
   },
   format: {
-    extensions: ['.ts', '.js', '.html', '.css', '.json', '.jsonc', '.md', '.yaml', '.yml'],
+    extensions: ['ts', 'js', 'html', 'css', 'json', 'jsonc', 'md', 'yaml', 'yml', 'stx'],
     trimTrailingWhitespace: true,
     maxConsecutiveBlankLines: 1,
     finalNewline: 'one',
