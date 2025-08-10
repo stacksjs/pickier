@@ -20,6 +20,7 @@ Fast Bun‑native linting and formatting. Minimal defaults. Extensible. Built fo
 - Thorough tests
 - Import organization: splits type/value imports, sorts modules/specifiers, removes unused named imports
 - Optional stylistic semicolon cleanup (`format.semi`)
+- ESLint-style plugin system for lint rules _(load plugins, enable/disable rules, WIP labeling)_
 
 ## Install
 
@@ -98,8 +99,8 @@ const config: PickierConfig = {
   ignores: ['**/node_modules/**', '**/dist/**', '**/build/**'],
 
   lint: {
-    // which extensions to lint
-    extensions: ['.ts', '.tsx', '.js', '.jsx'],
+    // which extensions to lint ('.ts' or 'ts' both supported)
+    extensions: ['ts', 'js'],
     // stylish | json | compact
     reporter: 'stylish',
     // reserved (not used yet)
@@ -109,7 +110,8 @@ const config: PickierConfig = {
   },
 
   format: {
-    extensions: ['.ts', '.tsx', '.js', '.jsx', '.json', '.md', '.yaml', '.yml'],
+    // which extensions to format
+    extensions: ['ts', 'js', 'json', 'md', 'yaml', 'yml'],
     trimTrailingWhitespace: true,
     maxConsecutiveBlankLines: 1,
     // one | two | none
@@ -131,6 +133,94 @@ const config: PickierConfig = {
 }
 
 export default config
+```
+
+### Plugin system (rules)
+
+Pickier supports an ESLint-style plugin system for lint rules. You can load plugins, configure their rules per severity, and mark experimental rules as WIP to surface errors early.
+
+Concepts:
+- Plugin: `{ name: string, rules: Record<string, RuleModule> }`
+- RuleModule: `{ meta?: { docs?: string; recommended?: boolean; wip?: boolean }, check(content, context) => LintIssue[] }`
+- Configure rules via `pluginRules: { 'pluginName/ruleId': 'off' | 'warn' | 'error' | ['warn', options] }`
+
+Define a plugin (example):
+
+```ts
+// sample-plugin.ts
+import type { PickierPlugin, RuleContext } from 'pickier'
+
+export const samplePlugin: PickierPlugin = {
+  name: 'sample',
+  rules: {
+    'no-todo': {
+      meta: { docs: 'disallow TODO comments', recommended: true },
+      check(content: string, ctx: RuleContext) {
+        const issues = []
+        const lines = content.split(/\r?\n/)
+        for (let i = 0; i < lines.length; i++) {
+          const col = lines[i].indexOf('TODO')
+          if (col !== -1) {
+            issues.push({
+              filePath: ctx.filePath,
+              line: i + 1,
+              column: col + 1,
+              ruleId: 'sample/no-todo',
+              message: 'Unexpected TODO comment.',
+              severity: 'warning',
+            })
+          }
+        }
+        return issues
+      },
+    },
+    'experimental-check': {
+      meta: { wip: true },
+      check() {
+        // not implemented yet
+        throw new Error('WIP rule')
+      },
+    },
+  },
+}
+```
+
+Use the plugin in config:
+
+```ts
+// pickier.config.ts
+import type { PickierConfig } from 'pickier'
+import { samplePlugin } from './sample-plugin'
+
+const config: PickierConfig = {
+  verbose: false,
+  ignores: ['**/node_modules/**'],
+  lint: { extensions: ['ts', 'js'], reporter: 'stylish', cache: false, maxWarnings: -1 },
+  format: { extensions: ['ts', 'js', 'json'], trimTrailingWhitespace: true, maxConsecutiveBlankLines: 1, finalNewline: 'one', indent: 2, quotes: 'single', semi: false },
+  rules: { noDebugger: 'error', noConsole: 'warn' },
+  // Register plugins (currently supports in-memory objects)
+  plugins: [samplePlugin],
+  // Enable/disable rules and pass options
+  pluginRules: {
+    'sample/no-todo': 'warn',
+    // WIP rules that throw will surface as errors with a :wip-error suffix
+    'sample/experimental-check': 'error',
+  },
+}
+
+export default config
+```
+
+CLI example:
+
+```bash
+pickier lint src --reporter json
+# If a WIP rule throws, you will see an error like:
+# {
+#   "ruleId": "sample/experimental-check:wip-error",
+#   "message": "Rule sample/experimental-check is marked as WIP and threw: ...",
+#   ...
+# }
 ```
 
 ### Formatting details
