@@ -2,7 +2,7 @@
   "name": "pickier",
   "type": "module",
   "private": true,
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Format, lint and more in a fraction of seconds.",
   "author": "Chris Breuer <chris@stacksjs.org>",
   "license": "MIT",
