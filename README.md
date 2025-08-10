@@ -23,10 +23,10 @@ Fast Bun‑native linting and formatting. Minimal defaults. Extensible. Built fo
 
 ```bash
 # as a dev dependency
-bun add -D @stacksjs/pickier
+bun add -D pickier
 
 # or with npm/pnpm/yarn
-npm i -D @stacksjs/pickier
+npm i -D pickier
 ```
 
 You can also run it directly via npx/bunx without installing:
@@ -89,7 +89,7 @@ Pickier works out-of-the-box. To customize, create `pickier.config.ts` in your p
 
 ```ts
 // pickier.config.ts
-import type { PickierConfig } from '@stacksjs/pickier'
+import type { PickierConfig } from 'pickier'
 
 const config: PickierConfig = {
   verbose: false,
@@ -185,9 +185,9 @@ MIT © Stacks.js
 You can also call Pickier from code (Bun/Node). Useful for custom tooling, editors, or pipelines.
 
 ```ts
-import type { FormatOptions, LintOptions } from '@stacksjs/pickier'
+import type { FormatOptions, LintOptions } from 'pickier'
 // example.ts
-import { pickierConfig, runFormat, runLint } from '@stacksjs/pickier'
+import { pickierConfig, runFormat, runLint } from 'pickier'
 
 // Lint some directories
 const lintOptions: LintOptions = {
