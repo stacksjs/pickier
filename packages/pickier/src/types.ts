@@ -6,6 +6,15 @@ export interface PickierRulesConfig {
   noConsole: RuleSeverity
 }
 
+export interface LintIssue {
+  filePath: string
+  line: number
+  column: number
+  ruleId: string
+  message: string
+  severity: 'warning' | 'error'
+}
+
 export type Extension = 'ts' | 'js' | 'html' | 'css' | 'json' | 'jsonc' | 'md' | 'yaml' | 'yml' | 'stx'
 
 export interface PickierLintConfig {
@@ -16,7 +25,7 @@ export interface PickierLintConfig {
 }
 
 export interface PickierFormatConfig {
-  extensions: string[]
+  extensions: Extension[]
   trimTrailingWhitespace: boolean
   // maximum number of consecutive blank lines to keep
   maxConsecutiveBlankLines: number
@@ -36,4 +45,32 @@ export interface PickierConfig {
   lint: PickierLintConfig
   format: PickierFormatConfig
   rules: PickierRulesConfig
+  // Plugin system (optional)
+  plugins?: Array<PickierPlugin | string>
+  pluginRules?: RulesConfigMap
+}
+
+// Plugin system types
+export type RulesConfigMap = Record<string, RuleSeverity | [RuleSeverity, unknown]>
+
+export interface RuleMeta {
+  docs?: string
+  recommended?: boolean
+  wip?: boolean
+}
+
+export interface RuleContext {
+  filePath: string
+  config: PickierConfig
+  options?: unknown
+}
+
+export interface RuleModule {
+  meta?: RuleMeta
+  check: (content: string, context: RuleContext) => LintIssue[]
+}
+
+export interface PickierPlugin {
+  name: string
+  rules: Record<string, RuleModule>
 }

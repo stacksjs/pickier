@@ -4,3 +4,5 @@ export { runLint } from './cli/run-lint'
 export type { LintOptions } from './cli/run-lint'
 export * from './config'
 export * from './types'
+// Plugin author helpers
+export type { PickierPlugin, RuleContext, RuleModule } from './types'

@@ -1,4 +1,4 @@
-import type { PickierConfig } from '../types'
+import type { PickierConfig, PickierPlugin, LintIssue as PluginLintIssue, RuleContext, RulesConfigMap } from '../types'
 import { readFileSync, writeFileSync } from 'node:fs'
 import { extname, isAbsolute, relative, resolve } from 'node:path'
 import process from 'node:process'
@@ -59,6 +59,9 @@ function expandPatterns(patterns: string[]): string[] {
     const hasMagic = /[\\*?[\]{}()!]/.test(p)
     if (hasMagic)
       return p
+    // if it looks like a file path with an extension, keep as-is
+    if (/\.[A-Z0-9]+$/i.test(p))
+      return p
     // treat as directory; search all files under it
     return `${p.replace(/\/$/, '')}/**/*`
   })
@@ -70,6 +73,53 @@ function isCodeFile(file: string, allowedExts: Set<string>): boolean {
     return false
   const ext = file.slice(idx)
   return allowedExts.has(ext)
+}
+
+function applyPlugins(filePath: string, content: string, cfg: PickierConfig): PluginLintIssue[] {
+  const issues: PluginLintIssue[] = []
+  const pluginDefs: Array<PickierPlugin> = []
+  if (cfg.plugins && cfg.plugins.length > 0) {
+    for (const p of cfg.plugins) {
+      if (typeof p === 'string')
+        continue // string form not yet supported for runtime import here
+      pluginDefs.push(p)
+    }
+  }
+  if (pluginDefs.length === 0)
+    return issues
+
+  const configured: RulesConfigMap = cfg.pluginRules || {}
+  for (const plugin of pluginDefs) {
+    for (const [ruleName, rule] of Object.entries(plugin.rules)) {
+      const fullName = `${plugin.name}/${ruleName}`
+      const conf = configured[fullName]
+      const sev = Array.isArray(conf) ? conf[0] : conf
+      const options = Array.isArray(conf) ? conf[1] : undefined
+      if (!conf || sev === 'off')
+        continue
+      const context: RuleContext = { filePath, config: cfg, options }
+      try {
+        const res = rule.check(content, context)
+        for (const i of res) {
+          issues.push(i)
+        }
+      }
+      catch (e) {
+        // mark WIP rules as errors when requested via meta
+        if (rule.meta?.wip) {
+          issues.push({
+            filePath,
+            line: 1,
+            column: 1,
+            ruleId: `${fullName}:wip-error`,
+            message: `Rule ${fullName} is marked as WIP and threw: ${String(e)}`,
+            severity: 'error',
+          })
+        }
+      }
+    }
+  }
+  return issues
 }
 
 function scanContent(filePath: string, content: string, cfg: PickierConfig): LintIssue[] {
@@ -139,7 +189,9 @@ function scanContent(filePath: string, content: string, cfg: PickierConfig): Lin
     }
   }
 
-  return issues
+  // plugin-based rules
+  const pluginIssues = applyPlugins(filePath, content, cfg)
+  return issues.concat(pluginIssues)
 }
 
 function applyFixes(filePath: string, content: string, cfg: PickierConfig): string {
