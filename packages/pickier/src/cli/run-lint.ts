@@ -233,6 +233,113 @@ function applyPlugins(filePath: string, content: string, cfg: PickierConfig): Pl
           return out
         },
       },
+      'sort-heritage-clauses': {
+        meta: { docs: 'Enforce sorted TypeScript heritage clauses (extends/implements lists)' },
+        check: (text, ctx) => {
+          const opts: any = ctx.options || {}
+          const type: 'alphabetical' | 'natural' | 'line-length' | 'unsorted' = opts.type || 'alphabetical'
+          const order: 'asc' | 'desc' = opts.order || 'asc'
+          const ignoreCase: boolean = opts.ignoreCase !== false
+          const groupsOpt: Array<string | string[]> = Array.isArray(opts.groups) ? opts.groups : []
+          const customGroups: Record<string, string | string[]> = opts.customGroups || {}
+          const lines = text.split(/\r?\n/)
+          const issues: PluginLintIssue[] = []
+
+          const dir = (n: number) => (order === 'asc' ? n : -n)
+          const cmpAlpha = (a: string, b: string) => (ignoreCase ? a.toLowerCase() : a).localeCompare(ignoreCase ? b.toLowerCase() : b)
+          const cmpNat = (a: string, b: string) => (ignoreCase ? a.toLowerCase() : a).localeCompare(ignoreCase ? b.toLowerCase() : b, undefined, { numeric: true })
+          const cmp = (a: string, b: string) => {
+            if (type === 'line-length')
+              return dir(a.length - b.length)
+            if (type === 'natural')
+              return dir(cmpNat(a, b))
+            if (type === 'unsorted')
+              return 0
+            return dir(cmpAlpha(a, b))
+          }
+
+          const compileCustom = Object.fromEntries(Object.entries(customGroups).map(([g, p]) => {
+            const arr = Array.isArray(p) ? p : [p]
+            const regs = arr.map(s => new RegExp(s))
+            return [g, regs]
+          })) as Record<string, RegExp[]>
+
+          const flatGroups: string[] = []
+          for (const g of groupsOpt) {
+            if (Array.isArray(g))
+              flatGroups.push(...g); else flatGroups.push(g)
+          }
+          if (!flatGroups.includes('unknown'))
+            flatGroups.push('unknown')
+
+          const chooseGroup = (name: string): string => {
+            for (const [g, regs] of Object.entries(compileCustom)) {
+              if (regs.some(r => r.test(name)))
+                return g
+            }
+            return 'unknown'
+          }
+
+          const splitTopLevel = (src: string): string[] => {
+            const out: string[] = []
+            let depth = 0
+            let token = ''
+            for (let i = 0; i < src.length; i++) {
+              const ch = src[i]
+              if (ch === '<')
+                depth++
+              else if (ch === '>')
+                depth = Math.max(0, depth - 1)
+              if (ch === ',' && depth === 0) { out.push(token.trim()); token = ''; continue }
+              token += ch
+            }
+            if (token.trim())
+              out.push(token.trim())
+            return out
+          }
+
+          const baseName = (s: string): string => {
+            const t = s.trim()
+            const m = t.match(/^([A-Z_$][\w$.]*)/i)
+            return m ? m[1] : t
+          }
+
+          const checkList = (lineNo: number, listSrc: string) => {
+            const items = splitTopLevel(listSrc)
+            if (items.length <= 1)
+              return
+            const names = items.map(baseName)
+            const groups = names.map(chooseGroup)
+            const orderByGroup = names
+              .map((n, i) => ({ n, g: groups[i], i }))
+              .sort((a, b) => {
+                const gi = flatGroups.indexOf(a.g)
+                const gj = flatGroups.indexOf(b.g)
+                if (gi !== gj)
+                  return gi - gj
+                return cmp(a.n, b.n)
+              })
+              .map(x => x.n)
+            const same = names.every((n, i) => n === orderByGroup[i])
+            if (!same) {
+              issues.push({ filePath: ctx.filePath, line: lineNo, column: 1, ruleId: 'pickier/sort-heritage-clauses', message: 'Heritage clauses are not sorted', severity: 'warning' })
+            }
+          }
+
+          for (let i = 0; i < lines.length; i++) {
+            const line = lines[i]
+            // interface ... extends A, B, C { ... }
+            const intf = line.match(/^\s*interface\s+[A-Za-z_$][^{]*\bextends\s+(.+?)\s*\{/)
+            if (intf)
+              checkList(i + 1, intf[1])
+            // class ... implements A, B { ... }
+            const impl = line.match(/^\s*class\s+[A-Za-z_$][^{]*\bimplements\s+(.+?)\s*\{/)
+            if (impl)
+              checkList(i + 1, impl[1])
+          }
+          return issues
+        },
+      },
       'sort-keys': {
         meta: { docs: 'Require object keys to be sorted (ESLint-compatible core rule subset)' },
         check: (text, ctx) => {
@@ -317,6 +424,57 @@ function applyPlugins(filePath: string, content: string, cfg: PickierConfig): Pl
             i++
           }
           return out
+        },
+      },
+      'sort-exports': {
+        meta: { docs: 'Enforce sorted export statements' },
+        check: (text, ctx) => {
+          const opts: any = ctx.options || {}
+          const type: 'alphabetical' | 'natural' | 'line-length' | 'unsorted' = opts.type || 'alphabetical'
+          const order: 'asc' | 'desc' = opts.order || 'asc'
+          const ignoreCase: boolean = opts.ignoreCase !== false
+          const partitionByNewLine: boolean = Boolean(opts.partitionByNewLine)
+          const lines = text.split(/\r?\n/)
+          const issues: PluginLintIssue[] = []
+
+          const dir = (n: number) => (order === 'asc' ? n : -n)
+          const cmpAlpha = (a: string, b: string) => (ignoreCase ? a.toLowerCase() : a).localeCompare(ignoreCase ? b.toLowerCase() : b)
+          const cmpNat = (a: string, b: string) => (ignoreCase ? a.toLowerCase() : a).localeCompare(ignoreCase ? b.toLowerCase() : b, undefined, { numeric: true })
+          const cmp = (a: string, b: string) => {
+            if (type === 'line-length')
+              return dir(a.length - b.length)
+            if (type === 'natural')
+              return dir(cmpNat(a, b))
+            if (type === 'unsorted')
+              return 0
+            return dir(cmpAlpha(a, b))
+          }
+
+          const isExportLine = (s: string) => /^\s*export\b/.test(s)
+
+          let i = 0
+          while (i < lines.length) {
+            // skip until first export line
+            while (i < lines.length && !isExportLine(lines[i])) i++
+            if (i >= lines.length)
+              break
+            const start = i
+            const group: string[] = []
+            // build group until non-export encountered; if partitionByNewLine is true, also break on blank line
+            while (i < lines.length && isExportLine(lines[i])) { group.push(lines[i].trim()); i++ }
+            if (partitionByNewLine) {
+              // Examine following lines for additional export blocks separated by blank lines? We keep groups per contiguous run; blank lines already break contiguous run
+            }
+            if (group.length > 1) {
+              const keyLines = group.map(ln => ln)
+              const sorted = [...keyLines].sort(cmp)
+              const same = keyLines.every((ln, idx) => ln === sorted[idx])
+              if (!same) {
+                issues.push({ filePath: ctx.filePath, line: start + 1, column: 1, ruleId: 'pickier/sort-exports', message: 'Export statements are not sorted', severity: 'warning' })
+              }
+            }
+          }
+          return issues
         },
       },
     },
@@ -579,6 +737,49 @@ function applyPlugins(filePath: string, content: string, cfg: PickierConfig): Pl
     },
   }
   pluginDefs.push(unusedImportsPlugin)
+  // Built-in regexp plugin subset
+  const regexpPlugin: PickierPlugin = {
+    name: 'regexp',
+    rules: {
+      'no-super-linear-backtracking': {
+        meta: { docs: 'Detects potentially super-linear backtracking patterns in regex literals (heuristic)' },
+        check: (text, ctx) => {
+          const issues: PluginLintIssue[] = []
+          const regexLiteral = /\/[^\/\\]*(?:\\.[^\/\\]*)*\//g
+          const mark = (idx: number, len: number, msg: string) => {
+            const before = text.slice(0, idx)
+            const line = (before.match(/\n/g) || []).length + 1
+            const col = idx - before.lastIndexOf('\n')
+            issues.push({ filePath: ctx.filePath, line, column: col, ruleId: 'regexp/no-super-linear-backtracking', message: msg, severity: 'error' })
+          }
+          let m: RegExpExecArray | null
+          while ((m = regexLiteral.exec(text))) {
+            const literal = m[0]
+            const idx = m.index
+            const patt = literal.slice(1, literal.lastIndexOf('/'))
+            const flat = patt.replace(/\[.*?\]/g, '') // strip char classes heuristically
+            // Heuristics:
+            // 1) Overlapping adjacent unlimited quantifiers that can exchange characters (e.g., .+?\s*, \s*.+?, .*\s*, \s*.*)
+            const exch = flat.includes('.+?\\s*') || flat.includes('\\s*.+?') || flat.includes('.*\\s*') || flat.includes('\\s*.*')
+            if (exch) { mark(idx, literal.length, "The combination of '.*' or '.+?' with '\\s*' can cause super-linear backtracking due to exchangeable characters"); continue }
+            // 2) Repeated wildcards next to each other: ".*.*" or variations
+            const collapsed = flat.replace(/\s+/g, '')
+            if (/(?:\.\*\??){2,}/.test(collapsed) || /(?:\.\+\??){2,}/.test(collapsed) || /\.\*\??\.\+\??|\.\+\??\.\*\??/.test(collapsed)) {
+              mark(idx, literal.length, 'Multiple adjacent unlimited wildcard quantifiers can cause super-linear backtracking')
+              continue
+            }
+            // 3) Nested unlimited quantifiers like (.+)+, (.*)+, (?:...+)+
+            if (/\((?:\?:)?[^)]*?[+*][^)]*?\)\s*[+*]/.test(flat)) {
+              mark(idx, literal.length, 'Nested unlimited quantifiers detected (e.g., (.+)+) which can cause catastrophic backtracking')
+              continue
+            }
+          }
+          return issues
+        },
+      },
+    },
+  }
+  pluginDefs.push(regexpPlugin)
   if (cfg.plugins && cfg.plugins.length > 0) {
     for (const p of cfg.plugins) {
       if (typeof p === 'string')
