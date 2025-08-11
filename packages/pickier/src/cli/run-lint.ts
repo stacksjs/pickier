@@ -2,7 +2,7 @@ import type { PickierConfig, PickierPlugin, LintIssue as PluginLintIssue, RuleCo
 import { readFileSync, writeFileSync } from 'node:fs'
 import { extname, isAbsolute, relative, resolve } from 'node:path'
 import process from 'node:process'
-import fg from 'fast-glob'
+import { glob as tinyGlob } from 'tinyglobby'
 import { config as defaultConfig } from '../config'
 import { detectQuoteIssues, formatImports, hasIndentIssue } from '../format'
 import { colors } from '../utils'
@@ -1819,7 +1819,7 @@ function applyPlugins(filePath: string, content: string, cfg: PickierConfig): Pl
             // Heuristics:
             // 1) Overlapping adjacent unlimited quantifiers that can exchange characters (e.g., .+?\s*, \s*.+?, .*\s*, \s*.*)
             const exch = flat.includes('.+?\\s*') || flat.includes('\\s*.+?') || flat.includes('.*\\s*') || flat.includes('\\s*.*')
-            if (exch) { mark(idx, literal.length, 'The combination of \'.*\' or \'.+?\' with \'\\s*\' can cause super-linear backtracking due to exchangeable characters'); continue }
+            if (exch) { mark(idx, literal.length, 'The combination of \' .*\' or \' .+?\' with \'\\s*\' can cause super-linear backtracking due to exchangeable characters'); continue }
             // 2) Repeated wildcards next to each other: ".*.*" or variations
             const collapsed = flat.replace(/\s+/g, '')
             if (/(?:\.\*\??){2,}/.test(collapsed) || /(?:\.\+\??){2,}/.test(collapsed) || /\.\*\??\.\+\??|\.\+\??\.\*\??/.test(collapsed)) {
@@ -2049,15 +2049,14 @@ export async function runLint(globs: string[], options: LintOptions): Promise<nu
     return t.startsWith('.') ? t : `.${t}`
   }))
 
-  const entries = await fg(patterns, {
+  const entries: string[] = await tinyGlob(patterns, {
     dot: false,
     ignore: cfg.ignores,
     onlyFiles: true,
-    unique: true,
     absolute: true,
   })
 
-  const files = entries.filter(f => isCodeFile(f, extSet))
+  const files = entries.filter((f: string) => isCodeFile(f, extSet))
 
   let allIssues: LintIssue[] = []
   for (const file of files) {

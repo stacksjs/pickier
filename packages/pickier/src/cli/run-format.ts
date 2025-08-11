@@ -2,7 +2,7 @@ import type { PickierConfig } from '../types'
 import { readFileSync, writeFileSync } from 'node:fs'
 import { extname, isAbsolute, relative, resolve } from 'node:path'
 import process from 'node:process'
-import fg from 'fast-glob'
+import { glob as tinyGlob } from 'tinyglobby'
 import { config as defaultConfig } from '../config'
 import { formatCode } from '../format'
 import { colors } from '../utils'
@@ -46,11 +46,10 @@ export async function runFormat(globs: string[], options: FormatOptions): Promis
     return t.startsWith('.') ? t : `.${t}`
   }))
 
-  const entries = await fg(patterns, {
+  const entries: string[] = await tinyGlob(patterns, {
     dot: false,
     ignore: ['**/node_modules/**', '**/dist/**', '**/build/**'],
     onlyFiles: true,
-    unique: true,
     absolute: true,
   })
 

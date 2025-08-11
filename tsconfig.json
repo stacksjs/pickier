@@ -23,7 +23,8 @@
   },
   "exclude": [
     "packages/pickier/test/fixtures/**/*",
-    "packages/pickier/test/output/**/*"
+    "packages/pickier/test/output/**/*",
+    "packages/pickier/dist/**/*"
   ],
   "paths": {
     "pickier": ["./packages/pickier/src/index.ts"]

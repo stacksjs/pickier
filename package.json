@@ -41,6 +41,7 @@
     "buddy-bot": "^0.7.8",
     "bun-git-hooks": "^0.2.19",
     "bun-plugin-dtsx": "^0.21.12",
+    "tinyglobby": "^0.2.14",
     "typescript": "^5.9.2"
   },
   "overrides": {
