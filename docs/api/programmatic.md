@@ -12,7 +12,7 @@ async function main() {
   const globs = ['src', 'README.md']
   const options: FormatOptions = {
     write: true, // write changes to disk
-    ext: '.ts,.tsx,.js,.jsx,.md',
+    ext: '.ts,.js,.md',
     verbose: true,
   }
 

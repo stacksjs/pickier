@@ -14,7 +14,7 @@ pickier lint src
 pickier lint . --fix --dry-run
 
 # set a warning threshold (non-zero exit when exceeded)
-pickier lint "src/**/*.{ts,tsx}" --max-warnings 0
+pickier lint "src/**/*.ts" --max-warnings 0
 
 # output as JSON
 pickier lint . --reporter json
@@ -47,7 +47,7 @@ pickier format . --check
 pickier format src --write
 
 # limit to specific extensions
-pickier format . --ext .ts,.tsx,.js
+pickier format . --ext .ts,.js
 ```
 
 Supported flags:
@@ -70,4 +70,4 @@ pickier lint .
 pickier format "src/**/*.{ts,tsx,js}"
 ```
 
-Ignored paths come from your config `ignores`. The CLI defaults for `--ext` are `.ts,.tsx,.js,.jsx`.
+Ignored paths come from your config `ignores`. When `--ext` is omitted, Pickier uses your config's `extensions` list (built-in defaults: `.ts,.js,.html,.css,.json,.jsonc,.md,.yaml,.yml,.stx`).

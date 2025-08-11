@@ -80,4 +80,4 @@ export default config
 - `--config <path>` can point to any of the supported formats.
 - When `--ext` is not provided on the CLI, Pickier uses `lint.extensions` or `format.extensions` from your config.
 - `ignores` are passed to the file scanner to skip matching paths.
- - The CLI default for `--ext` is `.ts,.tsx,.js,.jsx`. To lint/format additional file types, pass `--ext` or set `extensions` above.
+- When `--ext` is omitted, Pickier uses `lint.extensions` / `format.extensions` from your config. Built-in defaults: `.ts,.js,.html,.css,.json,.jsonc,.md,.yaml,.yml,.stx`.

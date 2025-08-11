@@ -48,9 +48,9 @@ Return value: `Promise<number>` — process-like exit code.
   - `compact` (one-line per issue)
 - Built-in plugin rules available via `pluginRules` config (see Rules pages):
   - `sort-objects` — see [/rules/sort-objects](/rules/sort-objects)
-  - `sort-imports` — see [/rules/sort-imports](/rules/sort-imports)
-  - `sort-named-imports` — see [/rules/sort-named-imports](/rules/sort-named-imports)
-  - `sort-heritage-clauses` — see [/rules/sort-heritage-clauses](/rules/sort-heritage-clauses)
+- `sort-imports` — see [/rules/sort-imports](/rules/sort-imports)
+- `sort-named-imports` — see [/rules/sort-named-imports](/rules/sort-named-imports)
+- `sort-heritage-clauses` — see [/rules/sort-heritage-clauses](/rules/sort-heritage-clauses)
   - `sort-keys` — see [/rules/sort-keys](/rules/sort-keys)
   - `sort-exports` — see [/rules/sort-exports](/rules/sort-exports)
   - `max-statements-per-line` — see [/rules/style-max-statements-per-line](/rules/style-max-statements-per-line)

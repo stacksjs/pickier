@@ -29,7 +29,7 @@ export default config
 
 Built-in plugins and rules (see the Rules section for details):
 
-- `pickier`: [`no-unused-vars`](/rules/no-unused-vars), [`prefer-const`](/rules/prefer-const), [`sort-array-includes`](/rules/sort-array-includes), [`sort-classes`](/rules/sort-classes), [`sort-enums`](/rules/sort-enums), [`sort-exports`](/rules/sort-exports), [`sort-heritage-clauses`](/rules/pickier-sort-heritage-clauses), [`sort-imports`](/rules/pickier-sort-imports), [`sort-interfaces`](/rules/sort-interfaces), [`sort-keys`](/rules/sort-keys), [`sort-maps`](/rules/sort-maps), [`sort-named-imports`](/rules/pickier-sort-named-imports), [`sort-object-types`](/rules/sort-object-types), [`sort-objects`](/rules/pickier-sort-objects)
+- `pickier`: [`no-unused-vars`](/rules/no-unused-vars), [`prefer-const`](/rules/prefer-const), [`sort-array-includes`](/rules/sort-array-includes), [`sort-classes`](/rules/sort-classes), [`sort-enums`](/rules/sort-enums), [`sort-exports`](/rules/sort-exports), [`sort-heritage-clauses`](/rules/sort-heritage-clauses), [`sort-imports`](/rules/sort-imports), [`sort-interfaces`](/rules/sort-interfaces), [`sort-keys`](/rules/sort-keys), [`sort-maps`](/rules/sort-maps), [`sort-named-imports`](/rules/pickier-sort-named-imports), [`sort-object-types`](/rules/sort-object-types), [`sort-objects`](/rules/pickier-sort-objects)
 - `style`: [`max-statements-per-line`](/rules/style-max-statements-per-line)
 - `regexp`: [`no-super-linear-backtracking`](/rules/regexp-no-super-linear-backtracking)
 

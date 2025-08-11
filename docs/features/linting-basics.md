@@ -18,10 +18,10 @@ Optional heuristics via `rules`:
 
 Enable via `pluginRules` in your config. See the Rules pages for details and examples:
 
-- [/rules/sort-objects](/rules/pickier-sort-objects)
-- [/rules/sort-imports](/rules/pickier-sort-imports)
-- [/rules/sort-named-imports](/rules/pickier-sort-named-imports)
-- [/rules/sort-heritage-clauses](/rules/pickier-sort-heritage-clauses)
+- [/rules/sort-objects](/rules/sort-objects)
+- [/rules/sort-imports](/rules/sort-imports)
+- [/rules/sort-named-imports](/rules/sort-named-imports)
+- [/rules/sort-heritage-clauses](/rules/sort-heritage-clauses)
 - [/rules/sort-keys](/rules/sort-keys)
 - [/rules/sort-exports](/rules/sort-exports)
 - [/rules/max-statements-per-line](/rules/style-max-statements-per-line)
