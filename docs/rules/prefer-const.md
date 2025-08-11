@@ -17,7 +17,7 @@ This is a heuristic rule implemented in the built-in plugin. It scans lines for 
 Code that triggers the rule:
 
 ```ts
-let count = 1
+const count = 1
 function inc() {
   console.log(count)
 }

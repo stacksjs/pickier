@@ -3,8 +3,12 @@
     "target": "esnext",
     "lib": ["esnext"],
     "moduleDetection": "force",
+    "baseUrl": ".",
     "module": "esnext",
     "moduleResolution": "bundler",
+    "paths": {
+      "pickier": ["./packages/pickier/src/index.ts"]
+    },
     "resolveJsonModule": true,
     "types": ["bun"],
     "allowImportingTsExtensions": true,
@@ -25,8 +29,5 @@
     "packages/pickier/test/fixtures/**/*",
     "packages/pickier/test/output/**/*",
     "packages/pickier/dist/**/*"
-  ],
-  "paths": {
-    "pickier": ["./packages/pickier/src/index.ts"]
-  }
+  ]
 }
