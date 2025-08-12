@@ -1965,6 +1965,57 @@ function scanContent(filePath: string, content: string, cfg: PickierConfig): Lin
   const issues: LintIssue[] = []
   const lines = content.split(/\r?\n/)
 
+  // Support inline suppression for next line via both ESLint and Pickier prefixes
+  // Examples:
+  // // eslint-disable-next-line no-console, quotes
+  // // pickier-disable-next-line sort-objects
+  // /* eslint-disable-next-line no-console */
+  const disabledNextLine: Map<number, { all: boolean, rules: Set<string> }> = new Map()
+  const registerDisable = (targetLine: number, rulesPart: string | undefined) => {
+    if (targetLine < 1)
+      return
+    const entry = { all: false, rules: new Set<string>() }
+    const part = (rulesPart || '').trim()
+    if (!part) {
+      entry.all = true
+    }
+    else {
+      // split by commas or whitespace
+      const tokens = part.split(/[\s,]+/).map(s => s.trim()).filter(Boolean)
+      for (const t of tokens)
+        entry.rules.add(t)
+    }
+    disabledNextLine.set(targetLine, entry)
+  }
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i]
+    // line comments
+    const m1 = line.match(/^\s*\/\/\s*(?:eslint|pickier)-disable-next-line(?:\s+(.+))?\s*$/)
+    if (m1)
+      registerDisable(i + 2, m1[1])
+    // block comments in one line
+    const m2 = line.match(/^\s*\/\*\s*(?:eslint|pickier)-disable-next-line(?:\s+(.+?))?\s*\*\/\s*$/)
+    if (m2)
+      registerDisable(i + 2, m2[1])
+  }
+  const isSuppressed = (ruleId: string, lineNo: number): boolean => {
+    const ent = disabledNextLine.get(lineNo)
+    if (!ent)
+      return false
+    if (ent.all)
+      return true
+    // match exact, plugin-prefixed, or suffix form
+    for (const t of ent.rules) {
+      if (t === ruleId)
+        return true
+      if (t.endsWith(`/${ruleId}`))
+        return true
+      if (ruleId.endsWith(`/${t}`))
+        return true
+    }
+    return false
+  }
+
   const debuggerStmt = /^\s*debugger\b/ // statement-only, not inside strings
 
   for (let i = 0; i < lines.length; i++) {
@@ -1973,27 +2024,31 @@ function scanContent(filePath: string, content: string, cfg: PickierConfig): Lin
 
     if (cfg.rules.noDebugger !== 'off' && debuggerStmt.test(line)) {
       const col = line.search(/\S|$/) + 1
-      issues.push({
-        filePath,
-        line: lineNo,
-        column: col,
-        ruleId: 'no-debugger',
-        message: 'Unexpected debugger statement.',
-        severity: cfg.rules.noDebugger === 'error' ? 'error' : 'warning',
-      })
+      if (!isSuppressed('no-debugger', lineNo)) {
+        issues.push({
+          filePath,
+          line: lineNo,
+          column: col,
+          ruleId: 'no-debugger',
+          message: 'Unexpected debugger statement.',
+          severity: cfg.rules.noDebugger === 'error' ? 'error' : 'warning',
+        })
+      }
     }
 
     if (cfg.rules.noConsole !== 'off') {
       const conCol = line.indexOf('console.')
       if (conCol !== -1) {
-        issues.push({
-          filePath,
-          line: lineNo,
-          column: conCol + 1,
-          ruleId: 'no-console',
-          message: 'Unexpected console usage.',
-          severity: cfg.rules.noConsole === 'error' ? 'error' : 'warning',
-        })
+        if (!isSuppressed('no-console', lineNo)) {
+          issues.push({
+            filePath,
+            line: lineNo,
+            column: conCol + 1,
+            ruleId: 'no-console',
+            message: 'Unexpected console usage.',
+            severity: cfg.rules.noConsole === 'error' ? 'error' : 'warning',
+          })
+        }
       }
     }
 
@@ -2001,14 +2056,16 @@ function scanContent(filePath: string, content: string, cfg: PickierConfig): Lin
     if (/\.(?:ts|tsx|js|jsx)$/.test(filePath)) {
       const quoteIdx = detectQuoteIssues(line, cfg.format.quotes)
       for (const idx of quoteIdx) {
-        issues.push({
-          filePath,
-          line: lineNo,
-          column: idx + 1,
-          ruleId: 'quotes',
-          message: `Strings must use ${cfg.format.quotes} quotes.`,
-          severity: 'warning',
-        })
+        if (!isSuppressed('quotes', lineNo)) {
+          issues.push({
+            filePath,
+            line: lineNo,
+            column: idx + 1,
+            ruleId: 'quotes',
+            message: `Strings must use ${cfg.format.quotes} quotes.`,
+            severity: 'warning',
+          })
+        }
       }
 
       // indentation diagnostics
@@ -2016,16 +2073,18 @@ function scanContent(filePath: string, content: string, cfg: PickierConfig): Lin
       const leading = leadingMatch ? leadingMatch[0] : ''
       if (hasIndentIssue(leading, cfg.format.indent, cfg.format.indentStyle || 'spaces')) {
         const firstNonWs = line.search(/\S|$/)
-        issues.push({
-          filePath,
-          line: lineNo,
-          column: Math.max(1, firstNonWs),
-          ruleId: 'indent',
-          message: cfg.format.indentStyle === 'tabs'
-            ? 'Indentation must use tabs.'
-            : `Indentation must be a multiple of ${cfg.format.indent} spaces.`,
-          severity: 'warning',
-        })
+        if (!isSuppressed('indent', lineNo)) {
+          issues.push({
+            filePath,
+            line: lineNo,
+            column: Math.max(1, firstNonWs),
+            ruleId: 'indent',
+            message: cfg.format.indentStyle === 'tabs'
+              ? 'Indentation must use tabs.'
+              : `Indentation must be a multiple of ${cfg.format.indent} spaces.`,
+            severity: 'warning',
+          })
+        }
       }
     }
   }
@@ -2033,6 +2092,8 @@ function scanContent(filePath: string, content: string, cfg: PickierConfig): Lin
   // RegExp: no-unused-capturing-group (heuristic across entire file)
   if (cfg.rules.noUnusedCapturingGroup && cfg.rules.noUnusedCapturingGroup !== 'off') {
     const addIssue = (line: number, col: number) => {
+      if (isSuppressed('regexp/no-unused-capturing-group', line))
+        return
       issues.push({
         filePath,
         line,
@@ -2042,7 +2103,7 @@ function scanContent(filePath: string, content: string, cfg: PickierConfig): Lin
         severity: cfg.rules.noUnusedCapturingGroup === 'error' ? 'error' : 'warning',
       })
     }
-    const regexLiteral = /\/[^/\\]*(?:\\.[^/\\]*)*\//g
+    const regexLiteral = /\/[^\/\\]*(?:\\.[^\/\\]*)*\//g
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i]
       regexLiteral.lastIndex = 0
@@ -2061,7 +2122,11 @@ function scanContent(filePath: string, content: string, cfg: PickierConfig): Lin
 
   // no-cond-assign: flag assignments inside if/while/do-while/for conditions
   if (cfg.rules.noCondAssign && cfg.rules.noCondAssign !== 'off') {
-    const addIssue = (l: number, c: number) => issues.push({ filePath, line: l, column: c, ruleId: 'no-cond-assign', message: 'Unexpected assignment within a \'while\' statement', severity: cfg.rules.noCondAssign === 'error' ? 'error' : 'warning' })
+    const addIssue = (l: number, c: number) => {
+      if (isSuppressed('no-cond-assign', l))
+        return
+      issues.push({ filePath, line: l, column: c, ruleId: 'no-cond-assign', message: 'Unexpected assignment within a \'while\' statement', severity: cfg.rules.noCondAssign === 'error' ? 'error' : 'warning' })
+    }
     const conds = [/^\s*if\s*\((.*)\)/, /^\s*while\s*\((.*)\)/, /^\s*do\s*\{?/, /^\s*for\s*\((.*)\)/]
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i]
@@ -2086,7 +2151,8 @@ function scanContent(filePath: string, content: string, cfg: PickierConfig): Lin
 
   // plugin-based rules
   const pluginIssues = applyPlugins(filePath, content, cfg)
-  return issues.concat(pluginIssues)
+  const filteredPluginIssues = pluginIssues.filter(i => !isSuppressed(i.ruleId, i.line))
+  return issues.concat(filteredPluginIssues)
 }
 
 function applyFixes(filePath: string, content: string, cfg: PickierConfig): string {

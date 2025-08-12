@@ -24,9 +24,9 @@ Enable via `pluginRules` in your config. See the Rules pages for details and exa
 - [/rules/sort-heritage-clauses](/rules/sort-heritage-clauses)
 - [/rules/sort-keys](/rules/sort-keys)
 - [/rules/sort-exports](/rules/sort-exports)
-- [/rules/max-statements-per-line](/rules/style-max-statements-per-line)
+- [/rules/style-max-statements-per-line](/rules/style-max-statements-per-line)
 - [/rules/no-unused-vars](/rules/no-unused-vars)
-- [/rules/no-super-linear-backtracking](/rules/regexp-no-super-linear-backtracking)
+- [/rules/regexp-no-super-linear-backtracking](/rules/regexp-no-super-linear-backtracking)
 - [/rules/prefer-const](/rules/prefer-const)
 
 - `sort-objects`: object literal key ordering checks
@@ -40,6 +40,30 @@ Enable via `pluginRules` in your config. See the Rules pages for details and exa
 - `no-super-linear-backtracking`: flags regex patterns that may catastrophically backtrack
 
 See Advanced » Plugin System for options.
+
+## Inline disables
+
+You can suppress issues for the next line using either ESLint-style or Pickier-style prefixes:
+
+```ts
+// eslint-disable-next-line no-console, quotes
+console.log("x")
+
+// pickier-disable-next-line sort-objects
+const obj = { b: 1, a: 2 }
+
+// eslint-disable-next-line pickier/sort-objects
+const obj2 = { y: 1, x: 2 }
+
+// pickier-disable-next-line ts/no-require-imports
+const fs = require('fs')
+```
+
+Notes:
+
+- When no rule list is provided, all rules for the next line are suppressed.
+- Rule matching accepts both prefixed and bare IDs (e.g., `sort-objects` or `pickier/sort-objects`).
+- Block comment form is also supported on a single line: `/* eslint-disable-next-line no-console */`.
 
 ## CLI usage
 
@@ -125,7 +149,7 @@ Given `quotes: 'single'` and `indent: 2`, the linter will warn on lines like:
 
 ```ts
 const a = "hello"  // prefer single quotes
-\t  doThing()       // tabs not allowed; indent must be multiple of 2 spaces
+   doThing()       // tabs not allowed; indent must be multiple of 2 spaces
 ```
 
 ## Best practices
