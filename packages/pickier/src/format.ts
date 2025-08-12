@@ -549,7 +549,7 @@ function parseImportStatement(stmt: string): ParsedImport | undefined {
 function trySortKnownJson(input: string, filePath: string): string | null {
   if (/package\.json$/i.test(filePath))
     return sortPackageJsonContent(input)
-  if (/[jt]sconfig(\..+)?\.json$/i.test(filePath))
+  if (/[jt]sconfig(?:\..+)?\.json$/i.test(filePath))
     return sortTsconfigContent(input)
   return null
 }
@@ -650,7 +650,7 @@ function sortPackageJsonContent(text: string): string {
   }
   // sort deps blocks A-Z
   for (const k of Object.keys(sortedTop)) {
-    if (/^(?:dev|peer|optional|bundled)?[Dd]ependencies(Meta)?$/.test(k) || /^(?:resolutions|overrides|pnpm\.overrides)$/.test(k)) {
+    if (/^(?:dev|peer|optional|bundled)?[Dd]ependencies(?:Meta)?$/.test(k) || /^(?:resolutions|overrides|pnpm\.overrides)$/.test(k)) {
       if (sortedTop[k] && typeof sortedTop[k] === 'object')
         sortedTop[k] = sortDepsAsc(sortedTop[k])
     }

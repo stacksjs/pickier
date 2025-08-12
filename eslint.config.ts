@@ -13,6 +13,7 @@ const config: ESLintConfig = stacks({
   ignores: [
     '**/test/fixtures/**',
     '**/test/output/**',
+    'docs/**',
   ],
 })
 

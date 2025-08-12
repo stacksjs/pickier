@@ -1803,7 +1803,7 @@ function applyPlugins(filePath: string, content: string, cfg: PickierConfig): Pl
         meta: { docs: 'Detects potentially super-linear backtracking patterns in regex literals (heuristic)' },
         check: (text, ctx) => {
           const issues: PluginLintIssue[] = []
-          const regexLiteral = /\/[^\/\\]*(?:\\.[^\/\\]*)*\//g
+          const regexLiteral = /\/[^/\\]*(?:\\.[^/\\]*)*\//g
           const mark = (idx: number, len: number, msg: string) => {
             const before = text.slice(0, idx)
             const line = (before.match(/\n/g) || []).length + 1
@@ -1899,7 +1899,7 @@ function applyPlugins(filePath: string, content: string, cfg: PickierConfig): Pl
               continue
             }
             // also flag import = require('...') pattern
-            if (/^import\s+.+=\s*require\s*\(/.test(trimmed)) {
+            if (/^import\s+(?:\S.*|[\t\v\f \xA0\u1680\u2000-\u200A\u202F\u205F\u3000\uFEFF])=\s*require\s*\(/.test(trimmed)) {
               const col = raw.indexOf('require(')
               issues.push({
                 filePath: ctx.filePath,
@@ -2103,7 +2103,7 @@ function scanContent(filePath: string, content: string, cfg: PickierConfig): Lin
         severity: cfg.rules.noUnusedCapturingGroup === 'error' ? 'error' : 'warning',
       })
     }
-    const regexLiteral = /\/[^\/\\]*(?:\\.[^\/\\]*)*\//g
+    const regexLiteral = /\/[^/\\]*(?:\\.[^/\\]*)*\//g
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i]
       regexLiteral.lastIndex = 0

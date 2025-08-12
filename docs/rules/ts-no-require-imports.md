@@ -17,7 +17,7 @@ Examples (violations):
 
 ```ts
 // a.ts
-const fs = require('fs')
+const fs = require('node:fs')
 ```
 
 ```ts
@@ -29,7 +29,7 @@ Non-violations:
 
 ```ts
 // dynamic import
-const mod = await import('fs')
+const mod = await import('node:fs')
 ```
 
 Rationale: TypeScript projects commonly target ESM. Mixing `require()` with ESM import/export leads to interop edge cases and bundler inconsistencies.

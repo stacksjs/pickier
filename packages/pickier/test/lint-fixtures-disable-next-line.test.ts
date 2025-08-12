@@ -30,8 +30,8 @@ describe('disable-next-line fixtures', () => {
     writeFileSync(cfgPath, JSON.stringify({
       verbose: false,
       ignores: [],
-      lint: { extensions: ['ts','js'], reporter: 'json', cache: false, maxWarnings: -1 },
-      format: { extensions: ['ts','js'], trimTrailingWhitespace: true, maxConsecutiveBlankLines: 1, finalNewline: 'one', indent: 2, quotes: 'single', semi: false },
+      lint: { extensions: ['ts', 'js'], reporter: 'json', cache: false, maxWarnings: -1 },
+      format: { extensions: ['ts', 'js'], trimTrailingWhitespace: true, maxConsecutiveBlankLines: 1, finalNewline: 'one', indent: 2, quotes: 'single', semi: false },
       rules: { noDebugger: 'error', noConsole: 'warn' },
       pluginRules: { 'sort-objects': 'warn', 'ts/no-require-imports': 'error' },
     }, null, 2), 'utf8')
@@ -48,4 +48,4 @@ describe('disable-next-line fixtures', () => {
     const lintCode = await runLint([dir], { config: cfgPath, reporter: 'json' })
     expect(lintCode).toBe(0)
   })
-}) 
+})

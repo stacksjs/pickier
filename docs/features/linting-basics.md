@@ -56,7 +56,7 @@ const obj = { b: 1, a: 2 }
 const obj2 = { y: 1, x: 2 }
 
 // pickier-disable-next-line ts/no-require-imports
-const fs = require('fs')
+const fs = require('node:fs')
 ```
 
 Notes:

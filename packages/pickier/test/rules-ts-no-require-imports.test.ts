@@ -13,7 +13,7 @@ describe('ts/no-require-imports', () => {
     const dir = tmp()
     const file = 'a.ts'
     const src = [
-      "const fs = require('fs')",
+      'const fs = require(\'fs\')',
       'export const x = fs.existsSync ? 1 : 0',
       '',
     ].join('\n')
@@ -38,7 +38,7 @@ describe('ts/no-require-imports', () => {
     const dir = tmp()
     const file = 'b.ts'
     const src = [
-      "const mod = await import('fs')",
+      'const mod = await import(\'fs\')',
       'export { mod }',
       '',
     ].join('\n')
@@ -57,4 +57,4 @@ describe('ts/no-require-imports', () => {
     const code = await runLint([dir], { config: cfgPath, reporter: 'json' })
     expect(code).toBe(0)
   })
-}) 
+})

@@ -90,7 +90,7 @@ describe('disable-next-line directives', () => {
     const file = 'e.ts'
     const src = [
       '// pickier-disable-next-line ts/no-require-imports',
-      "const fs = require('fs')",
+      'const fs = require(\'fs\')',
       '',
     ].join('\n')
     writeFileSync(join(dir, file), src, 'utf8')
@@ -122,4 +122,4 @@ describe('disable-next-line directives', () => {
     const code = await runLint([dir], { reporter: 'json' })
     expect(code).toBe(0)
   })
-}) 
+})
