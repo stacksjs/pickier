@@ -32,12 +32,14 @@ Plugin:
 - [`sort-named-imports`](/rules/pickier-sort-named-imports)
 - [`sort-object-types`](/rules/sort-object-types)
 - [`sort-objects`](/rules/pickier-sort-objects)
+- [`ts/no-require-imports`](/rules/ts-no-require-imports)
 
 Groups:
 
 - [`pickier`](/rules/pickier): sorting and hygiene rules
 - [`style`](/rules/style): stylistic constraints
 - [`regexp`](/rules/regexp): regex safety checks
+- [`ts`](/rules/ts): TypeScript-specific rules
 
 See Advanced » Plugin System for configuration details.
 
