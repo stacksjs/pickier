@@ -89,11 +89,11 @@ export default withPwa(
             text: 'Get Started',
             collapsed: false,
             items: [
-              { text: 'Intro', link: '/intro' },
-              { text: 'Install', link: '/install' },
+              { text: 'Introduction', link: '/intro' },
+              { text: 'Installation', link: '/install' },
               { text: 'Usage', link: '/usage' },
               { text: 'CLI', link: '/cli' },
-              { text: 'Config', link: '/config' },
+              { text: 'Configuration', link: '/config' },
             ],
           },
           {
@@ -119,7 +119,7 @@ export default withPwa(
           },
           {
             text: 'Rules',
-            collapsed: false,
+            collapsed: true,
             items: [
               { text: 'Overview', link: '/rules/overview' },
               { text: 'pickier', link: '/rules/pickier' },
@@ -143,7 +143,7 @@ export default withPwa(
           },
           {
             text: 'API',
-            collapsed: false,
+            collapsed: true,
             items: [
               { text: 'Overview', link: '/api/overview' },
               { text: 'Programmatic Usage', link: '/api/programmatic' },
@@ -153,7 +153,6 @@ export default withPwa(
               { text: 'API Reference', link: '/api/reference' },
             ],
           },
-          { text: 'Showcase', link: '/showcase' },
         ],
       },
 
@@ -169,7 +168,7 @@ export default withPwa(
 
       socialLinks: [
         { icon: 'twitter', link: 'https://twitter.com/stacksjs' },
-        { icon: 'bluesky', link: 'https://bsky.app/profile/chrisbreuer.dev' },
+        { icon: 'bluesky', link: 'https://bsky.app/profile/chris-breuer.me' },
         { icon: 'github', link: 'https://github.com/stacksjs/pickier' },
         { icon: 'discord', link: 'https://discord.gg/stacksjs' },
       ],
