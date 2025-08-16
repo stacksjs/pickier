@@ -32,13 +32,13 @@
     "typecheck": "bun --bun tsc --noEmit"
   },
   "devDependencies": {
-    "@stacksjs/bumpx": "^0.1.6",
+    "@stacksjs/bumpx": "^0.1.7",
     "@stacksjs/docs": "^0.70.23",
     "@stacksjs/eslint-config": "^4.14.0-beta.3",
     "@stacksjs/gitlint": "^0.1.5",
-    "@stacksjs/logsmith": "^0.1.4",
+    "@stacksjs/logsmith": "^0.1.6",
     "@types/bun": "^1.2.20",
-    "buddy-bot": "^0.7.8",
+    "buddy-bot": "^0.8.6",
     "bun-git-hooks": "^0.2.19",
     "bun-plugin-dtsx": "^0.21.12",
     "tinyglobby": "^0.2.14",

@@ -68,7 +68,7 @@
     "tinyglobby": "^0.2.14"
   },
   "devDependencies": {
-    "bunfig": "^0.10.1"
+    "bunfig": "^0.14.1"
   },
   "overrides": {
     "unconfig": "0.3.10"
