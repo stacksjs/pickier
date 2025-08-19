@@ -1,0 +1,88 @@
+{
+  "_comment": "Example VS Code settings for optimal Pickier integration",
+  
+  "_pickier_settings": {
+    "pickier.enable": true,
+    "pickier.configPath": "pickier.config.ts",
+    "pickier.formatOnSave": true,
+    "pickier.lintOnSave": true,
+    "pickier.showOutputChannel": false
+  },
+  
+  "_editor_settings": {
+    "editor.formatOnSave": true,
+    "editor.formatOnPaste": false,
+    "editor.formatOnType": false,
+    "editor.codeActionsOnSave": {
+      "source.fixAll": true,
+      "source.organizeImports": false
+    }
+  },
+  
+  "_language_specific_settings": {
+    "[typescript]": {
+      "editor.defaultFormatter": "pickier.vscode",
+      "editor.tabSize": 2,
+      "editor.insertSpaces": true
+    },
+    "[javascript]": {
+      "editor.defaultFormatter": "pickier.vscode",
+      "editor.tabSize": 2,
+      "editor.insertSpaces": true
+    },
+    "[json]": {
+      "editor.defaultFormatter": "pickier.vscode",
+      "editor.tabSize": 2,
+      "editor.insertSpaces": true
+    },
+    "[jsonc]": {
+      "editor.defaultFormatter": "pickier.vscode",
+      "editor.tabSize": 2,
+      "editor.insertSpaces": true
+    },
+    "[html]": {
+      "editor.defaultFormatter": "pickier.vscode",
+      "editor.tabSize": 2,
+      "editor.insertSpaces": true
+    },
+    "[css]": {
+      "editor.defaultFormatter": "pickier.vscode",
+      "editor.tabSize": 2,
+      "editor.insertSpaces": true
+    },
+    "[markdown]": {
+      "editor.defaultFormatter": "pickier.vscode",
+      "editor.tabSize": 2,
+      "editor.insertSpaces": true,
+      "editor.wordWrap": "on"
+    },
+    "[yaml]": {
+      "editor.defaultFormatter": "pickier.vscode",
+      "editor.tabSize": 2,
+      "editor.insertSpaces": true
+    }
+  },
+  
+  "_disable_conflicting_extensions": {
+    "prettier.enable": false,
+    "eslint.format.enable": false,
+    "typescript.format.enable": false,
+    "javascript.format.enable": false
+  },
+  
+  "_performance_settings": {
+    "files.watcherExclude": {
+      "**/node_modules/**": true,
+      "**/dist/**": true,
+      "**/build/**": true,
+      "**/.git/**": true,
+      "**/coverage/**": true
+    },
+    "search.exclude": {
+      "**/node_modules": true,
+      "**/dist": true,
+      "**/build": true,
+      "**/coverage": true
+    }
+  }
+}

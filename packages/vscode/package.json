@@ -1,9 +1,155 @@
 {
   "name": "@pickier/vscode",
+  "displayName": "Pickier",
+  "description": "Format, lint and more in a fraction of seconds with Pickier",
   "version": "0.1.0",
-  "private": true,
+  "publisher": "pickier",
+  "engines": {
+    "vscode": "^1.74.0"
+  },
+  "categories": [
+    "Formatters",
+    "Linters"
+  ],
+  "keywords": [
+    "formatter",
+    "linter",
+    "typescript",
+    "javascript",
+    "bun",
+    "fast"
+  ],
+  "icon": "images/logo.png",
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "pickier.format",
+        "title": "Format Document",
+        "category": "Pickier"
+      },
+      {
+        "command": "pickier.formatSelection",
+        "title": "Format Selection",
+        "category": "Pickier"
+      },
+      {
+        "command": "pickier.lint",
+        "title": "Lint Document",
+        "category": "Pickier"
+      },
+      {
+        "command": "pickier.lintWorkspace",
+        "title": "Lint Workspace",
+        "category": "Pickier"
+      }
+    ],
+    "configuration": {
+      "type": "object",
+      "title": "Pickier",
+      "properties": {
+        "pickier.enable": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable/disable Pickier extension"
+        },
+        "pickier.configPath": {
+          "type": "string",
+          "default": "",
+          "description": "Path to Pickier config file (relative to workspace root)"
+        },
+        "pickier.formatOnSave": {
+          "type": "boolean",
+          "default": false,
+          "description": "Format files on save"
+        },
+        "pickier.lintOnSave": {
+          "type": "boolean",
+          "default": true,
+          "description": "Lint files on save"
+        },
+        "pickier.showOutputChannel": {
+          "type": "boolean",
+          "default": false,
+          "description": "Show Pickier output channel"
+        }
+      }
+    },
+    "languages": [
+      {
+        "id": "typescript",
+        "extensions": [".ts", ".tsx"]
+      },
+      {
+        "id": "javascript",
+        "extensions": [".js", ".jsx"]
+      },
+      {
+        "id": "json",
+        "extensions": [".json"]
+      },
+      {
+        "id": "jsonc",
+        "extensions": [".jsonc"]
+      },
+      {
+        "id": "html",
+        "extensions": [".html"]
+      },
+      {
+        "id": "css",
+        "extensions": [".css"]
+      },
+      {
+        "id": "markdown",
+        "extensions": [".md"]
+      },
+      {
+        "id": "yaml",
+        "extensions": [".yaml", ".yml"]
+      }
+    ]
+  },
+  "activationEvents": [
+    "onLanguage:typescript",
+    "onLanguage:javascript",
+    "onLanguage:json",
+    "onLanguage:jsonc",
+    "onLanguage:html",
+    "onLanguage:css",
+    "onLanguage:markdown",
+    "onLanguage:yaml"
+  ],
   "scripts": {
-    "build": "echo 'TODO: Building... vscode extension'",
-    "compile": "bun build ./src/extension.ts --compile --minify --outfile dist/extension.js"
-  }
+    "vscode:prepublish": "bun run compile",
+    "compile": "tsc -p .",
+    "watch": "bun build ./src/extension.ts --external:vscode --outdir dist --format esm --watch",
+    "pretest": "bun run compile && bun run lint",
+    "lint": "eslint src --ext ts",
+    "test": "bun test",
+    "package": "vsce package",
+    "publish": "vsce publish"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/node": "18.x",
+    "@types/vscode": "^1.74.0",
+    "@vscode/test-electron": "^2.3.8",
+    "@vscode/vsce": "^2.19.0",
+    "eslint": "^8.0.0",
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "pickier": "workspace:*"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/stacksjs/pickier.git",
+    "directory": "packages/vscode"
+  },
+  "homepage": "https://github.com/stacksjs/pickier#readme",
+  "bugs": {
+    "url": "https://github.com/stacksjs/pickier/issues"
+  },
+  "license": "MIT"
 }
