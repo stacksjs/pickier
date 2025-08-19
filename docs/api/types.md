@@ -40,6 +40,7 @@ export interface PickierRulesConfig {
   noConsole: RuleSeverity
   noUnusedCapturingGroup?: RuleSeverity
   noCondAssign?: RuleSeverity
+  noTemplateCurlyInString?: RuleSeverity
 }
 
 export interface PickierLintConfig {

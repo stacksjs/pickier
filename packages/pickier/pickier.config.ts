@@ -26,6 +26,7 @@ const config: PickierConfig = {
     noConsole: 'warn',
     noUnusedCapturingGroup: 'error',
     noCondAssign: 'error',
+    noTemplateCurlyInString: 'warn',
   },
 }
 

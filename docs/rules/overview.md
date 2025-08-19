@@ -12,6 +12,7 @@ Core:
 - [`noDebugger`](/rules/no-debugger)
 - [`noConsole`](/rules/no-console)
 - [`noCondAssign`](/rules/no-cond-assign) (optional)
+- [`noTemplateCurlyInString`](/rules/no-template-curly-in-string) (optional)
 - [`regexp/noUnusedCapturingGroup`](/rules/regexp-no-unused-capturing-group) (optional)
 
 Plugin:

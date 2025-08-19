@@ -2149,6 +2149,85 @@ function scanContent(filePath: string, content: string, cfg: PickierConfig): Lin
     }
   }
 
+  // no-template-curly-in-string: flag template literal syntax in regular strings
+  if (cfg.rules.noTemplateCurlyInString && cfg.rules.noTemplateCurlyInString !== 'off') {
+    const addIssue = (l: number, c: number) => {
+      if (isSuppressed('no-template-curly-in-string', l))
+        return
+      issues.push({
+        filePath,
+        line: l,
+        column: c,
+        ruleId: 'no-template-curly-in-string',
+        message: 'Unexpected template string expression.',
+        severity: cfg.rules.noTemplateCurlyInString === 'error' ? 'error' : 'warning',
+      })
+    }
+
+    // Check for ${...} patterns in single and double quoted strings
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i]
+      const lineNo = i + 1
+
+      // Match quoted strings and check for template patterns inside them
+      const stringPattern = /(['"])((?:\\.|(?!\1)[^\\])*)\1/g
+      let stringMatch: RegExpExecArray | null
+
+      while ((stringMatch = stringPattern.exec(line))) {
+        const [, , rawStringContent] = stringMatch
+        
+        // Process escape sequences to get the actual string content
+        const stringContent = rawStringContent.replace(/\\(.)/g, (match, char) => {
+          switch (char) {
+            case 'n': return '\n'
+            case 't': return '\t'
+            case 'r': return '\r'
+            case '\\': return '\\'
+            case '"': return '"'
+            case "'": return "'"
+            default: return match // Keep the original escape sequence for unknown escapes
+          }
+        })
+
+        // Check for ${...} patterns, excluding escaped ones
+        const templatePattern = /\$\{[^}]*\}/g
+        let templateMatch: RegExpExecArray | null
+
+        while ((templateMatch = templatePattern.exec(stringContent))) {
+          const templatePos = templateMatch.index || 0
+          // Check if the $ is escaped by looking at the character before it
+          if (templatePos > 0 && stringContent[templatePos - 1] === '\\') {
+            // Count consecutive backslashes to determine if it's actually escaped
+            let backslashCount = 0
+            for (let j = templatePos - 1; j >= 0 && stringContent[j] === '\\'; j--) {
+              backslashCount++
+            }
+            // If odd number of backslashes, the $ is escaped
+            if (backslashCount % 2 === 1) {
+              continue
+            }
+          }
+
+          // Calculate the position in the original line
+          // We need to map from processed string position back to raw string position
+          let rawPos = 0
+          let processedPos = 0
+          while (processedPos < templatePos && rawPos < rawStringContent.length) {
+            if (rawStringContent[rawPos] === '\\' && rawPos + 1 < rawStringContent.length) {
+              rawPos += 2 // Skip escape sequence
+            } else {
+              rawPos++
+            }
+            processedPos++
+          }
+          
+          const startPos = stringMatch.index || 0
+          addIssue(lineNo, startPos + rawPos + 1) // +1 to account for quote
+        }
+      }
+    }
+  }
+
   // plugin-based rules
   const pluginIssues = applyPlugins(filePath, content, cfg)
   const filteredPluginIssues = pluginIssues.filter(i => !isSuppressed(i.ruleId, i.line))

@@ -8,6 +8,8 @@ export interface PickierRulesConfig {
   noUnusedCapturingGroup?: RuleSeverity
   // Disallow assignments in conditional expressions
   noCondAssign?: RuleSeverity
+  // Disallow template literal placeholder syntax in regular strings
+  noTemplateCurlyInString?: RuleSeverity
 }
 
 export interface LintIssue {
