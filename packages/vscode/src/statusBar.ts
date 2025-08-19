@@ -6,7 +6,7 @@ export class PickierStatusBar {
   constructor() {
     this.statusBarItem = vscode.window.createStatusBarItem(
       vscode.StatusBarAlignment.Right,
-      100
+      100,
     )
     this.statusBarItem.command = 'pickier.lint'
     this.statusBarItem.show()
@@ -20,15 +20,22 @@ export class PickierStatusBar {
     }
 
     const supportedLanguages = [
-      'typescript', 'javascript', 'json', 'jsonc', 
-      'html', 'css', 'markdown', 'yaml'
+      'typescript',
+      'javascript',
+      'json',
+      'jsonc',
+      'html',
+      'css',
+      'markdown',
+      'yaml',
     ]
 
     if (supportedLanguages.includes(document.languageId)) {
       this.statusBarItem.text = '$(check) Pickier'
       this.statusBarItem.tooltip = 'Pickier is active. Click to lint current file.'
       this.statusBarItem.show()
-    } else {
+    }
+    else {
       this.statusBarItem.hide()
     }
   }

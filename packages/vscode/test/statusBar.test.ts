@@ -1,6 +1,6 @@
-import { describe, expect, it, beforeEach, afterEach, mock } from 'bun:test'
-import { PickierStatusBar } from '../src/statusBar'
+import { afterEach, beforeEach, describe, expect, it, mock } from 'bun:test'
 import * as vscode from 'vscode'
+import { PickierStatusBar } from '../src/statusBar'
 
 // Mock VS Code StatusBarItem
 class MockStatusBarItem implements Partial<vscode.StatusBarItem> {
@@ -26,7 +26,7 @@ class MockStatusBarItem implements Partial<vscode.StatusBarItem> {
 class MockTextDocument implements Partial<vscode.TextDocument> {
   constructor(
     public fileName: string,
-    public languageId: string
+    public languageId: string,
   ) {}
 
   get uri(): vscode.Uri {
@@ -38,24 +38,24 @@ class MockTextDocument implements Partial<vscode.TextDocument> {
 const mockConfig = {
   get: (key: string, defaultValue?: any) => {
     const configs: Record<string, any> = {
-      'enable': true,
-      'configPath': '',
-      'formatOnSave': false,
-      'lintOnSave': true,
-      'showOutputChannel': false
+      enable: true,
+      configPath: '',
+      formatOnSave: false,
+      lintOnSave: true,
+      showOutputChannel: false,
     }
     return configs[key] ?? defaultValue
-  }
+  },
 }
 
 // Mock VS Code window
 const mockWindow = {
-  createStatusBarItem: () => new MockStatusBarItem()
+  createStatusBarItem: () => new MockStatusBarItem(),
 }
 
 // Mock VS Code workspace
 const mockWorkspace = {
-  getConfiguration: () => mockConfig
+  getConfiguration: () => mockConfig,
 }
 
 describe('PickierStatusBar', () => {
@@ -66,7 +66,7 @@ describe('PickierStatusBar', () => {
     // Override VS Code APIs for testing
     Object.assign(vscode.window, mockWindow)
     Object.assign(vscode.workspace, mockWorkspace)
-    
+
     statusBar = new PickierStatusBar()
     // Get the mock item that was created
     mockStatusBarItem = (statusBar as any).statusBarItem
@@ -84,9 +84,9 @@ describe('PickierStatusBar', () => {
 
   it('should update status bar for supported languages', () => {
     const document = new MockTextDocument('test.ts', 'typescript')
-    
+
     statusBar.update(document as vscode.TextDocument)
-    
+
     expect(mockStatusBarItem.text).toBe('$(check) Pickier')
     expect(mockStatusBarItem.tooltip).toBe('Pickier is active. Click to lint current file.')
     expect(mockStatusBarItem.isVisible).toBe(true)
@@ -94,23 +94,29 @@ describe('PickierStatusBar', () => {
 
   it('should hide status bar for unsupported languages', () => {
     const document = new MockTextDocument('test.py', 'python')
-    
+
     statusBar.update(document as vscode.TextDocument)
-    
+
     expect(mockStatusBarItem.isVisible).toBe(false)
   })
 
   it('should show status bar for all supported languages', () => {
     const supportedLanguages = [
-      'typescript', 'javascript', 'json', 'jsonc',
-      'html', 'css', 'markdown', 'yaml'
+      'typescript',
+      'javascript',
+      'json',
+      'jsonc',
+      'html',
+      'css',
+      'markdown',
+      'yaml',
     ]
 
     for (const language of supportedLanguages) {
       const document = new MockTextDocument(`test.${language}`, language)
-      
+
       statusBar.update(document as vscode.TextDocument)
-      
+
       expect(mockStatusBarItem.isVisible).toBe(true)
       expect(mockStatusBarItem.text).toBe('$(check) Pickier')
     }
@@ -120,28 +126,29 @@ describe('PickierStatusBar', () => {
     // Mock disabled configuration
     const disabledConfig = {
       get: (key: string, defaultValue?: any) => {
-        if (key === 'enable') return false
+        if (key === 'enable')
+          return false
         return defaultValue
-      }
+      },
     }
-    
+
     const mockWorkspaceDisabled = {
-      getConfiguration: () => disabledConfig
+      getConfiguration: () => disabledConfig,
     }
-    
+
     Object.assign(vscode.workspace, mockWorkspaceDisabled)
-    
+
     const document = new MockTextDocument('test.ts', 'typescript')
     statusBar.update(document as vscode.TextDocument)
-    
+
     expect(mockStatusBarItem.isVisible).toBe(false)
   })
 
   it('should show error state correctly', () => {
     const errorMessage = 'Test error message'
-    
+
     statusBar.showError(errorMessage)
-    
+
     expect(mockStatusBarItem.text).toBe('$(error) Pickier')
     expect(mockStatusBarItem.tooltip).toBe(`Pickier error: ${errorMessage}`)
     expect(mockStatusBarItem.isVisible).toBe(true)
@@ -149,7 +156,7 @@ describe('PickierStatusBar', () => {
 
   it('should show working state correctly', () => {
     statusBar.showWorking()
-    
+
     expect(mockStatusBarItem.text).toBe('$(sync~spin) Pickier')
     expect(mockStatusBarItem.tooltip).toBe('Pickier is working...')
     expect(mockStatusBarItem.isVisible).toBe(true)
@@ -157,9 +164,9 @@ describe('PickierStatusBar', () => {
 
   it('should dispose status bar item correctly', () => {
     expect(mockStatusBarItem.isVisible).toBe(true)
-    
+
     statusBar.dispose()
-    
+
     expect(mockStatusBarItem.isVisible).toBe(false)
   })
 
@@ -182,13 +189,14 @@ describe('PickierStatusBar', () => {
 
     for (const testCase of testCases) {
       const document = new MockTextDocument(testCase.fileName, testCase.languageId)
-      
+
       statusBar.update(document as vscode.TextDocument)
-      
+
       if (testCase.shouldShow) {
         expect(mockStatusBarItem.isVisible).toBe(true)
         expect(mockStatusBarItem.text).toBe('$(check) Pickier')
-      } else {
+      }
+      else {
         expect(mockStatusBarItem.isVisible).toBe(false)
       }
     }
@@ -197,15 +205,15 @@ describe('PickierStatusBar', () => {
   it('should maintain state consistency across updates', () => {
     const tsDocument = new MockTextDocument('test.ts', 'typescript')
     const pyDocument = new MockTextDocument('test.py', 'python')
-    
+
     // Start with TypeScript document
     statusBar.update(tsDocument as vscode.TextDocument)
     expect(mockStatusBarItem.isVisible).toBe(true)
-    
+
     // Switch to Python document
     statusBar.update(pyDocument as vscode.TextDocument)
     expect(mockStatusBarItem.isVisible).toBe(false)
-    
+
     // Switch back to TypeScript document
     statusBar.update(tsDocument as vscode.TextDocument)
     expect(mockStatusBarItem.isVisible).toBe(true)

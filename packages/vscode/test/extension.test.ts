@@ -1,6 +1,6 @@
-import * as assert from 'assert'
+import { afterEach, beforeEach, it } from 'bun:test'
+import * as assert from 'node:assert'
 import * as vscode from 'vscode'
-import { afterEach, beforeEach, describe, it } from 'bun:test'
 
 // Mock VS Code API for testing
 const mockVSCode = {
@@ -11,7 +11,7 @@ const mockVSCode = {
     createOutputChannel: () => ({
       appendLine: () => {},
       show: () => {},
-      dispose: () => {}
+      dispose: () => {},
     }),
     createStatusBarItem: () => ({
       text: '',
@@ -19,10 +19,10 @@ const mockVSCode = {
       command: '',
       show: () => {},
       hide: () => {},
-      dispose: () => {}
+      dispose: () => {},
     }),
     activeTextEditor: undefined,
-    visibleTextEditors: []
+    visibleTextEditors: [],
   },
   workspace: {
     getConfiguration: () => ({
@@ -32,33 +32,33 @@ const mockVSCode = {
           'pickier.formatOnSave': false,
           'pickier.lintOnSave': true,
           'pickier.showOutputChannel': false,
-          'pickier.configPath': ''
+          'pickier.configPath': '',
         }
         return configs[key] ?? defaultValue
-      }
+      },
     }),
     workspaceFolders: [{
       uri: { fsPath: '/test/workspace' },
       name: 'test-workspace',
-      index: 0
+      index: 0,
     }],
     onDidSaveTextDocument: () => ({ dispose: () => {} }),
-    onDidChangeTextDocument: () => ({ dispose: () => {} })
+    onDidChangeTextDocument: () => ({ dispose: () => {} }),
   },
   languages: {
     createDiagnosticCollection: () => ({
       set: () => {},
       delete: () => {},
-      dispose: () => {}
+      dispose: () => {},
     }),
     registerDocumentFormattingProvider: () => ({ dispose: () => {} }),
-    registerDocumentRangeFormattingProvider: () => ({ dispose: () => {} })
+    registerDocumentRangeFormattingProvider: () => ({ dispose: () => {} }),
   },
   commands: {
-    registerCommand: () => ({ dispose: () => {} })
+    registerCommand: () => ({ dispose: () => {} }),
   },
   Uri: {
-    file: (path: string) => ({ fsPath: path })
+    file: (path: string) => ({ fsPath: path }),
   },
   Range: class {
     constructor(public start: any, public end: any) {}
@@ -67,30 +67,31 @@ const mockVSCode = {
     constructor(public line: number, public character: number) {}
   },
   TextEdit: {
-    replace: (range: any, text: string) => ({ range, newText: text })
+    replace: (range: any, text: string) => ({ range, newText: text }),
   },
   DiagnosticSeverity: {
     Error: 0,
     Warning: 1,
     Information: 2,
-    Hint: 3
+    Hint: 3,
   },
   Diagnostic: class {
     constructor(
       public range: any,
       public message: string,
-      public severity?: number
+      public severity?: number,
     ) {
       this.source = ''
       this.code = ''
     }
+
     source: string
     code: string
   },
   StatusBarAlignment: {
     Left: 1,
-    Right: 2
-  }
+    Right: 2,
+  },
 }
 
 // Override the vscode module for testing
@@ -105,11 +106,11 @@ suite('Pickier Extension Test Suite', () => {
     // Clean up after each test
   })
 
-  test('Extension should be present', () => {
+  it('extension should be present', () => {
     assert.ok(vscode.extensions.getExtension('pickier.vscode'))
   })
 
-  test('Extension should activate', async () => {
+  it('extension should activate', async () => {
     const extension = vscode.extensions.getExtension('pickier.vscode')
     if (extension) {
       await extension.activate()
@@ -117,23 +118,23 @@ suite('Pickier Extension Test Suite', () => {
     }
   })
 
-  test('Commands should be registered', async () => {
+  it('commands should be registered', async () => {
     const commands = await vscode.commands.getCommands(true)
     const pickierCommands = [
       'pickier.format',
       'pickier.formatSelection',
       'pickier.lint',
-      'pickier.lintWorkspace'
+      'pickier.lintWorkspace',
     ]
-    
+
     for (const command of pickierCommands) {
       assert.ok(commands.includes(command), `Command ${command} should be registered`)
     }
   })
 
-  test('Configuration should have default values', () => {
+  it('configuration should have default values', () => {
     const config = vscode.workspace.getConfiguration('pickier')
-    
+
     assert.strictEqual(config.get('enable'), true)
     assert.strictEqual(config.get('formatOnSave'), false)
     assert.strictEqual(config.get('lintOnSave'), true)
@@ -141,16 +142,16 @@ suite('Pickier Extension Test Suite', () => {
     assert.strictEqual(config.get('configPath'), '')
   })
 
-  test('Should handle missing workspace folder gracefully', () => {
+  it('should handle missing workspace folder gracefully', () => {
     const originalWorkspaceFolders = vscode.workspace.workspaceFolders
     // @ts-ignore - Override for testing
     vscode.workspace.workspaceFolders = undefined
-    
+
     // Test that extension doesn't crash without workspace
     assert.doesNotThrow(() => {
       vscode.workspace.getConfiguration('pickier')
     })
-    
+
     // Restore original value
     // @ts-ignore - Override for testing
     vscode.workspace.workspaceFolders = originalWorkspaceFolders

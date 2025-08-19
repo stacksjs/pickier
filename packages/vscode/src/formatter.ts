@@ -2,13 +2,11 @@ import * as vscode from 'vscode'
 // Dynamic imports will be used to avoid bundling issues
 
 export class PickierFormattingProvider implements vscode.DocumentFormattingProvider, vscode.DocumentRangeFormattingProvider {
-  
   async provideDocumentFormattingEdits(
     document: vscode.TextDocument,
     options: vscode.FormattingOptions,
-    token: vscode.CancellationToken
+    token: vscode.CancellationToken,
   ): Promise<vscode.TextEdit[]> {
-    
     if (token.isCancellationRequested) {
       return []
     }
@@ -18,18 +16,19 @@ export class PickierFormattingProvider implements vscode.DocumentFormattingProvi
       const { formatCode } = await import('pickier')
       const text = document.getText()
       const formatted = formatCode(text, config, document.fileName)
-      
+
       if (formatted === text) {
         return []
       }
-      
+
       const fullRange = new vscode.Range(
         document.positionAt(0),
-        document.positionAt(text.length)
+        document.positionAt(text.length),
       )
-      
+
       return [vscode.TextEdit.replace(fullRange, formatted)]
-    } catch (error) {
+    }
+    catch (error) {
       console.error('Pickier formatting error:', error)
       return []
     }
@@ -39,9 +38,8 @@ export class PickierFormattingProvider implements vscode.DocumentFormattingProvi
     document: vscode.TextDocument,
     range: vscode.Range,
     options: vscode.FormattingOptions,
-    token: vscode.CancellationToken
+    token: vscode.CancellationToken,
   ): Promise<vscode.TextEdit[]> {
-    
     if (token.isCancellationRequested) {
       return []
     }
@@ -51,13 +49,14 @@ export class PickierFormattingProvider implements vscode.DocumentFormattingProvi
       const { formatCode } = await import('pickier')
       const text = document.getText(range)
       const formatted = formatCode(text, config, document.fileName)
-      
+
       if (formatted === text) {
         return []
       }
-      
+
       return [vscode.TextEdit.replace(range, formatted)]
-    } catch (error) {
+    }
+    catch (error) {
       console.error('Pickier range formatting error:', error)
       return []
     }

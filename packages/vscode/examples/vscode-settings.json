@@ -1,6 +1,6 @@
 {
   "_comment": "Example VS Code settings for optimal Pickier integration",
-  
+
   "_pickier_settings": {
     "pickier.enable": true,
     "pickier.configPath": "pickier.config.ts",
@@ -8,7 +8,7 @@
     "pickier.lintOnSave": true,
     "pickier.showOutputChannel": false
   },
-  
+
   "_editor_settings": {
     "editor.formatOnSave": true,
     "editor.formatOnPaste": false,
@@ -18,7 +18,7 @@
       "source.organizeImports": false
     }
   },
-  
+
   "_language_specific_settings": {
     "[typescript]": {
       "editor.defaultFormatter": "pickier.vscode",
@@ -62,14 +62,14 @@
       "editor.insertSpaces": true
     }
   },
-  
+
   "_disable_conflicting_extensions": {
     "prettier.enable": false,
     "eslint.format.enable": false,
     "typescript.format.enable": false,
     "javascript.format.enable": false
   },
-  
+
   "_performance_settings": {
     "files.watcherExclude": {
       "**/node_modules/**": true,

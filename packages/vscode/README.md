@@ -65,7 +65,7 @@ Access these via the Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`):
   "pickier.formatOnSave": true,
   "pickier.lintOnSave": true,
   "pickier.configPath": "pickier.config.ts",
-  
+
   "[typescript]": {
     "editor.defaultFormatter": "pickier.vscode"
   },

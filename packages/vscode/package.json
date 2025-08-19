@@ -1,16 +1,19 @@
 {
+  "publisher": "pickier",
   "name": "@pickier/vscode",
   "displayName": "Pickier",
-  "description": "Format, lint and more in a fraction of seconds with Pickier",
   "version": "0.1.0",
-  "publisher": "pickier",
-  "engines": {
-    "vscode": "^1.74.0"
+  "description": "Format, lint and more in a fraction of seconds with Pickier",
+  "license": "MIT",
+  "homepage": "https://github.com/stacksjs/pickier#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/stacksjs/pickier.git",
+    "directory": "packages/vscode"
   },
-  "categories": [
-    "Formatters",
-    "Linters"
-  ],
+  "bugs": {
+    "url": "https://github.com/stacksjs/pickier/issues"
+  },
   "keywords": [
     "formatter",
     "linter",
@@ -19,8 +22,25 @@
     "bun",
     "fast"
   ],
-  "icon": "images/logo.png",
+  "categories": [
+    "Formatters",
+    "Linters"
+  ],
   "main": "./dist/extension.js",
+  "icon": "images/logo.png",
+  "engines": {
+    "vscode": "^1.74.0"
+  },
+  "activationEvents": [
+    "onLanguage:typescript",
+    "onLanguage:javascript",
+    "onLanguage:json",
+    "onLanguage:jsonc",
+    "onLanguage:html",
+    "onLanguage:css",
+    "onLanguage:markdown",
+    "onLanguage:yaml"
+  ],
   "contributes": {
     "commands": [
       {
@@ -110,16 +130,6 @@
       }
     ]
   },
-  "activationEvents": [
-    "onLanguage:typescript",
-    "onLanguage:javascript",
-    "onLanguage:json",
-    "onLanguage:jsonc",
-    "onLanguage:html",
-    "onLanguage:css",
-    "onLanguage:markdown",
-    "onLanguage:yaml"
-  ],
   "scripts": {
     "vscode:prepublish": "bun run compile",
     "compile": "tsc -p .",
@@ -130,6 +140,9 @@
     "package": "vsce package",
     "publish": "vsce publish"
   },
+  "dependencies": {
+    "pickier": "workspace:*"
+  },
   "devDependencies": {
     "@types/bun": "latest",
     "@types/node": "18.x",
@@ -138,18 +151,5 @@
     "@vscode/vsce": "^2.19.0",
     "eslint": "^8.0.0",
     "typescript": "^5.0.0"
-  },
-  "dependencies": {
-    "pickier": "workspace:*"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/stacksjs/pickier.git",
-    "directory": "packages/vscode"
-  },
-  "homepage": "https://github.com/stacksjs/pickier#readme",
-  "bugs": {
-    "url": "https://github.com/stacksjs/pickier/issues"
-  },
-  "license": "MIT"
+  }
 }

@@ -1,13 +1,13 @@
-import { describe, expect, it, beforeEach, afterEach, mock } from 'bun:test'
-import { PickierFormattingProvider } from '../src/formatter'
+import { afterEach, beforeEach, describe, expect, it, mock } from 'bun:test'
 import * as vscode from 'vscode'
+import { PickierFormattingProvider } from '../src/formatter'
 
 // Mock VS Code classes
 class MockTextDocument implements Partial<vscode.TextDocument> {
   constructor(
     public fileName: string,
     public languageId: string,
-    private content: string
+    private content: string,
   ) {}
 
   getText(range?: vscode.Range): string {
@@ -26,7 +26,7 @@ class MockTextDocument implements Partial<vscode.TextDocument> {
 class MockRange implements vscode.Range {
   constructor(
     public start: vscode.Position,
-    public end: vscode.Position
+    public end: vscode.Position,
   ) {}
 
   isEmpty = false
@@ -40,7 +40,7 @@ class MockRange implements vscode.Range {
 class MockPosition implements vscode.Position {
   constructor(
     public line: number,
-    public character: number
+    public character: number,
   ) {}
 
   compareTo = () => 0
@@ -67,7 +67,7 @@ class MockFormattingOptions implements vscode.FormattingOptions {
 const mockPickier = {
   formatCode: mock((content: string, config: any, fileName: string) => {
     // Simple mock formatter that adds a newline if missing
-    return content.endsWith('\n') ? content : content + '\n'
+    return content.endsWith('\n') ? content : `${content}\n`
   }),
   defaultConfig: {
     verbose: false,
@@ -91,7 +91,7 @@ const mockPickier = {
       noDebugger: 'error',
       noConsole: 'warn',
     },
-  }
+  },
 }
 
 // Override the pickier import for testing
@@ -118,7 +118,7 @@ describe('PickierFormattingProvider', () => {
     const edits = await provider.provideDocumentFormattingEdits(
       mockDocument as vscode.TextDocument,
       mockOptions,
-      mockToken
+      mockToken,
     )
 
     expect(Array.isArray(edits)).toBe(true)
@@ -126,11 +126,11 @@ describe('PickierFormattingProvider', () => {
 
   it('should return empty array when content is already formatted', async () => {
     mockDocument = new MockTextDocument('test.ts', 'typescript', 'const x = 1\n')
-    
+
     const edits = await provider.provideDocumentFormattingEdits(
       mockDocument as vscode.TextDocument,
       mockOptions,
-      mockToken
+      mockToken,
     )
 
     expect(edits).toEqual([])
@@ -138,11 +138,11 @@ describe('PickierFormattingProvider', () => {
 
   it('should return edit when content needs formatting', async () => {
     mockDocument = new MockTextDocument('test.ts', 'typescript', 'const x = 1')
-    
+
     const edits = await provider.provideDocumentFormattingEdits(
       mockDocument as vscode.TextDocument,
       mockOptions,
-      mockToken
+      mockToken,
     )
 
     expect(edits.length).toBeGreaterThan(0)
@@ -150,11 +150,11 @@ describe('PickierFormattingProvider', () => {
 
   it('should handle cancellation token', async () => {
     mockToken.isCancellationRequested = true
-    
+
     const edits = await provider.provideDocumentFormattingEdits(
       mockDocument as vscode.TextDocument,
       mockOptions,
-      mockToken
+      mockToken,
     )
 
     expect(edits).toEqual([])
@@ -163,14 +163,14 @@ describe('PickierFormattingProvider', () => {
   it('should provide range formatting edits', async () => {
     const range = new MockRange(
       new MockPosition(0, 0),
-      new MockPosition(0, 10)
+      new MockPosition(0, 10),
     )
-    
+
     const edits = await provider.provideDocumentRangeFormattingEdits(
       mockDocument as vscode.TextDocument,
       range as vscode.Range,
       mockOptions,
-      mockToken
+      mockToken,
     )
 
     expect(Array.isArray(edits)).toBe(true)
@@ -185,7 +185,7 @@ describe('PickierFormattingProvider', () => {
     const edits = await provider.provideDocumentFormattingEdits(
       mockDocument as vscode.TextDocument,
       mockOptions,
-      mockToken
+      mockToken,
     )
 
     expect(edits).toEqual([])
@@ -193,17 +193,17 @@ describe('PickierFormattingProvider', () => {
 
   it('should use correct file name for formatting', async () => {
     mockDocument = new MockTextDocument('test.js', 'javascript', 'const x = 1')
-    
+
     await provider.provideDocumentFormattingEdits(
       mockDocument as vscode.TextDocument,
       mockOptions,
-      mockToken
+      mockToken,
     )
 
     expect(mockPickier.formatCode).toHaveBeenCalledWith(
       'const x = 1',
       expect.any(Object),
-      'test.js'
+      'test.js',
     )
   })
 })

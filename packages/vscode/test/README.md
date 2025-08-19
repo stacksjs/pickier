@@ -17,7 +17,7 @@ Each test file includes comprehensive mocks for:
 
 - VS Code API (`vscode` module)
 - File system operations (`fs` module)
-- Operating system utilities (`os` module)  
+- Operating system utilities (`os` module)
 - Pickier core functionality (`pickier` module)
 
 ## Running Tests

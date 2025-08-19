@@ -1,8 +1,8 @@
-import * as vscode from 'vscode'
 // Dynamic imports will be used to avoid bundling issues
-import * as fs from 'fs'
-import * as path from 'path'
-import * as os from 'os'
+import * as fs from 'node:fs'
+import * as os from 'node:os'
+import * as path from 'node:path'
+import * as vscode from 'vscode'
 
 interface LintResult {
   errors: number
@@ -20,7 +20,7 @@ interface LintResult {
 export class PickierDiagnosticProvider {
   constructor(
     private diagnosticCollection: vscode.DiagnosticCollection,
-    private outputChannel: vscode.OutputChannel
+    private outputChannel: vscode.OutputChannel,
   ) {}
 
   async provideDiagnostics(document: vscode.TextDocument): Promise<void> {
@@ -35,7 +35,8 @@ export class PickierDiagnosticProvider {
     try {
       const diagnostics = await this.lintDocument(document)
       this.diagnosticCollection.set(document.uri, diagnostics)
-    } catch (error) {
+    }
+    catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error'
       this.outputChannel.appendLine(`Lint error for ${document.fileName}: ${errorMessage}`)
     }
@@ -45,34 +46,35 @@ export class PickierDiagnosticProvider {
     // Create a temporary file to lint since pickier expects file paths
     const tempDir = os.tmpdir()
     const tempFile = path.join(tempDir, `pickier-temp-${Date.now()}${path.extname(document.fileName)}`)
-    
+
     try {
       // Write document content to temp file
       fs.writeFileSync(tempFile, document.getText(), 'utf8')
-      
+
       const options = {
         reporter: 'json' as const,
-        maxWarnings: -1
+        maxWarnings: -1,
       }
-      
+
       // Capture stdout to get JSON results
       const originalLog = console.log
       const originalError = console.error
       let capturedOutput = ''
-      
+
       console.log = (message: string) => {
-        capturedOutput += message + '\n'
+        capturedOutput += `${message}\n`
       }
       console.error = () => {} // Suppress error output
-      
+
       try {
         const { runLint } = await import('pickier')
         await runLint([tempFile], options)
-      } finally {
+      }
+      finally {
         console.log = originalLog
         console.error = originalError
       }
-      
+
       // Parse the JSON output
       let lintResult: LintResult
       try {
@@ -80,52 +82,55 @@ export class PickierDiagnosticProvider {
         const jsonMatch = capturedOutput.match(/\{[\s\S]*\}/)
         if (jsonMatch) {
           lintResult = JSON.parse(jsonMatch[0])
-        } else {
+        }
+        else {
           // If no JSON found, create empty result
           lintResult = { errors: 0, warnings: 0, issues: [] }
         }
-      } catch (parseError) {
+      }
+      catch (parseError) {
         this.outputChannel.appendLine(`Failed to parse lint results: ${parseError}`)
         return []
       }
-      
+
       // Convert lint issues to VS Code diagnostics
       const diagnostics: vscode.Diagnostic[] = []
-      
+
       for (const issue of lintResult.issues) {
         const line = Math.max(0, issue.line - 1) // Convert to 0-based
         const column = Math.max(0, issue.column - 1) // Convert to 0-based
-        
+
         const range = new vscode.Range(
           new vscode.Position(line, column),
-          new vscode.Position(line, column + 1)
+          new vscode.Position(line, column + 1),
         )
-        
-        const severity = issue.severity === 'error' 
-          ? vscode.DiagnosticSeverity.Error 
+
+        const severity = issue.severity === 'error'
+          ? vscode.DiagnosticSeverity.Error
           : vscode.DiagnosticSeverity.Warning
-        
+
         const diagnostic = new vscode.Diagnostic(
           range,
           issue.message,
-          severity
+          severity,
         )
-        
+
         diagnostic.source = 'pickier'
         diagnostic.code = issue.ruleId
-        
+
         diagnostics.push(diagnostic)
       }
-      
+
       return diagnostics
-      
-    } finally {
+    }
+    finally {
       // Clean up temp file
       try {
         if (fs.existsSync(tempFile)) {
           fs.unlinkSync(tempFile)
         }
-      } catch (cleanupError) {
+      }
+      catch (cleanupError) {
         this.outputChannel.appendLine(`Failed to cleanup temp file: ${cleanupError}`)
       }
     }
