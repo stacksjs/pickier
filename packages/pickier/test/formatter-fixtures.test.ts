@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test'
-import { mkdtempSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { mkdtempSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { runFormat } from '../src/cli/run-format'
@@ -9,7 +9,11 @@ function tmp(): string {
 }
 
 function listFiles(dir: string): string[] {
-  return readdirSync(dir).filter(f => !f.startsWith('.'))
+  return readdirSync(dir).filter(f => {
+    if (f.startsWith('.')) return false
+    const fullPath = join(dir, f)
+    return statSync(fullPath).isFile()
+  })
 }
 
 describe('formatter fixture snapshots', () => {
