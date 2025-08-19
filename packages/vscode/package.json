@@ -1,5 +1,9 @@
 {
   "name": "@pickier/vscode",
   "version": "0.1.0",
-  "private": true
+  "private": true,
+  "scripts": {
+    "build": "echo 'TODO: Building... vscode extension'",
+    "compile": "bun build ./src/extension.ts --compile --minify --outfile dist/extension.js"
+  }
 }

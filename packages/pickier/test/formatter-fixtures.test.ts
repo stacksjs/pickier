@@ -9,8 +9,9 @@ function tmp(): string {
 }
 
 function listFiles(dir: string): string[] {
-  return readdirSync(dir).filter(f => {
-    if (f.startsWith('.')) return false
+  return readdirSync(dir).filter((f) => {
+    if (f.startsWith('.'))
+      return false
     const fullPath = join(dir, f)
     return statSync(fullPath).isFile()
   })

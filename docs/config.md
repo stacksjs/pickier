@@ -33,6 +33,7 @@ const config: PickierConfig = {
     // optional additional checks
     // noUnusedCapturingGroup: 'warn',
     // noCondAssign: 'error',
+    // noTemplateCurlyInString: 'warn',
   },
   // Enable plugin rules (built-ins and custom)
   // plugins: [myPlugin],

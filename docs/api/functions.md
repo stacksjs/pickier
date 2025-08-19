@@ -40,7 +40,7 @@ Return value: `Promise<number>` — process-like exit code.
 - Scans code files for simple issues:
   - `noDebugger`: flags/auto-fixes `debugger` statements
   - `noConsole`: flags `console.*` usage
-  - optional heuristics: `noCondAssign`, `regexp/no-unused-capturing-group`
+  - optional heuristics: `noCondAssign`, `noTemplateCurlyInString`, `regexp/no-unused-capturing-group`
 - Respects `ignores` patterns from config.
 - Reporters:
   - `stylish` (grouped, colored)

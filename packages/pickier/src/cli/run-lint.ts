@@ -1,3 +1,9 @@
+/* eslint-disable style/max-statements-per-line */
+/* eslint-disable no-cond-assign */
+/* eslint-disable regexp/no-super-linear-backtracking */
+/* eslint-disable unused-imports/no-unused-vars */
+/* eslint-disable regexp/no-unused-capturing-group */
+/* eslint-disable regexp/optimal-quantifier-concatenation */
 import type { PickierConfig, PickierPlugin, LintIssue as PluginLintIssue, RuleContext, RulesConfigMap } from '../types'
 import { readFileSync, writeFileSync } from 'node:fs'
 import { extname, isAbsolute, relative, resolve } from 'node:path'
@@ -2175,7 +2181,7 @@ function scanContent(filePath: string, content: string, cfg: PickierConfig): Lin
 
       while ((stringMatch = stringPattern.exec(line))) {
         const [, , rawStringContent] = stringMatch
-        
+
         // Process escape sequences to get the actual string content
         const stringContent = rawStringContent.replace(/\\(.)/g, (match, char) => {
           switch (char) {
@@ -2184,7 +2190,7 @@ function scanContent(filePath: string, content: string, cfg: PickierConfig): Lin
             case 'r': return '\r'
             case '\\': return '\\'
             case '"': return '"'
-            case "'": return "'"
+            case '\'': return '\''
             default: return match // Keep the original escape sequence for unknown escapes
           }
         })
@@ -2215,12 +2221,13 @@ function scanContent(filePath: string, content: string, cfg: PickierConfig): Lin
           while (processedPos < templatePos && rawPos < rawStringContent.length) {
             if (rawStringContent[rawPos] === '\\' && rawPos + 1 < rawStringContent.length) {
               rawPos += 2 // Skip escape sequence
-            } else {
+            }
+            else {
               rawPos++
             }
             processedPos++
           }
-          
+
           const startPos = stringMatch.index || 0
           addIssue(lineNo, startPos + rawPos + 1) // +1 to account for quote
         }

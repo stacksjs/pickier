@@ -1,3 +1,4 @@
+/* eslint-disable no-template-curly-in-string */
 import { describe, expect, it } from 'bun:test'
 import { mkdtempSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'

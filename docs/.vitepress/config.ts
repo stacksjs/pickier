@@ -128,6 +128,7 @@ export default withPwa(
               { text: 'noDebugger', link: '/rules/no-debugger' },
               { text: 'noConsole', link: '/rules/no-console' },
               { text: 'noCondAssign', link: '/rules/no-cond-assign' },
+              { text: 'noTemplateCurlyInString', link: '/rules/no-template-curly-in-string' },
               { text: 'regexp/noUnusedCapturingGroup', link: '/rules/regexp-no-unused-capturing-group' },
               { text: 'sort-objects', link: '/rules/sort-objects' },
               { text: 'sort-imports', link: '/rules/sort-imports' },

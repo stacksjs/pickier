@@ -12,6 +12,7 @@ Pickier’s linter is opinionated but lightweight. It focuses on practical check
 Optional heuristics via `rules`:
 
 - `noCondAssign`: flags assignments in the conditional segment of `if`, `while`, and `for` statements
+- `noTemplateCurlyInString`: flags template literal syntax (`${...}`) in regular strings
 - `noUnusedCapturingGroup`: flags regex literals with capturing groups that are not referenced (heuristic)
 
 ## Built-in plugin rules
