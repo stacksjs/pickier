@@ -144,7 +144,7 @@ suite('Pickier Extension Test Suite', () => {
 
   it('should handle missing workspace folder gracefully', () => {
     const originalWorkspaceFolders = vscode.workspace.workspaceFolders
-    // @ts-ignore - Override for testing
+    // @ts-expect-error - Override for testing
     vscode.workspace.workspaceFolders = undefined
 
     // Test that extension doesn't crash without workspace
@@ -153,7 +153,7 @@ suite('Pickier Extension Test Suite', () => {
     })
 
     // Restore original value
-    // @ts-ignore - Override for testing
+    // @ts-expect-error - Override for testing
     vscode.workspace.workspaceFolders = originalWorkspaceFolders
   })
 })

@@ -65,9 +65,9 @@ class MockFormattingOptions implements vscode.FormattingOptions {
 
 // Mock pickier module
 const mockPickier = {
-  formatCode: mock((content: string, config: any, fileName: string) => {
+  formatCode: mock((_content: string, _config: any, _fileName: string) => {
     // Simple mock formatter that adds a newline if missing
-    return content.endsWith('\n') ? content : `${content}\n`
+    return _content.endsWith('\n') ? _content : `${_content}\n`
   }),
   defaultConfig: {
     verbose: false,

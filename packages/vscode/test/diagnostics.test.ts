@@ -96,7 +96,7 @@ const mockWorkspace = {
 
 // Mock pickier module
 const mockPickier = {
-  runLint: mock(async (files: string[], options: any) => {
+  runLint: mock(async (_files: string[], _options: any) => {
     // Simulate successful linting
     return 0
   }),
@@ -115,8 +115,10 @@ const mockOs = {
 }
 
 // Mock console to capture output
-let capturedOutput = ''
+let _capturedOutput = ''
+// eslint-disable-next-line no-console
 const originalConsoleLog = console.log
+
 const originalConsoleError = console.error
 
 // Override modules for testing
@@ -140,7 +142,7 @@ describe('PickierDiagnosticProvider', () => {
     mockDocument = new MockTextDocument('test.ts', 'typescript', 'console.log("test")')
 
     // Reset captured output
-    capturedOutput = ''
+    _capturedOutput = ''
 
     // Override workspace for this test
     Object.assign(vscode.workspace, mockWorkspace)
@@ -148,7 +150,9 @@ describe('PickierDiagnosticProvider', () => {
 
   afterEach(() => {
     mock.restore()
+    // eslint-disable-next-line no-console
     console.log = originalConsoleLog
+
     console.error = originalConsoleError
   })
 
@@ -249,13 +253,14 @@ describe('PickierDiagnosticProvider', () => {
 
   it('should parse JSON lint results correctly', async () => {
     // Mock console.log to capture JSON output
+    // eslint-disable-next-line no-console
     console.log = (message: string) => {
-      capturedOutput += `${message}\n`
+      _capturedOutput += `${message}\n`
     }
 
     // Mock successful linting with JSON output
     mockPickier.runLint.mockImplementation(async () => {
-      console.log(JSON.stringify({
+      console.warn(JSON.stringify({
         errors: 1,
         warnings: 1,
         issues: [

@@ -14,6 +14,7 @@ const config: ESLintConfig = stacks({
     '**/test/fixtures/**',
     '**/test/output/**',
     'docs/**',
+    'packages/vscode/examples/**',
   ],
 })
 

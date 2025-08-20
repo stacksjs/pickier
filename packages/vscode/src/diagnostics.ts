@@ -57,13 +57,16 @@ export class PickierDiagnosticProvider {
       }
 
       // Capture stdout to get JSON results
+      // eslint-disable-next-line no-console
       const originalLog = console.log
       const originalError = console.error
       let capturedOutput = ''
 
+      // eslint-disable-next-line no-console
       console.log = (message: string) => {
         capturedOutput += `${message}\n`
       }
+
       console.error = () => {} // Suppress error output
 
       try {
@@ -71,7 +74,9 @@ export class PickierDiagnosticProvider {
         await runLint([tempFile], options)
       }
       finally {
+        // eslint-disable-next-line no-console
         console.log = originalLog
+
         console.error = originalError
       }
 

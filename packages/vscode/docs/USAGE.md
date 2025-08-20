@@ -154,7 +154,7 @@ You can assign custom keyboard shortcuts to Pickier commands:
 Example keybindings.json:
 
 ```json
-{
+[
   {
     "key": "ctrl+shift+f",
     "command": "pickier.format",
@@ -165,7 +165,7 @@ Example keybindings.json:
     "command": "pickier.lint",
     "when": "editorTextFocus"
   }
-}
+]
 ```
 
 ## Troubleshooting

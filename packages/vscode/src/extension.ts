@@ -11,7 +11,7 @@ let statusBarItem: PickierStatusBar
 let outputChannel: vscode.OutputChannel
 
 export async function activate(context: vscode.ExtensionContext) {
-  console.log('Pickier extension is now active!')
+  console.warn('Pickier extension is now active!')
 
   // Create output channel
   outputChannel = vscode.window.createOutputChannel('Pickier')
@@ -236,7 +236,7 @@ async function getPickierConfig() {
   const configPath = config.get<string>('configPath', '')
 
   if (configPath) {
-    const fullConfigPath = path.resolve(workspaceRoot, configPath)
+    const _fullConfigPath = path.resolve(workspaceRoot, configPath)
     // For now, we'll use default config since loading external configs requires more setup
     // TODO: Implement dynamic config loading
   }
