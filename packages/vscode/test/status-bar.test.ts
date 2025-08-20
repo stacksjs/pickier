@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, mock } from 'bun:test'
 import * as vscode from 'vscode'
-import { PickierStatusBar } from '../src/statusBar'
+import { PickierStatusBar } from '../src/status-bar'
 
 // Mock VS Code StatusBarItem
 class MockStatusBarItem implements Partial<vscode.StatusBarItem> {

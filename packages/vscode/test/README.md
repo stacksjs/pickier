@@ -9,7 +9,7 @@ This folder contains the test suite for the Pickier VS Code extension.
 - `extension.test.ts` - Main extension activation and integration tests
 - `formatter.test.ts` - Tests for the formatting provider functionality
 - `diagnostics.test.ts` - Tests for the diagnostic provider and linting
-- `statusBar.test.ts` - Tests for status bar integration and updates
+- `status-bar.test.ts` - Tests for status bar integration and updates
 
 ### Mock Infrastructure
 
@@ -49,7 +49,7 @@ bun test test/formatter.test.ts
 bun test test/diagnostics.test.ts
 
 # Run status bar tests only
-bun test test/statusBar.test.ts
+bun test test/status-bar.test.ts
 ```
 
 ### Test Coverage

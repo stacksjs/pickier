@@ -18,7 +18,7 @@ packages/vscode/
 │   ├── 🔧 extension.ts     # Main extension entry point
 │   ├── 🎨 formatter.ts     # Document formatting provider
 │   ├── 🔍 diagnostics.ts   # Lint diagnostics provider
-│   └── 📊 statusBar.ts     # Status bar integration
+│   └── 📊 status-bar.ts   # Status bar integration
 │
 ├── 📂 docs/                # Documentation
 │   └── 📖 USAGE.md         # Detailed usage guide

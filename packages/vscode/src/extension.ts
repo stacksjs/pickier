@@ -4,7 +4,7 @@ import { PickierDiagnosticProvider } from './diagnostics'
 // Import types and functions from the pickier package
 // Note: These will be dynamically imported to avoid bundling issues
 import { PickierFormattingProvider } from './formatter'
-import { PickierStatusBar } from './statusBar'
+import { PickierStatusBar } from './status-bar'
 
 let diagnosticCollection: vscode.DiagnosticCollection
 let statusBarItem: PickierStatusBar
