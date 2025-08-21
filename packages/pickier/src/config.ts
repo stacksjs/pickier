@@ -23,6 +23,9 @@ export const defaultConfig: PickierConfig = {
     noDebugger: 'error',
     noConsole: 'warn',
   },
+  pluginRules: {
+    'style/curly': 'error',
+  },
   verbose: false,
 }
 

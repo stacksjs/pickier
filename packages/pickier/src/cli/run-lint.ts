@@ -1718,6 +1718,223 @@ function applyPlugins(filePath: string, content: string, cfg: PickierConfig): Pl
   const stylePlugin: PickierPlugin = {
     name: 'style',
     rules: {
+      'curly': {
+        meta: { docs: 'Enforce the consistent use of curly braces with "multi" option - removes braces only for single statements' },
+        check: (text, ctx) => {
+          const issues: PluginLintIssue[] = []
+          const lines = text.split(/\r?\n/)
+
+          for (let i = 0; i < lines.length; i++) {
+            const line = lines[i]
+
+            // Match if statements with braces
+            const ifWithBraces = line.match(/^\s*if\s*\([^)]*\)\s*\{/)
+            if (ifWithBraces) {
+              // Count statements inside the if block
+              let braceDepth = 1
+              let j = i
+              let statementsInBlock = 0
+              let closingBraceFound = false
+
+              // Start from the opening brace position
+              let charIndex = line.indexOf('{') + 1
+
+              while (j < lines.length && !closingBraceFound) {
+                const currentLine = j === i ? line.substring(charIndex) : lines[j]
+
+                for (let k = 0; k < currentLine.length; k++) {
+                  const char = currentLine[k]
+                  if (char === '{') {
+                    braceDepth++
+                  }
+                  else if (char === '}') {
+                    braceDepth--
+                    if (braceDepth === 0) {
+                      closingBraceFound = true
+                      break
+                    }
+                  }
+                }
+
+                // Count non-empty, non-comment lines as statements
+                if (j > i || charIndex > 0) {
+                  const contentLine = j === i ? currentLine : lines[j]
+                  const trimmedContent = contentLine.trim()
+                  if (trimmedContent && !trimmedContent.startsWith('//') && !trimmedContent.startsWith('/*') && !trimmedContent.startsWith('}') && !trimmedContent.startsWith('{')) {
+                    statementsInBlock++
+                  }
+                }
+
+                j++
+                charIndex = 0
+              }
+
+              if (closingBraceFound && statementsInBlock === 1) {
+                // Check if there's an else clause
+                let hasElse = false
+                for (let k = j; k < lines.length; k++) {
+                  const nextLine = lines[k].trim()
+                  if (!nextLine || nextLine.startsWith('//') || nextLine.startsWith('/*'))
+                    continue
+                  if (nextLine.startsWith('else')) {
+                    hasElse = true
+                    // If else also has single statement, we can remove braces from both
+                    const elseWithBraces = nextLine.match(/^else\s*\{/)
+                    if (elseWithBraces) {
+                      // Count statements in else block too
+                      let elseStatementsInBlock = 0
+                      let elseBraceDepth = 1
+                      let elseJ = k
+                      let elseClosingBraceFound = false
+                      let elseCharIndex = nextLine.indexOf('{') + 1
+
+                      while (elseJ < lines.length && !elseClosingBraceFound) {
+                        const elseCurrentLine = elseJ === k ? nextLine.substring(elseCharIndex) : lines[elseJ]
+
+                        for (let elseK = 0; elseK < elseCurrentLine.length; elseK++) {
+                          const elseChar = elseCurrentLine[elseK]
+                          if (elseChar === '{') {
+                            elseBraceDepth++
+                          }
+                          else if (elseChar === '}') {
+                            elseBraceDepth--
+                            if (elseBraceDepth === 0) {
+                              elseClosingBraceFound = true
+                              break
+                            }
+                          }
+                        }
+
+                        if (elseJ > k || elseCharIndex > 0) {
+                          const elseContentLine = elseJ === k ? elseCurrentLine : lines[elseJ]
+                          const elseTrimmedContent = elseContentLine.trim()
+                          if (elseTrimmedContent && !elseTrimmedContent.startsWith('//') && !elseTrimmedContent.startsWith('/*') && !elseTrimmedContent.startsWith('}') && !elseTrimmedContent.startsWith('{')) {
+                            elseStatementsInBlock++
+                          }
+                        }
+
+                        elseJ++
+                        elseCharIndex = 0
+                      }
+
+                      // Only flag if both if and else have single statements
+                      if (elseStatementsInBlock === 1) {
+                        issues.push({
+                          filePath: ctx.filePath,
+                          line: i + 1,
+                          column: 1,
+                          ruleId: 'style/curly',
+                          message: 'Unnecessary curly braces around single statement',
+                          severity: 'warning',
+                        })
+                      }
+                    }
+                    else {
+                      // Else without braces - can remove if braces
+                      issues.push({
+                        filePath: ctx.filePath,
+                        line: i + 1,
+                        column: 1,
+                        ruleId: 'style/curly',
+                        message: 'Unnecessary curly braces around single statement',
+                        severity: 'warning',
+                      })
+                    }
+                    break
+                  }
+                  break
+                }
+
+                if (!hasElse) {
+                  // Single statement if without else - braces can be removed
+                  issues.push({
+                    filePath: ctx.filePath,
+                    line: i + 1,
+                    column: 1,
+                    ruleId: 'style/curly',
+                    message: 'Unnecessary curly braces around single statement',
+                    severity: 'warning',
+                  })
+                }
+              }
+            }
+
+            // Match else statements with braces
+            const elseWithBraces = line.match(/^\s*else\s*\{/)
+            if (elseWithBraces) {
+              // Count statements in else block
+              let braceDepth = 1
+              let j = i
+              let statementsInBlock = 0
+              let closingBraceFound = false
+
+              let charIndex = line.indexOf('{') + 1
+
+              while (j < lines.length && !closingBraceFound) {
+                const currentLine = j === i ? line.substring(charIndex) : lines[j]
+
+                for (let k = 0; k < currentLine.length; k++) {
+                  const char = currentLine[k]
+                  if (char === '{') {
+                    braceDepth++
+                  }
+                  else if (char === '}') {
+                    braceDepth--
+                    if (braceDepth === 0) {
+                      closingBraceFound = true
+                      break
+                    }
+                  }
+                }
+
+                if (j > i || charIndex > 0) {
+                  const contentLine = j === i ? currentLine : lines[j]
+                  const trimmedContent = contentLine.trim()
+                  if (trimmedContent && !trimmedContent.startsWith('//') && !trimmedContent.startsWith('/*') && !trimmedContent.startsWith('}') && !trimmedContent.startsWith('{')) {
+                    statementsInBlock++
+                  }
+                }
+
+                j++
+                charIndex = 0
+              }
+
+              if (closingBraceFound && statementsInBlock === 1) {
+                // Find the corresponding if statement
+                let correspondingIfHasBraces = false
+                let correspondingIfHasSingleStatement = false
+                for (let k = i - 1; k >= 0; k--) {
+                  const prevLine = lines[k].trim()
+                  if (!prevLine || prevLine.startsWith('//') || prevLine.startsWith('/*'))
+                    continue
+                  const ifMatch = prevLine.match(/^\s*if\s*\([^)]*\)/)
+                  if (ifMatch) {
+                    correspondingIfHasBraces = prevLine.includes('{')
+                    // TODO: Check if if has single statement too
+                    correspondingIfHasSingleStatement = true // Simplified for now
+                    break
+                  }
+                  break
+                }
+
+                if (!correspondingIfHasBraces) {
+                  // If doesn't have braces but else does, and else is single statement
+                  issues.push({
+                    filePath: ctx.filePath,
+                    line: i + 1,
+                    column: 1,
+                    ruleId: 'style/curly',
+                    message: 'Unnecessary curly braces around single statement',
+                    severity: 'warning',
+                  })
+                }
+              }
+            }
+          }
+
+          return issues
+        },
+      },
       'max-statements-per-line': {
         meta: { docs: 'Limit the number of statements allowed on a single line' },
         check: (text, ctx) => {

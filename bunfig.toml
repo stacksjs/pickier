@@ -3,4 +3,4 @@ registry = { url = "https://registry.npmjs.org/", token = "$BUN_AUTH_TOKEN" }
 
 [test]
 # Run setup file before tests to enable VS Code mocking globally
-preload = ["./packages/vscode/test/setup.ts"]
+preload = [ "./packages/vscode/test/setup.ts" ]

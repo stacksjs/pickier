@@ -4,6 +4,8 @@ export interface PickierRulesConfig {
   // linter rules (subset for now)
   noDebugger: RuleSeverity
   noConsole: RuleSeverity
+  // Style rules
+  curly?: RuleSeverity
   // RegExp best practices
   noUnusedCapturingGroup?: RuleSeverity
   // Disallow assignments in conditional expressions
