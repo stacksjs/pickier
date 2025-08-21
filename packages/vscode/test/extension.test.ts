@@ -1,9 +1,9 @@
-import { afterEach, beforeEach, it } from 'bun:test'
+import { afterEach, beforeEach, describe, it } from 'bun:test'
 import * as assert from 'node:assert'
 import * as vscode from 'vscode'
 
 // Mock VS Code API for testing
-const mockVSCode = {
+const _mockVSCode = {
   window: {
     showInformationMessage: () => Promise.resolve(),
     showWarningMessage: () => Promise.resolve(),
@@ -94,10 +94,9 @@ const mockVSCode = {
   },
 }
 
-// Override the vscode module for testing
-Object.assign(vscode, mockVSCode)
+// Mock is handled by setup.ts now, no need to override here
 
-suite('Pickier Extension Test Suite', () => {
+describe('Pickier Extension Test Suite', () => {
   beforeEach(() => {
     // Reset any global state before each test
   })

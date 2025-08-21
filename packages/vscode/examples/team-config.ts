@@ -49,14 +49,14 @@ const config: PickierConfig = {
   ],
 
   lint: {
-    extensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'jsonc', 'html', 'css', 'scss', 'md', 'yaml', 'yml'],
+    extensions: ['ts', 'js', 'json', 'jsonc', 'html', 'css', 'md', 'yaml', 'yml'],
     reporter: 'stylish', // Human-readable for development
     cache: true, // Essential for large codebases
     maxWarnings: 0, // Zero tolerance for warnings in production
   },
 
   format: {
-    extensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'jsonc', 'html', 'css', 'scss', 'md', 'yaml', 'yml'],
+    extensions: ['ts', 'js', 'json', 'jsonc', 'html', 'css', 'md', 'yaml', 'yml'],
     trimTrailingWhitespace: true,
     maxConsecutiveBlankLines: 1, // Strict formatting
     finalNewline: 'one',
@@ -96,7 +96,7 @@ const config: PickierConfig = {
       ignoreCase: false,
       partitionByNewLine: true,
     }],
-    'sort-keys': ['error', 'asc', {
+    'sort-keys': ['error', {
       caseSensitive: false,
       natural: true,
       minKeys: 3, // Only enforce for objects with 3+ keys

@@ -54,13 +54,8 @@
     "zip:windows-x64": "zip -j bin/pickier-windows-x64.zip bin/pickier-windows-x64.exe",
     "zip:darwin-x64": "zip -j bin/pickier-darwin-x64.zip bin/pickier-darwin-x64",
     "zip:darwin-arm64": "zip -j bin/pickier-darwin-arm64.zip bin/pickier-darwin-arm64",
-    "lint": "bunx --bun eslint .",
-    "lint:fix": "bunx --bun eslint . --fix",
-    "fresh": "bunx rimraf node_modules/ bun.lock && bun i",
-    "changelog": "bunx logsmith --output CHANGELOG.md --theme github --exclude-authors \"dependabot[bot],github-actions[bot]\" --exclude-types \"chore\" --max-commits 50",
-    "changelog:generate": "bunx logsmith --output CHANGELOG.md --theme github --exclude-authors \"dependabot[bot],github-actions[bot]\" --exclude-types \"chore\" --max-commits 50",
+
     "prepublishOnly": "bun --bun run build && bun run compile:all && bun run zip",
-    "release": "bun run changelog:generate && git add CHANGELOG.md && git commit --amend --no-edit && bunx bumpx prompt --no-push --yes",
     "test": "bun test --coverage"
   },
   "dependencies": {
@@ -69,14 +64,5 @@
   },
   "devDependencies": {
     "bunfig": "^0.10.1"
-  },
-  "overrides": {
-    "unconfig": "0.3.10"
-  },
-  "lint-staged": {
-    "*.{js,ts}": "bunx --bun eslint . --fix"
-  },
-  "workspaces": [
-    "packages/*"
-  ]
+  }
 }

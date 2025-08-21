@@ -27,14 +27,14 @@ const config: PickierConfig = {
   ],
 
   lint: {
-    extensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'jsonc', 'html', 'css', 'md', 'yaml', 'yml'],
+    extensions: ['ts', 'js', 'json', 'jsonc', 'html', 'css', 'md', 'yaml', 'yml'],
     reporter: 'stylish', // Options: 'stylish' | 'json' | 'compact'
     cache: true, // Enable caching for better performance
     maxWarnings: 10, // Fail build if more than 10 warnings
   },
 
   format: {
-    extensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'jsonc', 'html', 'css', 'md', 'yaml', 'yml'],
+    extensions: ['ts', 'js', 'json', 'jsonc', 'html', 'css', 'md', 'yaml', 'yml'],
     trimTrailingWhitespace: true,
     maxConsecutiveBlankLines: 2, // Allow up to 2 blank lines
     finalNewline: 'one',
@@ -75,7 +75,7 @@ const config: PickierConfig = {
       ignoreCase: false,
       ignoreAlias: false,
     }],
-    'sort-keys': ['warn', 'asc', {
+    'sort-keys': ['warn', {
       caseSensitive: false,
       natural: true,
       minKeys: 2,

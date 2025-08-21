@@ -33,8 +33,9 @@ class MockRange implements vscode.Range {
   isSingleLine = true
   contains = () => false
   intersection = () => undefined
-  union = () => this
-  with = () => this
+  isEqual = () => false
+  union = () => new MockRange(this.start, this.end) as vscode.Range
+  with = () => new MockRange(this.start, this.end) as vscode.Range
 }
 
 class MockPosition implements vscode.Position {
@@ -60,7 +61,9 @@ class MockCancellationToken implements vscode.CancellationToken {
 
 class MockFormattingOptions implements vscode.FormattingOptions {
   tabSize = 2
-  insertSpaces = true
+  insertSpaces = true;
+
+  [key: string]: any
 }
 
 // Mock pickier module
@@ -116,7 +119,7 @@ describe('PickierFormattingProvider', () => {
 
   it('should provide document formatting edits', async () => {
     const edits = await provider.provideDocumentFormattingEdits(
-      mockDocument as vscode.TextDocument,
+      mockDocument as unknown as vscode.TextDocument,
       mockOptions,
       mockToken,
     )
@@ -128,7 +131,7 @@ describe('PickierFormattingProvider', () => {
     mockDocument = new MockTextDocument('test.ts', 'typescript', 'const x = 1\n')
 
     const edits = await provider.provideDocumentFormattingEdits(
-      mockDocument as vscode.TextDocument,
+      mockDocument as unknown as vscode.TextDocument,
       mockOptions,
       mockToken,
     )
@@ -140,7 +143,7 @@ describe('PickierFormattingProvider', () => {
     mockDocument = new MockTextDocument('test.ts', 'typescript', 'const x = 1')
 
     const edits = await provider.provideDocumentFormattingEdits(
-      mockDocument as vscode.TextDocument,
+      mockDocument as unknown as vscode.TextDocument,
       mockOptions,
       mockToken,
     )
@@ -152,7 +155,7 @@ describe('PickierFormattingProvider', () => {
     mockToken.isCancellationRequested = true
 
     const edits = await provider.provideDocumentFormattingEdits(
-      mockDocument as vscode.TextDocument,
+      mockDocument as unknown as vscode.TextDocument,
       mockOptions,
       mockToken,
     )
@@ -167,8 +170,8 @@ describe('PickierFormattingProvider', () => {
     )
 
     const edits = await provider.provideDocumentRangeFormattingEdits(
-      mockDocument as vscode.TextDocument,
-      range as vscode.Range,
+      mockDocument as unknown as vscode.TextDocument,
+      range as unknown as vscode.Range,
       mockOptions,
       mockToken,
     )
@@ -183,7 +186,7 @@ describe('PickierFormattingProvider', () => {
     })
 
     const edits = await provider.provideDocumentFormattingEdits(
-      mockDocument as vscode.TextDocument,
+      mockDocument as unknown as vscode.TextDocument,
       mockOptions,
       mockToken,
     )
@@ -195,7 +198,7 @@ describe('PickierFormattingProvider', () => {
     mockDocument = new MockTextDocument('test.js', 'javascript', 'const x = 1')
 
     await provider.provideDocumentFormattingEdits(
-      mockDocument as vscode.TextDocument,
+      mockDocument as unknown as vscode.TextDocument,
       mockOptions,
       mockToken,
     )

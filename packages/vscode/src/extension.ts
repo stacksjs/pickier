@@ -10,7 +10,7 @@ let diagnosticCollection: vscode.DiagnosticCollection
 let statusBarItem: PickierStatusBar
 let outputChannel: vscode.OutputChannel
 
-export async function activate(context: vscode.ExtensionContext) {
+export async function activate(context: vscode.ExtensionContext): Promise<void> {
   console.warn('Pickier extension is now active!')
 
   // Create output channel
@@ -30,8 +30,8 @@ export async function activate(context: vscode.ExtensionContext) {
 
   supportedLanguages.forEach((language) => {
     context.subscriptions.push(
-      vscode.languages.registerDocumentFormattingProvider(language, formattingProvider),
-      vscode.languages.registerDocumentRangeFormattingProvider(language, formattingProvider),
+      vscode.languages.registerDocumentFormattingEditProvider(language, formattingProvider),
+      vscode.languages.registerDocumentRangeFormattingEditProvider(language, formattingProvider),
     )
   })
 
@@ -86,7 +86,7 @@ export async function activate(context: vscode.ExtensionContext) {
   }
 }
 
-export function deactivate() {
+export function deactivate(): void {
   if (diagnosticCollection) {
     diagnosticCollection.dispose()
   }

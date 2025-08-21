@@ -1,7 +1,7 @@
 import * as vscode from 'vscode'
 // Dynamic imports will be used to avoid bundling issues
 
-export class PickierFormattingProvider implements vscode.DocumentFormattingProvider, vscode.DocumentRangeFormattingProvider {
+export class PickierFormattingProvider implements vscode.DocumentFormattingEditProvider, vscode.DocumentRangeFormattingEditProvider {
   async provideDocumentFormattingEdits(
     document: vscode.TextDocument,
     options: vscode.FormattingOptions,
