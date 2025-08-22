@@ -24,7 +24,7 @@
     "fresh": "bunx rimraf node_modules/ bun.lock && bun i",
     "changelog": "bunx logsmith --verbose",
     "changelog:generate": "bunx logsmith --output CHANGELOG.md",
-    "release": "bun run changelog:generate && bunx bumpx prompt --recursive --no-push --yes",
+    "release": "bun run changelog:generate && bunx bumpx prompt --recursive",
     "test": "bun test",
     "dev:docs": "bun --bun vitepress dev docs",
     "build:docs": "bun --bun vitepress build docs",
