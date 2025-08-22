@@ -7,7 +7,7 @@ export const noUnusedVarsRule: RuleModule = {
     const issues: ReturnType<RuleModule['check']> = []
     const opts: any = ctx.options || {}
     const varsIgnorePattern = typeof opts.varsIgnorePattern === 'string' ? opts.varsIgnorePattern : '^_'
-    const argsIgnorePattern = typeof opts.argsIgnorePattern === 'string' ? opts.argsIgnorePattern : '^_'
+    // const argsIgnorePattern = typeof opts.argsIgnorePattern === 'string' ? opts.argsIgnorePattern : '^_'
     const varIgnoreRe = new RegExp(varsIgnorePattern, 'u')
 
     const lines = text.split(/\r?\n/)

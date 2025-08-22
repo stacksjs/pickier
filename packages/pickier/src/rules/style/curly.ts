@@ -68,7 +68,11 @@ export const curlyRule: RuleModule = {
                     if (elseChar === '{') {
                       elseBraceDepth++
                     }
-                    else if (elseChar === '}') { elseBraceDepth--; if (elseBraceDepth === 0) { elseClosingBraceFound = true; break } }
+                    else if (elseChar === '}') {
+                      elseBraceDepth--
+                      if (elseBraceDepth === 0)
+                        elseClosingBraceFound = true
+                    }
                   }
 
                   if (elseJ > k || elseCharIndex > 0) {

@@ -9,7 +9,10 @@ export const sortImportsRule: RuleModule = {
     while (idx < lines.length && (/^\s*$/.test(lines[idx]) || /^\s*\/.\/.*/.test(lines[idx]) || /^\s*\/.\*/.test(lines[idx]))) idx++
     const start = idx
     const imports: string[] = []
-    while (idx < lines.length && /^\s*import\b/.test(lines[idx])) { imports.push(lines[idx].trim()); idx++ }
+    while (idx < lines.length && /^\s*import\b/.test(lines[idx])) {
+      imports.push(lines[idx].trim())
+      idx++
+    }
     if (imports.length === 0)
       return []
     const block = imports.join('\n')
