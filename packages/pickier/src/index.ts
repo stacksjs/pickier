@@ -1,11 +1,13 @@
-export type { FormatOptions } from './cli/run-format'
-export { runFormat } from './cli/run-format'
-export type { LintOptions } from './cli/run-lint'
-
-export { runLint } from './cli/run-lint'
+// Unified CLI API
+export { run } from './cli'
+export type { RunOptions } from './cli'
+export type { FormatOptions, LintOptions } from './cli'
 export * from './config'
 
 export * from './format'
 export type { PickierPlugin, RuleContext, RuleModule } from './types'
 export * from './types'
 export * from './utils'
+// Back-compat named exports used by tests and VS Code package
+export { runLint } from './linter'
+export { runFormat } from './formatter'

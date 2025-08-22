@@ -2,8 +2,8 @@ import { describe, expect, it } from 'bun:test'
 import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { runFormat } from '../src/cli/run-format'
-import { runLint } from '../src/cli/run-lint'
+import { runFormat } from '../src/formatter'
+import { runLint } from '../src/linter'
 
 function tmp(): string {
   return mkdtempSync(join(tmpdir(), 'pickier-rule-sort-imports-'))

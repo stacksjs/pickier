@@ -81,9 +81,35 @@ export interface RuleContext {
 export interface RuleModule {
   meta?: RuleMeta
   check: (content: string, context: RuleContext) => LintIssue[]
+  // Optional fixer to automatically transform content.
+  // If provided and the rule is enabled (not 'off'), the engine may call it when --fix is used.
+  // The fixer should be idempotent and safe to run multiple times.
+  fix?: (content: string, context: RuleContext) => string
 }
 
 export interface PickierPlugin {
   name: string
   rules: Record<string, RuleModule>
+}
+
+// CLI option types (centralized)
+export interface LintOptions {
+  fix?: boolean
+  dryRun?: boolean
+  maxWarnings?: number
+  reporter?: 'stylish' | 'json' | 'compact'
+  config?: string
+  ignorePath?: string
+  ext?: string
+  cache?: boolean
+  verbose?: boolean
+}
+
+export interface FormatOptions {
+  write?: boolean
+  check?: boolean
+  config?: string
+  ignorePath?: string
+  ext?: string
+  verbose?: boolean
 }

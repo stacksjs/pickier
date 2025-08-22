@@ -2,7 +2,7 @@ import { describe, expect, it } from 'bun:test'
 import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { runFormat } from '../src/cli/run-format'
+import { runFormat } from '../src/formatter'
 
 function tmp(): string {
   return mkdtempSync(join(tmpdir(), 'pickier-import-edge-'))
@@ -20,7 +20,7 @@ describe('format import edge cases', () => {
       'console.log(defaultExport, namespace)',
       '',
     ].join('\n')
-    
+
     writeFileSync(join(dir, file), src, 'utf8')
     const code = await runFormat([dir], { write: true })
     expect(code).toBe(0)
@@ -39,7 +39,7 @@ describe('format import edge cases', () => {
       'let a: A, b: B, c: C',
       '',
     ].join('\n')
-    
+
     writeFileSync(join(dir, file), src, 'utf8')
     const code = await runFormat([dir], { write: true })
     expect(code).toBe(0)
@@ -62,7 +62,7 @@ describe('format import edge cases', () => {
       'console.log(used, alsoUsed)',
       '',
     ].join('\n')
-    
+
     writeFileSync(join(dir, file), src, 'utf8')
     const code = await runFormat([dir], { write: true })
     expect(code).toBe(0)
@@ -86,7 +86,7 @@ describe('format import edge cases', () => {
       'console.log(staticImport, loadModule)',
       '',
     ].join('\n')
-    
+
     writeFileSync(join(dir, file), src, 'utf8')
     const code = await runFormat([dir], { write: true })
     expect(code).toBe(0)
@@ -104,7 +104,7 @@ describe('format import edge cases', () => {
       'console.log(short, renamed, third)',
       '',
     ].join('\n')
-    
+
     writeFileSync(join(dir, file), src, 'utf8')
     const code = await runFormat([dir], { write: true })
     expect(code).toBe(0)
@@ -125,7 +125,7 @@ describe('format import edge cases', () => {
       'console.log(local, parent, deep, external)',
       '',
     ].join('\n')
-    
+
     writeFileSync(join(dir, file), src, 'utf8')
     const code = await runFormat([dir], { write: true })
     expect(code).toBe(0)
@@ -147,7 +147,7 @@ describe('format import edge cases', () => {
       'console.log(jsModule, tsModule, jsonData)',
       '',
     ].join('\n')
-    
+
     writeFileSync(join(dir, file), src, 'utf8')
     const code = await runFormat([dir], { write: true })
     expect(code).toBe(0)
@@ -167,7 +167,7 @@ describe('format import edge cases', () => {
       `console.log(${longList})`,
       '',
     ].join('\n')
-    
+
     writeFileSync(join(dir, file), src, 'utf8')
     const code = await runFormat([dir], { write: true })
     expect(code).toBe(0)

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'bun:test'
 import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { runFormat } from '../src/cli/run-format'
+import { runFormat } from '../src/formatter'
 
 function tmp(): string {
   return mkdtempSync(join(tmpdir(), 'pickier-format-'))

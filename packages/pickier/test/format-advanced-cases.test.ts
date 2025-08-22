@@ -2,7 +2,7 @@ import { describe, expect, it } from 'bun:test'
 import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { runFormat } from '../src/cli/run-format'
+import { runFormat } from '../src/formatter'
 
 function tmp(): string {
   return mkdtempSync(join(tmpdir(), 'pickier-format-advanced-'))
@@ -13,9 +13,9 @@ describe('format advanced cases for coverage', () => {
     const dir = tmp()
     const file = 'no-newline.ts'
     const src = 'const x = 1\nconst y = 2\n\n'
-    
+
     writeFileSync(join(dir, file), src, 'utf8')
-    
+
     const cfgPath = join(dir, 'pickier.config.json')
     writeFileSync(cfgPath, JSON.stringify({
       verbose: false,
@@ -35,9 +35,9 @@ describe('format advanced cases for coverage', () => {
     const dir = tmp()
     const file = 'two-newlines.ts'
     const src = 'const x = 1\nconst y = 2'
-    
+
     writeFileSync(join(dir, file), src, 'utf8')
-    
+
     const cfgPath = join(dir, 'pickier.config.json')
     writeFileSync(cfgPath, JSON.stringify({
       verbose: false,
@@ -57,9 +57,9 @@ describe('format advanced cases for coverage', () => {
     const dir = tmp()
     const file = 'double-newline.ts'
     const src = 'const x = 1\nconst y = 2\n\n'
-    
+
     writeFileSync(join(dir, file), src, 'utf8')
-    
+
     const cfgPath = join(dir, 'pickier.config.json')
     writeFileSync(cfgPath, JSON.stringify({
       verbose: false,
@@ -87,7 +87,7 @@ describe('format advanced cases for coverage', () => {
       'let x: Type1, y: Type2, z: OnlyType',
       '',
     ].join('\n')
-    
+
     writeFileSync(join(dir, file), src, 'utf8')
     const code = await runFormat([dir], { write: true })
     expect(code).toBe(0)
@@ -110,7 +110,7 @@ describe('format advanced cases for coverage', () => {
       'console.log(a, b, c, d, z)',
       '',
     ].join('\n')
-    
+
     writeFileSync(join(dir, file), src, 'utf8')
     const code = await runFormat([dir], { write: true })
     expect(code).toBe(0)
@@ -132,7 +132,7 @@ describe('format advanced cases for coverage', () => {
       'console.log(Default, named, Namespace, only, OnlyDefault)',
       '',
     ].join('\n')
-    
+
     writeFileSync(join(dir, file), src, 'utf8')
     const code = await runFormat([dir], { write: true })
     expect(code).toBe(0)
@@ -156,9 +156,9 @@ describe('format advanced cases for coverage', () => {
       '};', // unnecessary semicolon after function
       '',
     ].join('\n')
-    
+
     writeFileSync(join(dir, file), src, 'utf8')
-    
+
     const cfgPath = join(dir, 'pickier.config.json')
     writeFileSync(cfgPath, JSON.stringify({
       verbose: false,
@@ -188,7 +188,7 @@ describe('format advanced cases for coverage', () => {
       'console.log(named)',
       '',
     ].join('\n')
-    
+
     writeFileSync(join(dir, file), src, 'utf8')
     const code = await runFormat([dir], { write: true })
     expect(code).toBe(0)
@@ -216,7 +216,7 @@ describe('format advanced cases for coverage', () => {
       '}',
       '',
     ].join('\n')
-    
+
     writeFileSync(join(dir, file), src, 'utf8')
     const code = await runFormat([dir], { write: true })
     expect(code).toBe(0)

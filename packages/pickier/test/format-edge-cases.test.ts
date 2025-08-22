@@ -2,7 +2,7 @@ import { describe, expect, it } from 'bun:test'
 import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { runFormat } from '../src/cli/run-format'
+import { runFormat } from '../src/formatter'
 
 function tmp(): string {
   return mkdtempSync(join(tmpdir(), 'pickier-format-edge-'))
@@ -24,7 +24,7 @@ describe('format edge cases and uncovered paths', () => {
       'const single = \'already single\'',
       '',
     ].join('\n')
-    
+
     writeFileSync(join(dir, file), src, 'utf8')
     const code = await runFormat([dir], { write: true })
     expect(code).toBe(0)
@@ -41,9 +41,9 @@ describe('format edge cases and uncovered paths', () => {
       'const double = "already double"',
       '',
     ].join('\n')
-    
+
     writeFileSync(join(dir, file), src, 'utf8')
-    
+
     const cfgPath = join(dir, 'pickier.config.json')
     writeFileSync(cfgPath, JSON.stringify({
       verbose: false,
@@ -64,7 +64,7 @@ describe('format edge cases and uncovered paths', () => {
     const dir = tmp()
     const file = 'data.json'
     const src = '{"name": "value", \'invalid\': true}'
-    
+
     writeFileSync(join(dir, file), src, 'utf8')
     const code = await runFormat([dir], { write: true })
     expect(code).toBe(0)
@@ -84,7 +84,7 @@ describe('format edge cases and uncovered paths', () => {
       '}',
       '',
     ].join('\n')
-    
+
     writeFileSync(join(dir, file), src, 'utf8')
     const code = await runFormat([dir], { write: true })
     expect(code).toBe(0)
@@ -97,7 +97,7 @@ describe('format edge cases and uncovered paths', () => {
     const dir = tmp()
     const file = 'no-extension'
     const src = 'console.log("test");\n'
-    
+
     writeFileSync(join(dir, file), src, 'utf8')
     const code = await runFormat([dir], { write: true })
     expect(code).toBe(0)
@@ -111,7 +111,7 @@ describe('format edge cases and uncovered paths', () => {
     const dir = tmp()
     const file = 'empty.ts'
     const src = ''
-    
+
     writeFileSync(join(dir, file), src, 'utf8')
     const code = await runFormat([dir], { write: true })
     expect(code).toBe(0)
@@ -123,7 +123,7 @@ describe('format edge cases and uncovered paths', () => {
     const dir = tmp()
     const file = 'whitespace.ts'
     const src = '   \n\t\n   \n'
-    
+
     writeFileSync(join(dir, file), src, 'utf8')
     const code = await runFormat([dir], { write: true })
     expect(code).toBe(0)
@@ -136,7 +136,7 @@ describe('format edge cases and uncovered paths', () => {
     const file = 'long-line.ts'
     const longString = 'a'.repeat(200)
     const src = `const veryLongString = "${longString}"\n`
-    
+
     writeFileSync(join(dir, file), src, 'utf8')
     const code = await runFormat([dir], { write: true })
     expect(code).toBe(0)
@@ -159,7 +159,7 @@ describe('format edge cases and uncovered paths', () => {
       '}',
       '',
     ].join('\n')
-    
+
     writeFileSync(join(dir, file), src, 'utf8')
     const code = await runFormat([dir], { write: true })
     expect(code).toBe(0)
@@ -179,7 +179,7 @@ describe('format edge cases and uncovered paths', () => {
       'console.log(a, b, c, Utils, Default, named)',
       '',
     ].join('\n')
-    
+
     writeFileSync(join(dir, file), src, 'utf8')
     const code = await runFormat([dir], { write: true })
     expect(code).toBe(0)

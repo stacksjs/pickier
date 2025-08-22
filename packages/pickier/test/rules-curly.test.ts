@@ -1,9 +1,9 @@
 /* eslint-disable no-console, style/max-statements-per-line */
-import type { LintOptions } from '../src/cli/run-lint'
+import type { LintOptions } from '../src/linter'
 import { afterEach, expect, it } from 'bun:test'
 import { existsSync, unlinkSync, writeFileSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { runLint } from '../src/cli/run-lint'
+import { runLint } from '../src/linter'
 
 const tempFiles: string[] = []
 
@@ -153,7 +153,7 @@ else
 
 it('should flag single-statement else with unnecessary braces', async () => {
   const content = `
-if (condition) 
+if (condition)
   doSomething()
 else {
   doSomethingElse()

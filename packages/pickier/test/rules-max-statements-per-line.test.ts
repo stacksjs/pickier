@@ -2,7 +2,7 @@ import { describe, expect, it } from 'bun:test'
 import { mkdtempSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { runLint } from '../src/cli/run-lint'
+import { runLint } from '../src/linter'
 
 function tmp(): string {
   return mkdtempSync(join(tmpdir(), 'pickier-rule-max-statements-'))
