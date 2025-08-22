@@ -1,3 +1,4 @@
+/* eslint-disable regexp/no-super-linear-backtracking */
 import type { RuleModule } from '../../types'
 
 export const preferConstRule: RuleModule = {
@@ -32,6 +33,7 @@ export const preferConstRule: RuleModule = {
         const incDec = new RegExp(`(\\+\\+|--) (?=${name}\\b)|(?:\\b${name})(?:\\+\\+|--)`.replace(/\s/g, ''), 'g')
         const directAssign = (() => {
           let m: RegExpExecArray | null
+          // eslint-disable-next-line no-cond-assign
           while ((m = assignOp.exec(rest))) {
             const op = m[1]
             if (op == null || op.length > 0)

@@ -1,3 +1,4 @@
+/* eslint-disable regexp/no-super-linear-backtracking */
 import type { RuleModule } from '../../types'
 
 export const noUnusedVarsRule: RuleModule = {
