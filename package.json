@@ -1,7 +1,7 @@
 {
   "name": "pickier",
   "type": "module",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "private": true,
   "description": "Format, lint and more in a fraction of seconds.",
   "author": "Chris Breuer <chris@stacksjs.org>",
@@ -33,7 +33,7 @@
     "postinstall": "bunx git-hooks"
   },
   "devDependencies": {
-    "@stacksjs/bumpx": "^0.1.11",
+    "@stacksjs/bumpx": "^0.1.13",
     "@stacksjs/docs": "^0.70.23",
     "@stacksjs/eslint-config": "^4.14.0-beta.3",
     "@stacksjs/gitlint": "^0.1.5",

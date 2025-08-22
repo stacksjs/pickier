@@ -2,7 +2,7 @@
   "publisher": "pickier",
   "name": "@pickier/vscode",
   "displayName": "Pickier",
-  "version": "0.1.2",
+  "version": "0.1.7",
   "description": "Format, lint and more in a fraction of seconds with Pickier",
   "license": "MIT",
   "homepage": "https://github.com/stacksjs/pickier#readme",

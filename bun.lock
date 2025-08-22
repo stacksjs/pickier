@@ -4,7 +4,7 @@
     "": {
       "name": "pickier",
       "devDependencies": {
-        "@stacksjs/bumpx": "^0.1.11",
+        "@stacksjs/bumpx": "^0.1.13",
         "@stacksjs/docs": "^0.70.23",
         "@stacksjs/eslint-config": "^4.14.0-beta.3",
         "@stacksjs/gitlint": "^0.1.5",
@@ -19,11 +19,11 @@
     },
     "packages/action": {
       "name": "@pickier/action",
-      "version": "0.1.0",
+      "version": "0.1.2",
     },
     "packages/pickier": {
       "name": "pickier",
-      "version": "0.0.0",
+      "version": "0.1.2",
       "bin": {
         "pickier": "./dist/bin/cli.js",
       },
@@ -37,7 +37,7 @@
     },
     "packages/vscode": {
       "name": "@pickier/vscode",
-      "version": "0.1.0",
+      "version": "0.1.2",
       "dependencies": {
         "pickier": "workspace:*",
       },
@@ -557,7 +557,7 @@
 
     "@sindresorhus/is": ["@sindresorhus/is@4.6.0", "", {}, "sha512-t09vSN3MdfsyCHoFcTRCH/iUtG7OJ0CsjzB8cjAmKc/va/kIgeDI/TxsigdncE/4be734m0cvIYwNaV4i2XqAw=="],
 
-    "@stacksjs/bumpx": ["@stacksjs/bumpx@0.1.11", "", { "dependencies": { "@stacksjs/clapp": "^0.1.16" }, "bin": { "bumpx": "dist/bin/cli.js" } }, "sha512-+uboUfJ+Qs8FfJZFqOaO7UKCg+ZVPfUStEhtHUfnaTEN2LMI2cdy0ro+tSr3jpNbaN7yHwRboYhD6Qg2n/flMg=="],
+    "@stacksjs/bumpx": ["@stacksjs/bumpx@0.1.13", "", { "dependencies": { "@stacksjs/clapp": "^0.1.16" }, "bin": { "bumpx": "dist/bin/cli.js" } }, "sha512-JhV79yeAPi6stdbHR8HwC/ZzrcoHSbz2f9tHAiIMLIasDeFeod6UvWWZ8FOZTeNPQgP/Z4oInvcxiQLIiFdBQQ=="],
 
     "@stacksjs/clapp": ["@stacksjs/clapp@0.1.16", "", { "bin": { "clapp": "dist/bin/cli.js", "@stacksjs/clapp": "dist/bin/cli.js" } }, "sha512-BDmYu9Rk/HHIVc4vQjgQO6MzXNMJvPG6ZGiiEAPQT8EAidx3/6S6O7kyY2UdfJSksiCd5SKFK+WYd1uAs88BrQ=="],
 
