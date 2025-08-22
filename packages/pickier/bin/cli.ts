@@ -1,10 +1,10 @@
 #!/usr/bin/env bun
 
-import type { RunOptions } from '../src/cli/index.ts'
+import type { RunOptions } from '../src/index.ts'
 import process from 'node:process'
 import { CLI } from '@stacksjs/clapp'
 import { version } from '../package.json'
-import { run } from '../src/cli/index.ts'
+import { run } from '../src/index.ts'
 
 const cli = new CLI('pickier')
 

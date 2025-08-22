@@ -1,5 +1,5 @@
-import type { FormatOptions, LintOptions } from '../types'
-import { runLint } from '../linter'
+import type { FormatOptions, LintOptions } from './types'
+import { runLint } from './linter'
 
 export type RunOptions = (Partial<LintOptions> & Partial<FormatOptions>) & {
   mode?: 'auto' | 'lint' | 'format'
