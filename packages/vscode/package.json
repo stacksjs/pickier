@@ -167,7 +167,7 @@
     "@types/node": "18.x",
     "@types/vscode": "^1.74.0",
     "@vscode/test-electron": "^2.3.8",
-    "@vscode/vsce": "^2.19.0",
+    "@vscode/vsce": "^3.6.0",
     "typescript": "^5.0.0"
   }
 }
