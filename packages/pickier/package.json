@@ -1,7 +1,7 @@
 {
   "name": "pickier",
   "type": "module",
-  "version": "0.0.0",
+  "version": "0.1.2",
   "description": "Format, lint and more in a fraction of seconds.",
   "author": "Chris Breuer <chris@stacksjs.org>",
   "license": "MIT",
@@ -54,7 +54,6 @@
     "zip:windows-x64": "zip -j bin/pickier-windows-x64.zip bin/pickier-windows-x64.exe",
     "zip:darwin-x64": "zip -j bin/pickier-darwin-x64.zip bin/pickier-darwin-x64",
     "zip:darwin-arm64": "zip -j bin/pickier-darwin-arm64.zip bin/pickier-darwin-arm64",
-
     "prepublishOnly": "bun --bun run build && bun run compile:all && bun run zip",
     "test": "bun test --coverage"
   },

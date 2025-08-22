@@ -2,7 +2,7 @@
   "publisher": "pickier",
   "name": "@pickier/vscode",
   "displayName": "Pickier",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "description": "Format, lint and more in a fraction of seconds with Pickier",
   "license": "MIT",
   "homepage": "https://github.com/stacksjs/pickier#readme",
@@ -98,35 +98,54 @@
     "languages": [
       {
         "id": "typescript",
-        "extensions": [".ts", ".tsx"]
+        "extensions": [
+          ".ts",
+          ".tsx"
+        ]
       },
       {
         "id": "javascript",
-        "extensions": [".js", ".jsx"]
+        "extensions": [
+          ".js",
+          ".jsx"
+        ]
       },
       {
         "id": "json",
-        "extensions": [".json"]
+        "extensions": [
+          ".json"
+        ]
       },
       {
         "id": "jsonc",
-        "extensions": [".jsonc"]
+        "extensions": [
+          ".jsonc"
+        ]
       },
       {
         "id": "html",
-        "extensions": [".html"]
+        "extensions": [
+          ".html"
+        ]
       },
       {
         "id": "css",
-        "extensions": [".css"]
+        "extensions": [
+          ".css"
+        ]
       },
       {
         "id": "markdown",
-        "extensions": [".md"]
+        "extensions": [
+          ".md"
+        ]
       },
       {
         "id": "yaml",
-        "extensions": [".yaml", ".yml"]
+        "extensions": [
+          ".yaml",
+          ".yml"
+        ]
       }
     ]
   },
