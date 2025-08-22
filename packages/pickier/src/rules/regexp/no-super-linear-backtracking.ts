@@ -1,10 +1,10 @@
 import type { RuleModule } from '../../types'
 
 export const noSuperLinearBacktrackingRule: RuleModule = {
-  meta: { docs: "Detects potentially super-linear backtracking patterns in regex literals (heuristic)" },
+  meta: { docs: 'Detects potentially super-linear backtracking patterns in regex literals (heuristic)' },
   check: (text, ctx) => {
     const issues = [] as ReturnType<RuleModule['check']>
-    const regexLiteral = /\/[^\/\\]*(?:\\.[^\/\\]*)*\//g
+    const regexLiteral = /\/[^/\\]*(?:\\.[^/\\]*)*\//g
     const mark = (idx: number, _len: number, msg: string) => {
       const before = text.slice(0, idx)
       const line = (before.match(/\n/g) || []).length + 1
@@ -12,6 +12,7 @@ export const noSuperLinearBacktrackingRule: RuleModule = {
       issues.push({ filePath: ctx.filePath, line, column: col, ruleId: 'no-super-linear-backtracking', message: msg, severity: 'error' })
     }
     let m: RegExpExecArray | null
+    // eslint-disable-next-line no-cond-assign
     while ((m = regexLiteral.exec(text))) {
       const literal = m[0]
       const idx = m.index
@@ -19,7 +20,7 @@ export const noSuperLinearBacktrackingRule: RuleModule = {
       const flat = patt.replace(/\[.*?\]/g, '')
       const exch = flat.includes('.+?\\s*') || flat.includes('\\s*.+?') || flat.includes('.*\\s*') || flat.includes('\\s*.*')
       if (exch) {
-        mark(idx, literal.length, "The combination of ' .*' or ' .+?' with '\\s*' can cause super-linear backtracking due to exchangeable characters")
+        mark(idx, literal.length, 'The combination of \' .*\' or \' .+?\' with \'\\s*\' can cause super-linear backtracking due to exchangeable characters')
         continue
       }
       const collapsed = flat.replace(/\s+/g, '')

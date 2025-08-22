@@ -12,7 +12,9 @@ export const sortNamedImportsRule: RuleModule = {
     const out: ReturnType<RuleModule['check']> = []
     const cmp = (a: string, b: string): number => {
       let res = 0
-      if (type === 'line-length') res = a.length - b.length
+      if (type === 'line-length') {
+        res = a.length - b.length
+      }
       else {
         const aa = ignoreCase ? a.toLowerCase() : a
         const bb = ignoreCase ? b.toLowerCase() : b
@@ -23,14 +25,17 @@ export const sortNamedImportsRule: RuleModule = {
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i]
       const m = line.match(/^\s*import\s+\{([^}]*)\}\s+from\s+['"][^'"]+['"]/)
-      if (!m) continue
+      if (!m)
+        continue
       const inner = m[1]
       const items = inner.split(',').map(s => s.trim()).filter(Boolean)
-      if (items.length <= 1) continue
+      if (items.length <= 1)
+        continue
       const names = items.map((it) => {
         const withoutType = it.replace(/^type\s+/, '')
         const am = withoutType.match(/^([\w$]+)\s+as\s+([\w$]+)$/)
-        if (am) return ignoreAlias ? am[2] : am[1]
+        if (am)
+          return ignoreAlias ? am[2] : am[1]
         const sm = withoutType.match(/^([\w$]+)$/)
         return sm ? sm[1] : withoutType
       })

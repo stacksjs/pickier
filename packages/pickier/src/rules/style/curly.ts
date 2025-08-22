@@ -22,8 +22,14 @@ export const curlyRule: RuleModule = {
 
           for (let k = 0; k < currentLine.length; k++) {
             const char = currentLine[k]
-            if (char === '{') braceDepth++
-            else if (char === '}') { braceDepth--; if (braceDepth === 0) { closingBraceFound = true; break } }
+            if (char === '{') {
+              braceDepth++
+            }
+            else if (char === '}') {
+              braceDepth--
+              if (braceDepth === 0)
+                closingBraceFound = true
+            }
           }
 
           if (j > i || charIndex > 0) {
@@ -42,7 +48,8 @@ export const curlyRule: RuleModule = {
           let hasElse = false
           for (let k = j; k < lines.length; k++) {
             const nextLine = lines[k].trim()
-            if (!nextLine || nextLine.startsWith('//') || nextLine.startsWith('/*')) continue
+            if (!nextLine || nextLine.startsWith('//') || nextLine.startsWith('/*'))
+              continue
             if (nextLine.startsWith('else')) {
               hasElse = true
               const elseWithBraces = nextLine.match(/^else\s*\{/)
@@ -58,7 +65,9 @@ export const curlyRule: RuleModule = {
 
                   for (let elseK = 0; elseK < elseCurrentLine.length; elseK++) {
                     const elseChar = elseCurrentLine[elseK]
-                    if (elseChar === '{') elseBraceDepth++
+                    if (elseChar === '{') {
+                      elseBraceDepth++
+                    }
                     else if (elseChar === '}') { elseBraceDepth--; if (elseBraceDepth === 0) { elseClosingBraceFound = true; break } }
                   }
 
@@ -106,8 +115,14 @@ export const curlyRule: RuleModule = {
 
           for (let k = 0; k < currentLine.length; k++) {
             const char = currentLine[k]
-            if (char === '{') { braceDepth++ }
-            else if (char === '}') { braceDepth--; if (braceDepth === 0) { closingBraceFound = true; break } }
+            if (char === '{') {
+              braceDepth++
+            }
+            else if (char === '}') {
+              braceDepth--
+              if (braceDepth === 0)
+                closingBraceFound = true
+            }
           }
 
           if (j > i || charIndex > 0) {
@@ -126,9 +141,13 @@ export const curlyRule: RuleModule = {
           let correspondingIfHasBraces = false
           for (let k = i - 1; k >= 0; k--) {
             const prevLine = lines[k].trim()
-            if (!prevLine || prevLine.startsWith('//') || prevLine.startsWith('/*')) continue
+            if (!prevLine || prevLine.startsWith('//') || prevLine.startsWith('/*'))
+              continue
             const ifMatch = prevLine.match(/^\s*if\s*\([^)]*\)/)
-            if (ifMatch) { correspondingIfHasBraces = prevLine.includes('{'); break }
+            if (ifMatch) {
+              correspondingIfHasBraces = prevLine.includes('{')
+              break
+            }
             break
           }
 

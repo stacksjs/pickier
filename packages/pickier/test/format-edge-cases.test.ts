@@ -70,7 +70,7 @@ describe('format edge cases and uncovered paths', () => {
     expect(code).toBe(0)
     const result = readFileSync(join(dir, file), 'utf8')
     // JSON files get final newline added
-    expect(result).toBe(src + '\n')
+    expect(result).toBe(`${src}\n`)
   })
 
   it('should handle mixed indentation with tabs and spaces', async () => {

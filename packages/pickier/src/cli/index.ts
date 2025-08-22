@@ -14,7 +14,7 @@ export async function run(globs: string[], options: RunOptions): Promise<number>
     const lintOpts: LintOptions = {
       ...(options as any),
       fix: true,
-      dryRun: options.check ? true : false,
+      dryRun: !!options.check,
       // map format ext to lint ext if provided
       ext: options.ext,
       // suppress reporter differences by keeping defaults
@@ -29,7 +29,7 @@ export async function run(globs: string[], options: RunOptions): Promise<number>
   const lintOpts: LintOptions = {
     ...(options as any),
     fix: true,
-    dryRun: options.check ? true : false,
+    dryRun: !!options.check,
     ext: options.ext,
   }
   return runLint(globs, lintOpts)

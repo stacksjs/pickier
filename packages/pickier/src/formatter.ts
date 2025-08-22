@@ -1,11 +1,12 @@
-import type { LintIssue, FormatOptions, PickierConfig, PickierPlugin, RulesConfigMap } from './types'
+/* eslint-disable no-console */
+import type { FormatOptions, LintIssue, PickierConfig, PickierPlugin, RulesConfigMap } from './types'
 import { readFileSync, writeFileSync } from 'node:fs'
 import { relative } from 'node:path'
 import process from 'node:process'
 import { glob as tinyGlob } from 'tinyglobby'
-import { colors, expandPatterns, loadConfigFromPath } from './utils'
 import { formatCode } from './format'
 import { getAllPlugins } from './plugins'
+import { colors, expandPatterns, loadConfigFromPath } from './utils'
 
 export function applyPluginFixes(filePath: string, content: string, cfg: PickierConfig): string {
   const pluginDefs: Array<PickierPlugin> = getAllPlugins()

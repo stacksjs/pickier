@@ -15,23 +15,28 @@ export const noUnusedVarsRule: RuleModule = {
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i]
       const decl = line.match(/^\s*(?:const|let|var)\s+(.+?);?\s*$/)
-      if (!decl) continue
+      if (!decl)
+        continue
       const after = decl[1]
       const parts = after.split(',')
       for (const partRaw of parts) {
         const part = partRaw.trim()
-        if (!part) continue
+        if (!part)
+          continue
         const simple = part.match(/^([$A-Z_][\w$]*)/i)
         const destruct = part.match(/^[{[](.+)[}\]]/)
         const names: string[] = []
-        if (simple) names.push(simple[1])
+        if (simple) {
+          names.push(simple[1])
+        }
         else if (destruct) {
           const inner = destruct[1]
           const tokens = inner.split(/[^$\w]+/).filter(Boolean)
           for (const t of tokens) names.push(t)
         }
         for (const name of names) {
-          if (varIgnoreRe.test(name)) continue
+          if (varIgnoreRe.test(name))
+            continue
           const restStartIdx = full.indexOf(line)
           const rest = full.slice(restStartIdx + line.length)
           const refRe = new RegExp(`\\b${name}\\b`, 'g')

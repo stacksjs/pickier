@@ -80,7 +80,7 @@ export async function loadConfigFromPath(pathLike: string | undefined): Promise<
 
 export function expandPatterns(patterns: string[]): string[] {
   return patterns.map((p) => {
-    const hasMagic = /[\*?\[\]{}()!]/.test(p)
+    const hasMagic = /[*?[\]{}()!]/.test(p)
     if (hasMagic)
       return p
     // If it's a file-like input with extension, keep as-is

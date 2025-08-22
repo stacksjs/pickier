@@ -16,9 +16,12 @@ export const sortHeritageClausesRule: RuleModule = {
     const cmpAlpha = (a: string, b: string) => (ignoreCase ? a.toLowerCase() : a).localeCompare(ignoreCase ? b.toLowerCase() : b)
     const cmpNat = (a: string, b: string) => (ignoreCase ? a.toLowerCase() : a).localeCompare(ignoreCase ? b.toLowerCase() : b, undefined, { numeric: true })
     const cmp = (a: string, b: string) => {
-      if (type === 'line-length') return dir(a.length - b.length)
-      if (type === 'natural') return dir(cmpNat(a, b))
-      if (type === 'unsorted') return 0
+      if (type === 'line-length')
+        return dir(a.length - b.length)
+      if (type === 'natural')
+        return dir(cmpNat(a, b))
+      if (type === 'unsorted')
+        return 0
       return dir(cmpAlpha(a, b))
     }
 
@@ -29,12 +32,19 @@ export const sortHeritageClausesRule: RuleModule = {
     })) as Record<string, RegExp[]>
 
     const flatGroups: string[] = []
-    for (const g of groupsOpt) { if (Array.isArray(g)) flatGroups.push(...g); else flatGroups.push(g) }
-    if (!flatGroups.includes('unknown')) flatGroups.push('unknown')
+    for (const g of groupsOpt) {
+      if (Array.isArray(g))
+        flatGroups.push(...g)
+      else
+        flatGroups.push(g)
+    }
+    if (!flatGroups.includes('unknown'))
+      flatGroups.push('unknown')
 
     const chooseGroup = (name: string): string => {
       for (const [g, regs] of Object.entries(compileCustom)) {
-        if (regs.some(r => r.test(name))) return g
+        if (regs.some(r => r.test(name)))
+          return g
       }
       return 'unknown'
     }
@@ -45,12 +55,19 @@ export const sortHeritageClausesRule: RuleModule = {
       let token = ''
       for (let i = 0; i < src.length; i++) {
         const ch = src[i]
-        if (ch === '<') depth++
-        else if (ch === '>') depth = Math.max(0, depth - 1)
-        if (ch === ',' && depth === 0) { out.push(token.trim()); token = ''; continue }
+        if (ch === '<')
+          depth++
+        else if (ch === '>')
+          depth = Math.max(0, depth - 1)
+        if (ch === ',' && depth === 0) {
+          out.push(token.trim())
+          token = ''
+          continue
+        }
         token += ch
       }
-      if (token.trim()) out.push(token.trim())
+      if (token.trim())
+        out.push(token.trim())
       return out
     }
 
@@ -62,7 +79,8 @@ export const sortHeritageClausesRule: RuleModule = {
 
     const checkList = (lineNo: number, listSrc: string) => {
       const items = splitTopLevel(listSrc)
-      if (items.length <= 1) return
+      if (items.length <= 1)
+        return
       const names = items.map(baseName)
       const groups = names.map(chooseGroup)
       const orderByGroup = names
@@ -70,7 +88,8 @@ export const sortHeritageClausesRule: RuleModule = {
         .sort((a, b) => {
           const gi = flatGroups.indexOf(a.g)
           const gj = flatGroups.indexOf(b.g)
-          if (gi !== gj) return gi - gj
+          if (gi !== gj)
+            return gi - gj
           return cmp(a.n, b.n)
         })
         .map(x => x.n)
@@ -83,9 +102,11 @@ export const sortHeritageClausesRule: RuleModule = {
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i]
       const intf = line.match(/^\s*interface\s+[A-Za-z_$][^{]*\bextends\s+(.+?)\s*\{/)
-      if (intf) checkList(i + 1, intf[1])
+      if (intf)
+        checkList(i + 1, intf[1])
       const impl = line.match(/^\s*class\s+[A-Za-z_$][^{]*\bimplements\s+(.+?)\s*\{/)
-      if (impl) checkList(i + 1, impl[1])
+      if (impl)
+        checkList(i + 1, impl[1])
     }
     return issues
   },

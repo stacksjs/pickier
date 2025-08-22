@@ -12,7 +12,9 @@ export const sortObjectsRule: RuleModule = {
     const out: ReturnType<RuleModule['check']> = []
     const cmp = (a: string, b: string): number => {
       let res = 0
-      if (type === 'line-length') res = a.length - b.length
+      if (type === 'line-length') {
+        res = a.length - b.length
+      }
       else {
         const aa = ignoreCase ? a.toLowerCase() : a
         const bb = ignoreCase ? b.toLowerCase() : b
@@ -27,26 +29,42 @@ export const sortObjectsRule: RuleModule = {
       if (openIdx !== -1) {
         const before = line.slice(0, openIdx)
         if (/=\s*$|\(\s*$|\breturn\s*$/.test(before)) {
-          let depth = 0; const start = i; let j = i
+          let depth = 0
+          const start = i
+          let j = i
           for (; j < lines.length; j++) {
             for (const ch of lines[j]) {
-              if (ch === '{') depth++; else if (ch === '}') depth--
+              if (ch === '{')
+                depth++
+              else if (ch === '}')
+                depth--
             }
-            if (depth === 0) break
+            if (depth === 0)
+              break
           }
           if (j > start) {
             const inner = lines.slice(start + 1, j)
             const groups: Array<{ startLine: number, props: Array<{ key: string, line: number }> }> = []
             let current: { startLine: number, props: Array<{ key: string, line: number }> } = { startLine: start + 2, props: [] }
-            const flush = () => { if (current.props.length) groups.push(current); current = { startLine: 0, props: [] } }
+            const flush = () => {
+              if (current.props.length)
+                groups.push(current)
+              current = { startLine: 0, props: [] }
+            }
             for (let k = 0; k < inner.length; k++) {
               const ln = inner[k]
-              if (partitionByNewLine && /^\s*$/.test(ln)) { flush(); continue }
-              if (/^\s*\.\.\./.test(ln)) continue
-              if (/\{|\}/.test(ln)) continue
+              if (partitionByNewLine && /^\s*$/.test(ln)) {
+                flush()
+                continue
+              }
+              if (/^\s*\.\.\./.test(ln))
+                continue
+              if (/\{|\}/.test(ln))
+                continue
               const m = ln.match(/^\s*['"]?([\w$-]+)['"]?\s*:/)
               if (m) {
-                if (current.startLine === 0) current.startLine = start + 2 + k
+                if (current.startLine === 0)
+                  current.startLine = start + 2 + k
                 current.props.push({ key: m[1], line: start + 2 + k })
               }
             }

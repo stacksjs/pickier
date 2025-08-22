@@ -4,7 +4,8 @@ export const noRequireImportsRule: RuleModule = {
   meta: { docs: 'Disallow require() in TypeScript files; prefer ESM imports' },
   check: (text, ctx) => {
     const issues: ReturnType<RuleModule['check']> = []
-    if (!/\.ts$/.test(ctx.filePath)) return issues
+    if (!/\.ts$/.test(ctx.filePath))
+      return issues
     const lines = text.split(/\r?\n/)
     let inBlockComment = false
     for (let i = 0; i < lines.length; i++) {
@@ -12,20 +13,31 @@ export const noRequireImportsRule: RuleModule = {
       let line = raw
       if (inBlockComment) {
         const endIdx = line.indexOf('*/')
-        if (endIdx >= 0) { line = line.slice(endIdx + 2); inBlockComment = false }
+        if (endIdx >= 0) {
+          line = line.slice(endIdx + 2)
+          inBlockComment = false
+        }
         else { continue }
       }
       const blockStart = line.indexOf('/*')
       const lineComment = line.indexOf('//')
       if (blockStart >= 0 && (lineComment === -1 || blockStart < lineComment)) {
         const endIdx = line.indexOf('*/', blockStart + 2)
-        if (endIdx >= 0) { line = line.slice(0, blockStart) + line.slice(endIdx + 2) }
-        else { inBlockComment = true; line = line.slice(0, blockStart) }
+        if (endIdx >= 0) {
+          line = line.slice(0, blockStart) + line.slice(endIdx + 2)
+        }
+        else {
+          inBlockComment = true
+          line = line.slice(0, blockStart)
+        }
       }
-      if (lineComment >= 0) line = line.slice(0, lineComment)
+      if (lineComment >= 0)
+        line = line.slice(0, lineComment)
       const trimmed = line.trim()
-      if (!trimmed) continue
-      if (/\bimport\s*\(/.test(trimmed)) continue
+      if (!trimmed)
+        continue
+      if (/\bimport\s*\(/.test(trimmed))
+        continue
       const idx = trimmed.indexOf('require(')
       if (idx >= 0) {
         issues.push({ filePath: ctx.filePath, line: i + 1, column: raw.indexOf('require(') + 1 || idx + 1, ruleId: 'ts/no-require-imports', message: 'Do not use require() in TypeScript files. Use ESM import syntax instead.', severity: 'error' })

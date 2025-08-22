@@ -1,12 +1,13 @@
+/* eslint-disable no-console */
 import type { LintIssue, LintOptions, PickierConfig, PickierPlugin, RuleContext, RulesConfigMap } from './types'
 import { readFileSync, writeFileSync } from 'node:fs'
 import { relative } from 'node:path'
 import process from 'node:process'
 import { glob as tinyGlob } from 'tinyglobby'
-import { colors, expandPatterns, isCodeFile, loadConfigFromPath } from './utils'
 import { detectQuoteIssues, hasIndentIssue } from './format'
-import { getAllPlugins } from './plugins'
 import { applyFixes, formatStylish } from './formatter'
+import { getAllPlugins } from './plugins'
+import { colors, expandPatterns, isCodeFile, loadConfigFromPath } from './utils'
 
 export function applyPlugins(filePath: string, content: string, cfg: PickierConfig): Array<any> /* PluginLintIssue[] */ {
   const issues: Array<any> = []

@@ -21,5 +21,5 @@ export const sortImportsRule: RuleModule = {
     }
     return []
   },
-  fix: (text) => formatImports(text),
+  fix: text => formatImports(text),
 }

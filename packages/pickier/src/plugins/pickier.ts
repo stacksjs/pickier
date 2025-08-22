@@ -1,12 +1,11 @@
-/* eslint-disable unused-imports/no-unused-vars */
 import type { PickierPlugin } from '../types'
-import { sortObjectsRule } from '../rules/pickier/sort-objects'
-import { sortImportsRule } from '../rules/pickier/sort-imports'
-import { sortNamedImportsRule } from '../rules/pickier/sort-named-imports'
-import { sortHeritageClausesRule } from '../rules/pickier/sort-heritage-clauses'
-import { sortKeysRule } from '../rules/pickier/sort-keys'
-import { preferConstRule } from '../rules/pickier/prefer-const'
 import { noUnusedVarsRule } from '../rules/pickier/no-unused-vars'
+import { preferConstRule } from '../rules/pickier/prefer-const'
+import { sortHeritageClausesRule } from '../rules/pickier/sort-heritage-clauses'
+import { sortImportsRule } from '../rules/pickier/sort-imports'
+import { sortKeysRule } from '../rules/pickier/sort-keys'
+import { sortNamedImportsRule } from '../rules/pickier/sort-named-imports'
+import { sortObjectsRule } from '../rules/pickier/sort-objects'
 
 export const pickierPlugin: PickierPlugin = {
   name: 'pickier',
