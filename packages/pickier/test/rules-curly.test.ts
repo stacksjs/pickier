@@ -1,5 +1,5 @@
 /* eslint-disable no-console, style/max-statements-per-line */
-import type { LintOptions } from '../src/linter'
+import type { LintOptions } from '../src/types'
 import { afterEach, expect, it } from 'bun:test'
 import { existsSync, unlinkSync, writeFileSync } from 'node:fs'
 import { resolve } from 'node:path'

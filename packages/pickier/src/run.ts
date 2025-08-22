@@ -34,5 +34,3 @@ export async function run(globs: string[], options: RunOptions): Promise<number>
   }
   return runLint(globs, lintOpts)
 }
-
-export type { FormatOptions, LintOptions }
