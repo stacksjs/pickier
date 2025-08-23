@@ -21,7 +21,6 @@ function makeDoc(text: string, fileName = '/workspace/file.ts'): any {
 describe('PickierFormattingProvider', () => {
   beforeEach(() => {
     mock.restore()
-    mock.clearAllMocks()
     mock.module('vscode', () => createVscodeMock())
     mock.module('pickier', () => ({
       defaultConfig: { semi: false },

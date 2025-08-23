@@ -19,7 +19,6 @@ function setupPickierMock() {
 describe('extension activate/deactivate', () => {
   beforeEach(() => {
     mock.restore()
-    mock.clearAllMocks()
     setupVscodeMock()
     setupPickierMock()
   })

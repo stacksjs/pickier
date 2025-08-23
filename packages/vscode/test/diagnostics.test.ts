@@ -19,7 +19,6 @@ mock.module('pickier', () => ({
 describe('PickierDiagnosticProvider', () => {
   beforeEach(() => {
     mock.restore()
-    mock.clearAllMocks()
     mock.module('vscode', () => createVscodeMock())
     mock.module('pickier', () => ({
       defaultConfig: {},
@@ -66,7 +65,6 @@ describe('PickierDiagnosticProvider', () => {
 describe('lintPathsToDiagnostics', () => {
   beforeEach(() => {
     mock.restore()
-    mock.clearAllMocks()
     mock.module('vscode', () => {
       const { createVscodeMock } = require('./utils/vscode-mock')
       return createVscodeMock()

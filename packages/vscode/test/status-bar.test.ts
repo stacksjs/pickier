@@ -9,7 +9,6 @@ mock.module('vscode', () => createVscodeMock())
 describe('PickierStatusBar', () => {
   beforeEach(() => {
     mock.restore()
-    mock.clearAllMocks()
     mock.module('vscode', () => createVscodeMock())
   })
 
@@ -40,7 +39,6 @@ describe('PickierStatusBar', () => {
 
   it('hides when extension disabled', async () => {
     mock.restore()
-    mock.clearAllMocks()
     mock.module('vscode', () => {
       return createVscodeMock({
         workspace: {
