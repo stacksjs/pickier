@@ -1,7 +1,4 @@
 // Dynamic imports will be used to avoid bundling issues
-import * as fs from 'node:fs'
-import * as os from 'node:os'
-import * as path from 'node:path'
 import * as vscode from 'vscode'
 
 interface LintResult {
@@ -17,13 +14,20 @@ interface LintResult {
   }>
 }
 
+// Bridge: VS Code CancellationToken -> AbortSignal
+function tokenToAbortSignal(token: vscode.CancellationToken): AbortSignal {
+  const controller = new AbortController()
+  token.onCancellationRequested(() => controller.abort())
+  return controller.signal
+}
+
 export class PickierDiagnosticProvider {
   constructor(
     private diagnosticCollection: vscode.DiagnosticCollection,
     private outputChannel: vscode.OutputChannel,
   ) {}
 
-  async provideDiagnostics(document: vscode.TextDocument): Promise<void> {
+  async provideDiagnostics(document: vscode.TextDocument, token?: vscode.CancellationToken): Promise<void> {
     const config = vscode.workspace.getConfiguration('pickier')
     if (!config.get('enable', true)) {
       return
@@ -33,7 +37,14 @@ export class PickierDiagnosticProvider {
     this.diagnosticCollection.delete(document.uri)
 
     try {
-      const diagnostics = await this.lintDocument(document)
+      if (token?.isCancellationRequested)
+        return
+
+      const diagnostics = await this.lintDocument(document, token)
+
+      if (token?.isCancellationRequested)
+        return
+
       this.diagnosticCollection.set(document.uri, diagnostics)
     }
     catch (error) {
@@ -42,102 +53,128 @@ export class PickierDiagnosticProvider {
     }
   }
 
-  private async lintDocument(document: vscode.TextDocument): Promise<vscode.Diagnostic[]> {
-    // Create a temporary file to lint since pickier expects file paths
-    const tempDir = os.tmpdir()
-    const tempFile = path.join(tempDir, `pickier-temp-${Date.now()}${path.extname(document.fileName)}`)
-
+  private async lintDocument(document: vscode.TextDocument, token?: vscode.CancellationToken): Promise<vscode.Diagnostic[]> {
+    // Prefer programmatic API if available to avoid stdout capture and temp files
     try {
-      // Write document content to temp file
-      fs.writeFileSync(tempFile, document.getText(), 'utf8')
-
-      const options = {
-        reporter: 'json' as const,
-        maxWarnings: -1,
+      const mod: any = await import('pickier')
+      const cfg = await (async () => mod.defaultConfig as any)()
+      if (typeof mod.lintText === 'function') {
+        const signal = token ? tokenToAbortSignal(token) : undefined
+        const issues = await mod.lintText(document.getText(), cfg, document.fileName, signal)
+        if (token?.isCancellationRequested) return []
+        return issues.map(convertIssueToDiagnostic)
       }
-
-      // Capture stdout to get JSON results
-      // eslint-disable-next-line no-console
-      const originalLog = console.log
-      const originalError = console.error
-      let capturedOutput = ''
-
-      // eslint-disable-next-line no-console
-      console.log = (message: string) => {
-        capturedOutput += `${message}\n`
-      }
-
-      console.error = () => {} // Suppress error output
-
-      try {
-        const { runLint } = await import('pickier')
-        await runLint([tempFile], options)
-      }
-      finally {
-        // eslint-disable-next-line no-console
-        console.log = originalLog
-
-        console.error = originalError
-      }
-
-      // Parse the JSON output
-      let lintResult: LintResult
-      try {
-        // Try to extract JSON from captured output
-        const jsonMatch = capturedOutput.match(/\{[\s\S]*\}/)
-        if (jsonMatch) {
-          lintResult = JSON.parse(jsonMatch[0])
-        }
-        else {
-          // If no JSON found, create empty result
-          lintResult = { errors: 0, warnings: 0, issues: [] }
-        }
-      }
-      catch (parseError) {
-        this.outputChannel.appendLine(`Failed to parse lint results: ${parseError}`)
-        return []
-      }
-
-      // Convert lint issues to VS Code diagnostics
-      const diagnostics: vscode.Diagnostic[] = []
-
-      for (const issue of lintResult.issues) {
-        const line = Math.max(0, issue.line - 1) // Convert to 0-based
-        const column = Math.max(0, issue.column - 1) // Convert to 0-based
-
-        const range = new vscode.Range(
-          new vscode.Position(line, column),
-          new vscode.Position(line, column + 1),
-        )
-
-        const severity = issue.severity === 'error'
-          ? vscode.DiagnosticSeverity.Error
-          : vscode.DiagnosticSeverity.Warning
-
-        const diagnostic = new vscode.Diagnostic(
-          range,
-          issue.message,
-          severity,
-        )
-
-        diagnostic.source = 'pickier'
-        diagnostic.code = issue.ruleId
-
-        diagnostics.push(diagnostic)
-      }
-
-      return diagnostics
     }
-    finally {
-      // Clean up temp file
-      try {
-        if (fs.existsSync(tempFile)) {
-          fs.unlinkSync(tempFile)
-        }
+    catch (e) {
+      // If dynamic import or programmatic API fails, fall back to stdout approach
+      this.outputChannel.appendLine(`Programmatic lint unavailable, falling back. Reason: ${(e as any)?.message || e}`)
+    }
+
+    // Fallback: temp file + stdout JSON capture
+    const options = { reporter: 'json' as const, maxWarnings: -1 }
+    const lintResult = await runPickierAndParseJson([document.fileName], options, this.outputChannel, token, document.getText())
+    if (token?.isCancellationRequested) return []
+    return lintResult.issues.map(convertIssueToDiagnostic)
+  }
+}
+
+// Helper: run pickier on paths and return parsed JSON
+async function runPickierAndParseJson(
+  paths: string[],
+  options: { reporter: 'json'; maxWarnings: number },
+  output: vscode.OutputChannel,
+  token?: vscode.CancellationToken,
+  docTextForActive?: string,
+): Promise<LintResult> {
+  // Capture stdout to get JSON results
+  // eslint-disable-next-line no-console
+  const originalLog = console.log
+  const originalError = console.error
+  let capturedOutput = ''
+
+  // eslint-disable-next-line no-console
+  console.log = (message: string) => {
+    capturedOutput += `${message}\n`
+  }
+
+  console.error = () => {} // Suppress error output
+
+  try {
+    const mod: any = await import('pickier')
+    if (token?.isCancellationRequested)
+      return { errors: 0, warnings: 0, issues: [] }
+    // If only a single path represents the active unsaved doc, prefer lintText when available
+    if (docTextForActive && typeof mod.lintText === 'function') {
+      const signal = token ? tokenToAbortSignal(token) : undefined
+      const issues = await mod.lintText(docTextForActive, mod.defaultConfig, paths[0], signal)
+      return { errors: issues.filter((i: any) => i.severity === 'error').length, warnings: issues.filter((i: any) => i.severity === 'warning').length, issues }
+    }
+    await mod.runLint(paths, options)
+  }
+  finally {
+    // eslint-disable-next-line no-console
+    console.log = originalLog
+    console.error = originalError
+  }
+
+  // Parse the JSON output
+  try {
+    if (token?.isCancellationRequested)
+      return { errors: 0, warnings: 0, issues: [] }
+    const jsonMatch = capturedOutput.match(/\{[\s\S]*\}/)
+    if (jsonMatch) {
+      return JSON.parse(jsonMatch[0]) as LintResult
+    }
+    return { errors: 0, warnings: 0, issues: [] }
+  }
+  catch (parseError) {
+    output.appendLine(`Failed to parse lint results: ${parseError}`)
+    return { errors: 0, warnings: 0, issues: [] }
+  }
+}
+
+// Helper: convert a single issue to a VS Code diagnostic
+function convertIssueToDiagnostic(issue: LintResult['issues'][number]): vscode.Diagnostic {
+  const line = Math.max(0, issue.line - 1)
+  const column = Math.max(0, issue.column - 1)
+  const range = new vscode.Range(
+    new vscode.Position(line, column),
+    new vscode.Position(line, column + 1),
+  )
+  const severity = issue.severity === 'error'
+    ? vscode.DiagnosticSeverity.Error
+    : vscode.DiagnosticSeverity.Warning
+  const diagnostic = new vscode.Diagnostic(range, issue.message, severity)
+  diagnostic.source = 'pickier'
+  diagnostic.code = issue.ruleId
+  return diagnostic
+}
+
+// Exported helper: lint multiple file paths and map diagnostics by file
+export async function lintPathsToDiagnostics(paths: string[], output: vscode.OutputChannel): Promise<Record<string, vscode.Diagnostic[]>> {
+  const options = { reporter: 'json' as const, maxWarnings: -1 }
+  // Try programmatic batch lint first
+  try {
+    const mod: any = await import('pickier')
+    if (typeof mod.runLintProgrammatic === 'function') {
+      const res = await mod.runLintProgrammatic(paths, options)
+      const map: Record<string, vscode.Diagnostic[]> = {}
+      for (const issue of res.issues) {
+        const list = map[issue.filePath] || (map[issue.filePath] = [])
+        list.push(convertIssueToDiagnostic(issue))
       }
-      catch (cleanupError) {
-        this.outputChannel.appendLine(`Failed to cleanup temp file: ${cleanupError}`)
-      }
+      return map
     }
   }
+  catch (e) {
+    output.appendLine(`Programmatic workspace lint unavailable, falling back. Reason: ${(e as any)?.message || e}`)
+  }
+
+  const result = await runPickierAndParseJson(paths, options, output)
+  const map: Record<string, vscode.Diagnostic[]> = {}
+  for (const issue of result.issues) {
+    const list = map[issue.filePath] || (map[issue.filePath] = [])
+    list.push(convertIssueToDiagnostic(issue))
+  }
+  return map
 }

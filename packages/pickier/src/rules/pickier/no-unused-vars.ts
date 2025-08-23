@@ -7,8 +7,9 @@ export const noUnusedVarsRule: RuleModule = {
     const issues: ReturnType<RuleModule['check']> = []
     const opts: any = ctx.options || {}
     const varsIgnorePattern = typeof opts.varsIgnorePattern === 'string' ? opts.varsIgnorePattern : '^_'
-    // const argsIgnorePattern = typeof opts.argsIgnorePattern === 'string' ? opts.argsIgnorePattern : '^_'
+    const argsIgnorePattern = typeof opts.argsIgnorePattern === 'string' ? opts.argsIgnorePattern : '^_'
     const varIgnoreRe = new RegExp(varsIgnorePattern, 'u')
+    const argIgnoreRe = new RegExp(argsIgnorePattern, 'u')
 
     const lines = text.split(/\r?\n/)
     const full = text
@@ -42,7 +43,101 @@ export const noUnusedVarsRule: RuleModule = {
           const rest = full.slice(restStartIdx + line.length)
           const refRe = new RegExp(`\\b${name}\\b`, 'g')
           if (!refRe.test(rest)) {
-            issues.push({ filePath: ctx.filePath, line: i + 1, column: Math.max(1, line.indexOf(name) + 1), ruleId: 'no-unused-vars', message: `'${name}' is assigned a value but never used. Allowed unused vars must match /${varsIgnorePattern}/u`, severity: 'error' })
+            issues.push({ filePath: ctx.filePath, line: i + 1, column: Math.max(1, line.indexOf(name) + 1), ruleId: 'pickier/no-unused-vars', message: `'${name}' is assigned a value but never used. Allowed unused vars must match /${varsIgnorePattern}/u`, severity: 'error' })
+          }
+        }
+      }
+    }
+
+    // Function parameters: function foo(a,b) { ... } | const f = (a,b)=>{...} | const f=(x)=>x
+    const getParamNames = (raw: string): string[] => raw.split(/[^$\w]+/).filter(Boolean)
+    const findBodyRange = (startLine: number, startColFrom?: number): { from: number, to: number } | null => {
+      let openFound = false
+      let depth = 0
+      for (let ln = startLine; ln < lines.length; ln++) {
+        const s = lines[ln]
+        let startIdx = 0
+        if (!openFound) {
+          const idx = s.indexOf('{', typeof startColFrom === 'number' ? startColFrom : 0)
+          if (idx === -1) continue
+          openFound = true
+          depth = 1
+          startIdx = idx + 1
+        }
+        for (let k = startIdx; k < s.length; k++) {
+          const ch = s[k]
+          if (ch === '{') depth++
+          else if (ch === '}') {
+            depth--
+            if (depth === 0) return { from: startLine, to: ln }
+          }
+        }
+      }
+      return null
+    }
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i]
+      // function declarations or expressions
+      let m = line.match(/\bfunction\b[^()]*\(([^)]*)\)/)
+      if (m) {
+        const params = getParamNames(m[1])
+        const bodyRange = findBodyRange(i)
+        const bodyText = bodyRange ? lines.slice(bodyRange.from, bodyRange.to + 1).join('\n') : ''
+        for (const name of params) {
+          if (!name || argIgnoreRe.test(name)) continue
+          const re = new RegExp(`\\b${name}\\b`, 'g')
+          const afterParamsIdx = line.indexOf(')') + 1
+          const localSlice = (line.slice(afterParamsIdx) + '\n' + bodyText)
+          if (!re.test(localSlice)) {
+            issues.push({ filePath: ctx.filePath, line: i + 1, column: Math.max(1, line.indexOf(name) + 1), ruleId: 'pickier/no-unused-vars', message: `'${name}' is defined but never used (function parameter). Allowed unused args must match /${argsIgnorePattern}/u`, severity: 'error' })
+          }
+        }
+        continue
+      }
+
+      // arrow functions (parenthesized params)
+      m = line.match(/\(([^)]*)\)\s*=>/)
+      if (m) {
+        const params = getParamNames(m[1])
+        const arrowIdx = line.indexOf('=>')
+        let bodyText = ''
+        if (line.indexOf('{', arrowIdx) !== -1) {
+          const bodyRange = findBodyRange(i, arrowIdx)
+          bodyText = bodyRange ? lines.slice(bodyRange.from, bodyRange.to + 1).join('\n') : ''
+        }
+        else {
+          bodyText = line.slice(arrowIdx + 2)
+        }
+        for (const name of params) {
+          if (!name || argIgnoreRe.test(name)) continue
+          const re = new RegExp(`\\b${name}\\b`, 'g')
+          if (!re.test(bodyText)) {
+            issues.push({ filePath: ctx.filePath, line: i + 1, column: Math.max(1, line.indexOf(name) + 1), ruleId: 'pickier/no-unused-vars', message: `'${name}' is defined but never used (function parameter). Allowed unused args must match /${argsIgnorePattern}/u`, severity: 'error' })
+          }
+        }
+        continue
+      }
+
+      // arrow functions (single identifier param without parentheses): x => ... possibly embedded, e.g., arr.map(x=>x)
+      {
+        const reSingleArrow = /(^|[=,:\(\{\s])\s*([$A-Z_][\w$]*)\s*=>/gi
+        let match: RegExpExecArray | null
+        while ((match = reSingleArrow.exec(line)) !== null) {
+          const name = match[2]
+          if (!name || argIgnoreRe.test(name)) continue
+          const arrowIdx = match.index + match[0].lastIndexOf('=>')
+          let bodyText = ''
+          if (line.indexOf('{', arrowIdx) !== -1) {
+            const bodyRange = findBodyRange(i, arrowIdx)
+            bodyText = bodyRange ? lines.slice(bodyRange.from, bodyRange.to + 1).join('\n') : ''
+          }
+          else {
+            bodyText = line.slice(arrowIdx + 2)
+          }
+          const useRe = new RegExp(`\\b${name}\\b`, 'g')
+          if (!useRe.test(bodyText)) {
+            issues.push({ filePath: ctx.filePath, line: i + 1, column: Math.max(1, line.indexOf(name) + 1), ruleId: 'pickier/no-unused-vars', message: `'${name}' is defined but never used (function parameter). Allowed unused args must match /${argsIgnorePattern}/u`, severity: 'error' })
           }
         }
       }

@@ -71,4 +71,67 @@ describe('pickier/no-unused-vars', () => {
     const code = await runLint([dir], { config: cfgPath, reporter: 'json' })
     expect(code).toBe(1)
   })
+
+  it('does not flag single-parameter arrow function when parameter is used', async () => {
+    const dir = tmp()
+    const file = 'd.ts'
+    const src = 'const f = x => x + 1\n;f(1)\n'
+    writeFileSync(join(dir, file), src, 'utf8')
+
+    const cfgPath = join(dir, 'pickier.config.json')
+    writeFileSync(cfgPath, JSON.stringify({
+      verbose: false,
+      ignores: [],
+      lint: { extensions: ['ts'], reporter: 'json', cache: false, maxWarnings: -1 },
+      format: { extensions: ['ts'], trimTrailingWhitespace: true, maxConsecutiveBlankLines: 1, finalNewline: 'one', indent: 2, quotes: 'single', semi: false },
+      rules: { noDebugger: 'off', noConsole: 'off' },
+      plugins: [{ name: 'pickier', rules: {} }],
+      pluginRules: { 'pickier/no-unused-vars': 'error' },
+    }, null, 2), 'utf8')
+
+    const code = await runLint([dir], { config: cfgPath, reporter: 'json' })
+    expect(code).toBe(0)
+  })
+
+  it('flags single-parameter arrow function when parameter is unused', async () => {
+    const dir = tmp()
+    const file = 'e.ts'
+    const src = 'const f = x => 42\n;f(1)\n'
+    writeFileSync(join(dir, file), src, 'utf8')
+
+    const cfgPath = join(dir, 'pickier.config.json')
+    writeFileSync(cfgPath, JSON.stringify({
+      verbose: false,
+      ignores: [],
+      lint: { extensions: ['ts'], reporter: 'json', cache: false, maxWarnings: -1 },
+      format: { extensions: ['ts'], trimTrailingWhitespace: true, maxConsecutiveBlankLines: 1, finalNewline: 'one', indent: 2, quotes: 'single', semi: false },
+      rules: { noDebugger: 'off', noConsole: 'off' },
+      plugins: [{ name: 'pickier', rules: {} }],
+      pluginRules: { 'pickier/no-unused-vars': 'error' },
+    }, null, 2), 'utf8')
+
+    const code = await runLint([dir], { config: cfgPath, reporter: 'json' })
+    expect(code).toBe(1)
+  })
+
+  it('respects argsIgnorePattern for single-parameter arrow functions', async () => {
+    const dir = tmp()
+    const file = 'f.ts'
+    const src = 'const f = _x => 1\n;f(1)\n'
+    writeFileSync(join(dir, file), src, 'utf8')
+
+    const cfgPath = join(dir, 'pickier.config.json')
+    writeFileSync(cfgPath, JSON.stringify({
+      verbose: false,
+      ignores: [],
+      lint: { extensions: ['ts'], reporter: 'json', cache: false, maxWarnings: -1 },
+      format: { extensions: ['ts'], trimTrailingWhitespace: true, maxConsecutiveBlankLines: 1, finalNewline: 'one', indent: 2, quotes: 'single', semi: false },
+      rules: { noDebugger: 'off', noConsole: 'off' },
+      plugins: [{ name: 'pickier', rules: {} }],
+      pluginRules: { 'pickier/no-unused-vars': ['error', { argsIgnorePattern: '^_' }] },
+    }, null, 2), 'utf8')
+
+    const code = await runLint([dir], { config: cfgPath, reporter: 'json' })
+    expect(code).toBe(0)
+  })
 })

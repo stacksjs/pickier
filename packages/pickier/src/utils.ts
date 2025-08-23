@@ -59,6 +59,7 @@ export function mergeConfig(base: PickierConfig, override: Partial<PickierConfig
     lint: { ...base.lint, ...(override.lint || {}) },
     format: { ...base.format, ...(override.format || {}) },
     rules: { ...base.rules, ...(override.rules || {}) },
+    pluginRules: { ...(base as any).pluginRules || {}, ...(override as any).pluginRules || {} } as any,
   }
 }
 

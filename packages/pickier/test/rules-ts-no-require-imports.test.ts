@@ -37,9 +37,13 @@ describe('ts/no-require-imports', () => {
   it('does not flag dynamic import()', async () => {
     const dir = tmp()
     const file = 'b.ts'
+    // wrap in async function to avoid top-level await so this test isolates no-require-imports behavior
     const src = [
-      'const mod = await import(\'fs\')',
-      'export { mod }',
+      'async function main(){',
+      '  const mod = await import(\'fs\')',
+      '  console.log(mod)',
+      '}',
+      'main()',
       '',
     ].join('\n')
     writeFileSync(join(dir, file), src, 'utf8')

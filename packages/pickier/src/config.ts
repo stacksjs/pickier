@@ -24,7 +24,12 @@ export const defaultConfig: PickierConfig = {
     noConsole: 'warn',
   },
   pluginRules: {
-    'style/curly': 'error',
+    'style/curly': 'warn',
+    'style/if-newline': 'warn',
+    'pickier/import-dedupe': 'warn',
+    'pickier/no-import-node-modules-by-path': 'error',
+    'pickier/no-import-dist': 'error',
+    'ts/no-top-level-await': 'error',
   },
   verbose: false,
 }

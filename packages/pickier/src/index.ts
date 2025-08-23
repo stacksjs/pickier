@@ -3,6 +3,7 @@ export * from './format'
 export { runFormat } from './formatter'
 
 export { runLint } from './linter'
+export { lintText, runLintProgrammatic } from './linter'
 // Unified CLI API
 export { run } from './run'
 export type { RunOptions } from './run'

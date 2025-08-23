@@ -3,6 +3,7 @@
   "name": "@pickier/vscode",
   "displayName": "Pickier",
   "version": "0.1.7",
+  "type": "module",
   "description": "Format, lint and more in a fraction of seconds with Pickier",
   "license": "MIT",
   "homepage": "https://github.com/stacksjs/pickier#readme",
@@ -26,7 +27,7 @@
     "Formatters",
     "Linters"
   ],
-  "main": "./dist/extension.js",
+  "main": "./dist/index.js",
   "icon": "images/logo.png",
   "engines": {
     "vscode": "^1.74.0"
@@ -150,9 +151,9 @@
     ]
   },
   "scripts": {
-    "vscode:prepublish": "bun run compile",
-    "compile": "tsc -p .",
-    "watch": "bun build ./src/extension.ts --external:vscode --outdir dist --format esm --watch",
+    "vscode:prepublish": "bun run build",
+    "build": "bun build.ts",
+    "watch": "bun build ./src/extension.ts --external vscode --outdir dist --format esm --watch",
     "pretest": "bun run compile && bun run lint",
     "lint": "eslint src --ext ts",
     "test": "bun test",
@@ -163,11 +164,9 @@
     "pickier": "workspace:*"
   },
   "devDependencies": {
-    "@types/bun": "latest",
-    "@types/node": "18.x",
-    "@types/vscode": "^1.74.0",
-    "@vscode/test-electron": "^2.3.8",
-    "@vscode/vsce": "^2.19.0",
-    "typescript": "^5.0.0"
+    "@types/bun": "1.2.20",
+    "@types/vscode": "^1.103.0",
+    "@vscode/test-electron": "^2.5.2",
+    "@vscode/vsce": "^3.6.0"
   }
 }

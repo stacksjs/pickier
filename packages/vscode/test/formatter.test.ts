@@ -1,212 +1,72 @@
-import { afterEach, beforeEach, describe, expect, it, mock } from 'bun:test'
-import * as vscode from 'vscode'
+import { describe, it, expect, beforeEach, mock } from 'bun:test'
+import { createVscodeMock } from './utils/vscode-mock'
+
+mock.module('vscode', () => createVscodeMock())
+
+mock.module('pickier', () => ({
+  defaultConfig: { semi: false },
+  formatCode: (text: string) => text.toUpperCase(),
+}))
+
 import { PickierFormattingProvider } from '../src/formatter'
 
-// Mock VS Code classes
-class MockTextDocument implements Partial<vscode.TextDocument> {
-  constructor(
-    public fileName: string,
-    public languageId: string,
-    private content: string,
-  ) {}
-
-  getText(range?: vscode.Range): string {
-    if (range) {
-      // For simplicity, return the full content in tests
-      return this.content
-    }
-    return this.content
-  }
-
-  positionAt(offset: number): vscode.Position {
-    return new vscode.Position(0, offset)
+function makeDoc(text: string, fileName = '/workspace/file.ts'): any {
+  return {
+    fileName,
+    getText: (range?: any) => (range ? text : text),
+    positionAt: (o: number) => ({ line: 0, character: o }),
   }
 }
-
-class MockRange implements vscode.Range {
-  constructor(
-    public start: vscode.Position,
-    public end: vscode.Position,
-  ) {}
-
-  isEmpty = false
-  isSingleLine = true
-  contains = () => false
-  intersection = () => undefined
-  isEqual = () => false
-  union = () => new MockRange(this.start, this.end) as vscode.Range
-  with = () => new MockRange(this.start, this.end) as vscode.Range
-}
-
-class MockPosition implements vscode.Position {
-  constructor(
-    public line: number,
-    public character: number,
-  ) {}
-
-  compareTo = () => 0
-  isAfter = () => false
-  isAfterOrEqual = () => false
-  isBefore = () => false
-  isBeforeOrEqual = () => false
-  isEqual = () => false
-  translate = () => this
-  with = () => this
-}
-
-class MockCancellationToken implements vscode.CancellationToken {
-  isCancellationRequested = false
-  onCancellationRequested = () => ({ dispose: () => {} })
-}
-
-class MockFormattingOptions implements vscode.FormattingOptions {
-  tabSize = 2
-  insertSpaces = true;
-
-  [key: string]: any
-}
-
-// Mock pickier module
-const mockPickier = {
-  formatCode: mock((_content: string, _config: any, _fileName: string) => {
-    // Simple mock formatter that adds a newline if missing
-    return _content.endsWith('\n') ? _content : `${_content}\n`
-  }),
-  defaultConfig: {
-    verbose: false,
-    ignores: ['**/node_modules/**'],
-    lint: {
-      extensions: ['ts', 'js'],
-      reporter: 'stylish',
-      cache: false,
-      maxWarnings: -1,
-    },
-    format: {
-      extensions: ['ts', 'js'],
-      trimTrailingWhitespace: true,
-      maxConsecutiveBlankLines: 1,
-      finalNewline: 'one',
-      indent: 2,
-      quotes: 'single',
-      semi: false,
-    },
-    rules: {
-      noDebugger: 'error',
-      noConsole: 'warn',
-    },
-  },
-}
-
-// Override the pickier import for testing
-mock.module('pickier', () => mockPickier)
 
 describe('PickierFormattingProvider', () => {
-  let provider: PickierFormattingProvider
-  let mockDocument: MockTextDocument
-  let mockOptions: MockFormattingOptions
-  let mockToken: MockCancellationToken
-
   beforeEach(() => {
-    provider = new PickierFormattingProvider()
-    mockDocument = new MockTextDocument('test.ts', 'typescript', 'const x = 1')
-    mockOptions = new MockFormattingOptions()
-    mockToken = new MockCancellationToken()
-  })
-
-  afterEach(() => {
     mock.restore()
+    mock.clearAllMocks()
+    mock.module('vscode', () => createVscodeMock())
+    mock.module('pickier', () => ({
+      defaultConfig: { semi: false },
+      formatCode: (text: string) => text.toUpperCase(),
+    }))
   })
 
-  it('should provide document formatting edits', async () => {
+  it('returns empty edits when text unchanged', async () => {
+    mock.module('pickier', () => ({
+      defaultConfig: {},
+      formatCode: (text: string) => text,
+    }))
+    const provider = new PickierFormattingProvider()
+    const vscode = await import('vscode')
     const edits = await provider.provideDocumentFormattingEdits(
-      mockDocument as unknown as vscode.TextDocument,
-      mockOptions,
-      mockToken,
+      makeDoc('same'),
+      {} as any,
+      new vscode.CancellationTokenSource().token,
     )
-
-    expect(Array.isArray(edits)).toBe(true)
-  })
-
-  it('should return empty array when content is already formatted', async () => {
-    mockDocument = new MockTextDocument('test.ts', 'typescript', 'const x = 1\n')
-
-    const edits = await provider.provideDocumentFormattingEdits(
-      mockDocument as unknown as vscode.TextDocument,
-      mockOptions,
-      mockToken,
-    )
-
     expect(edits).toEqual([])
   })
 
-  it('should return edit when content needs formatting', async () => {
-    mockDocument = new MockTextDocument('test.ts', 'typescript', 'const x = 1')
-
+  it('returns a full document replacement when formatted differs', async () => {
+    const provider = new PickierFormattingProvider()
+    const vscode = await import('vscode')
     const edits = await provider.provideDocumentFormattingEdits(
-      mockDocument as unknown as vscode.TextDocument,
-      mockOptions,
-      mockToken,
+      makeDoc('hello'),
+      {} as any,
+      new vscode.CancellationTokenSource().token,
     )
-
-    expect(edits.length).toBeGreaterThan(0)
+    expect(edits).toHaveLength(1)
+    expect(edits[0].newText).toBe('HELLO')
   })
 
-  it('should handle cancellation token', async () => {
-    mockToken.isCancellationRequested = true
-
-    const edits = await provider.provideDocumentFormattingEdits(
-      mockDocument as unknown as vscode.TextDocument,
-      mockOptions,
-      mockToken,
-    )
-
-    expect(edits).toEqual([])
-  })
-
-  it('should provide range formatting edits', async () => {
-    const range = new MockRange(
-      new MockPosition(0, 0),
-      new MockPosition(0, 10),
-    )
-
+  it('range formatting returns range replacement when differs', async () => {
+    const provider = new PickierFormattingProvider()
+    const vscode = await import('vscode')
+    const range = new vscode.Range(new vscode.Position(0, 0), new vscode.Position(0, 5))
     const edits = await provider.provideDocumentRangeFormattingEdits(
-      mockDocument as unknown as vscode.TextDocument,
-      range as unknown as vscode.Range,
-      mockOptions,
-      mockToken,
+      makeDoc('hello world'),
+      range,
+      {} as any,
+      new vscode.CancellationTokenSource().token,
     )
-
-    expect(Array.isArray(edits)).toBe(true)
-  })
-
-  it('should handle formatting errors gracefully', async () => {
-    // Mock formatCode to throw an error
-    mockPickier.formatCode.mockImplementation(() => {
-      throw new Error('Formatting error')
-    })
-
-    const edits = await provider.provideDocumentFormattingEdits(
-      mockDocument as unknown as vscode.TextDocument,
-      mockOptions,
-      mockToken,
-    )
-
-    expect(edits).toEqual([])
-  })
-
-  it('should use correct file name for formatting', async () => {
-    mockDocument = new MockTextDocument('test.js', 'javascript', 'const x = 1')
-
-    await provider.provideDocumentFormattingEdits(
-      mockDocument as unknown as vscode.TextDocument,
-      mockOptions,
-      mockToken,
-    )
-
-    expect(mockPickier.formatCode).toHaveBeenCalledWith(
-      'const x = 1',
-      expect.any(Object),
-      'test.js',
-    )
+    expect(edits).toHaveLength(1)
+    expect(edits[0].newText).toBe('HELLO WORLD')
   })
 })

@@ -1,6 +1,6 @@
 import * as path from 'node:path'
 import * as vscode from 'vscode'
-import { PickierDiagnosticProvider } from './diagnostics'
+import { PickierDiagnosticProvider, lintPathsToDiagnostics } from './diagnostics'
 // Import types and functions from the pickier package
 // Note: These will be dynamically imported to avoid bundling issues
 import { PickierFormattingProvider } from './formatter'
@@ -9,12 +9,23 @@ import { PickierStatusBar } from './status-bar'
 let diagnosticCollection: vscode.DiagnosticCollection
 let statusBarItem: PickierStatusBar
 let outputChannel: vscode.OutputChannel
+const changeDebounceTimers = new Map<string, NodeJS.Timeout>()
+const lintTokenSources = new Map<string, vscode.CancellationTokenSource>()
+
+function resetLintToken(document: vscode.TextDocument): vscode.CancellationToken {
+  const key = document.uri.toString()
+  const existing = lintTokenSources.get(key)
+  if (existing)
+    existing.cancel()
+  const cts = new vscode.CancellationTokenSource()
+  lintTokenSources.set(key, cts)
+  return cts.token
+}
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
-  console.warn('Pickier extension is now active!')
-
   // Create output channel
   outputChannel = vscode.window.createOutputChannel('Pickier')
+  outputChannel.appendLine('Pickier extension activated')
 
   // Create diagnostic collection
   diagnosticCollection = vscode.languages.createDiagnosticCollection('pickier')
@@ -55,7 +66,8 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
       const config = vscode.workspace.getConfiguration('pickier')
 
       if (config.get('lintOnSave', true)) {
-        await diagnosticProvider.provideDiagnostics(document)
+        const token = resetLintToken(document)
+        await diagnosticProvider.provideDiagnostics(document, token)
       }
 
       if (config.get('formatOnSave', false)) {
@@ -64,8 +76,32 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     }),
 
     vscode.workspace.onDidChangeTextDocument((event) => {
-      if (event.document.languageId && supportedLanguages.includes(event.document.languageId)) {
-        statusBarItem.update(event.document)
+      const doc = event.document
+      if (doc.languageId && supportedLanguages.includes(doc.languageId)) {
+        statusBarItem.update(doc)
+
+        const key = doc.uri.toString()
+        const existing = changeDebounceTimers.get(key)
+        if (existing)
+          clearTimeout(existing)
+
+        const timer = setTimeout(async () => {
+          changeDebounceTimers.delete(key)
+          const config = vscode.workspace.getConfiguration('pickier')
+          if (config.get('lintOnChange', true)) {
+            const token = resetLintToken(doc)
+            await diagnosticProvider.provideDiagnostics(doc, token)
+          }
+        }, 500)
+
+        changeDebounceTimers.set(key, timer)
+      }
+    }),
+
+    vscode.workspace.onDidOpenTextDocument(async (document) => {
+      if (supportedLanguages.includes(document.languageId)) {
+        const token = resetLintToken(document)
+        await diagnosticProvider.provideDiagnostics(document, token)
       }
     }),
 
@@ -81,7 +117,8 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     const document = vscode.window.activeTextEditor.document
     if (supportedLanguages.includes(document.languageId)) {
       statusBarItem.update(document)
-      await diagnosticProvider.provideDiagnostics(document)
+      const token = resetLintToken(document)
+      await diagnosticProvider.provideDiagnostics(document, token)
     }
   }
 }
@@ -96,6 +133,12 @@ export function deactivate(): void {
   if (outputChannel) {
     outputChannel.dispose()
   }
+  // Cancel and dispose all outstanding lint tokens
+  for (const [, cts] of lintTokenSources) {
+    cts.cancel()
+    cts.dispose()
+  }
+  lintTokenSources.clear()
 }
 
 async function formatDocument() {
@@ -133,8 +176,6 @@ async function formatSelection() {
       await editor.edit((editBuilder) => {
         editBuilder.replace(selection, formatted)
       })
-
-      vscode.window.showInformationMessage('Selection formatted successfully')
     }
   }
   catch (error) {
@@ -164,8 +205,6 @@ async function formatDocumentInternal(document: vscode.TextDocument) {
       await editor.edit((editBuilder) => {
         editBuilder.replace(fullRange, formatted)
       })
-
-      vscode.window.showInformationMessage('Document formatted successfully')
     }
   }
   catch (error) {
@@ -183,7 +222,8 @@ async function lintDocument() {
   }
 
   const diagnosticProvider = new PickierDiagnosticProvider(diagnosticCollection, outputChannel)
-  await diagnosticProvider.provideDiagnostics(editor.document)
+  const token = resetLintToken(editor.document)
+  await diagnosticProvider.provideDiagnostics(editor.document, token)
 }
 
 async function lintWorkspace() {
@@ -196,27 +236,22 @@ async function lintWorkspace() {
   const workspaceRoot = workspaceFolders[0].uri.fsPath
 
   try {
-    const { runLint } = await import('pickier')
-    const options = {
-      reporter: 'json' as const,
-      maxWarnings: -1,
+    // Lint the whole workspace and populate Problems across files
+    const diagnosticsMap = await lintPathsToDiagnostics([workspaceRoot], outputChannel)
+    for (const [filePath, diags] of Object.entries(diagnosticsMap)) {
+      const uri = vscode.Uri.file(filePath)
+      diagnosticCollection.set(uri, diags)
     }
 
-    const exitCode = await runLint([workspaceRoot], options)
-
-    if (exitCode === 0) {
-      vscode.window.showInformationMessage('Workspace linting completed successfully')
-    }
-    else {
-      vscode.window.showWarningMessage('Workspace linting completed with issues')
-    }
-
-    outputChannel.appendLine(`Workspace lint completed with exit code: ${exitCode}`)
+    const totalIssues = Object.values(diagnosticsMap).reduce((n, arr) => n + arr.length, 0)
+    const msg = totalIssues === 0
+      ? 'Workspace linting completed with no issues'
+      : `Workspace linting found ${totalIssues} issue(s)`
+    vscode.window.showInformationMessage(msg)
 
     const config = vscode.workspace.getConfiguration('pickier')
-    if (config.get('showOutputChannel', false)) {
+    if (config.get('showOutputChannel', false))
       outputChannel.show()
-    }
   }
   catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error'

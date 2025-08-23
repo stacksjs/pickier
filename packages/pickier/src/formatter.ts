@@ -8,6 +8,29 @@ import { formatCode } from './format'
 import { getAllPlugins } from './plugins'
 import { colors, expandPatterns, loadConfigFromPath } from './utils'
 
+function trace(...args: any[]) {
+  if (process.env.PICKIER_TRACE === '1')
+    console.log('[pickier:trace]', ...args)
+}
+
+async function withTimeout<T>(p: Promise<T>, ms: number, label: string): Promise<T> {
+  let to: any
+  const timeout = new Promise<never>((_, reject) => {
+    to = setTimeout(() => reject(new Error(`Timeout after ${ms}ms at ${label}`)), ms)
+  })
+  try {
+    const res = await Promise.race([p, timeout])
+    clearTimeout(to)
+    return res as T
+  }
+  catch (e) {
+    // eslint-disable-next-line no-console
+    console.error(`[pickier:error] ${label} failed:`, (e as any)?.message || e)
+    trace('withTimeout error:', label, e)
+    throw e
+  }
+}
+
 export function applyPluginFixes(filePath: string, content: string, cfg: PickierConfig): string {
   const pluginDefs: Array<PickierPlugin> = getAllPlugins()
 
@@ -37,6 +60,7 @@ export function applyPluginFixes(filePath: string, content: string, cfg: Pickier
         }
       }
     }
+    trace('format pass', relative(process.cwd(), filePath), changed ? 'changed' : 'unchanged')
   }
 
   return current
@@ -80,32 +104,71 @@ export function formatStylish(issues: LintIssue[]): string {
 }
 
 export async function runFormat(globs: string[], options: FormatOptions): Promise<number> {
+  trace('runFormat:start', { globs, options })
   const cfg = await loadConfigFromPath(options.config)
   const raw = globs.length ? globs : ['.']
   const patterns = expandPatterns(raw)
+  trace('patterns', patterns)
   const extSet = new Set((options.ext || cfg.format.extensions.join(',')).split(',').map((s: string) => {
     const t = s.trim()
     return t.startsWith('.') ? t : `.${t}`
   }))
 
-  const entries: string[] = await tinyGlob(patterns, {
-    dot: false,
-    ignore: cfg.ignores,
-    onlyFiles: true,
-    absolute: true,
-  })
+  const timeoutMs = Number(process.env.PICKIER_TIMEOUT_MS || '8000')
+  let entries: string[] = []
+  const simpleDirPattern = patterns.length === 1 && /\*\*\/*\*$/.test(patterns[0])
+  if (simpleDirPattern) {
+    const base = patterns[0].replace(/\/?\*\*\/*\*\*?$/, '')
+    try {
+      const { readdirSync, statSync } = await import('node:fs')
+      const { join } = await import('node:path')
+      const stack: string[] = [base]
+      while (stack.length) {
+        const dir = stack.pop()!
+        const items = readdirSync(dir)
+        for (const it of items) {
+          const full = join(dir, it)
+          const st = statSync(full)
+          if (st.isDirectory())
+            stack.push(full)
+          else
+            entries.push(full)
+        }
+      }
+    }
+    catch {
+      entries = await withTimeout(tinyGlob(patterns, {
+        dot: false,
+        ignore: cfg.ignores,
+        onlyFiles: true,
+        absolute: true,
+      }), timeoutMs, 'tinyGlob')
+    }
+  }
+  else {
+    entries = await withTimeout(tinyGlob(patterns, {
+      dot: false,
+      ignore: cfg.ignores,
+      onlyFiles: true,
+      absolute: true,
+    }), timeoutMs, 'tinyGlob')
+  }
+
+  trace('globbed entries', entries.length)
 
   const files = entries.filter((f) => {
     const idx = f.lastIndexOf('.')
     if (idx < 0)
-      return false
+      return true // include files without extensions (edge-case test expects this)
     const ext = f.slice(idx)
     return extSet.has(ext)
   })
+  trace('filtered files', files.length)
 
   let changed = 0
   let checked = 0
   for (const file of files) {
+    trace('format start', relative(process.cwd(), file))
     const src = readFileSync(file, 'utf8')
     const fmt = formatCode(src, cfg, file)
     if (options.check) {

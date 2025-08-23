@@ -29,19 +29,15 @@ export const preferConstRule: RuleModule = {
           continue
         const restStartIdx = text.indexOf(line)
         const rest = text.slice(restStartIdx + line.length)
-        const assignOp = new RegExp(`\\b${name}\\s*([+\-*/%&|^]|<<|>>>?|\\*\\*)?=`, 'g')
-        const incDec = new RegExp(`(\\+\\+|--) (?=${name}\\b)|(?:\\b${name})(?:\\+\\+|--)`.replace(/\s/g, ''), 'g')
-        const directAssign = (() => {
-          let m: RegExpExecArray | null
-          // eslint-disable-next-line no-cond-assign
-          while ((m = assignOp.exec(rest))) {
-            const op = m[1]
-            if (op == null || op.length > 0)
-              return true
-          }
-          return false
-        })()
-        const changed = directAssign || incDec.test(rest)
+        // Explicit assignment operator list to avoid fragile character classes
+        const assignOps = ['=', '+=', '-=', '*=', '/=', '%=', '**=', '<<=', '>>=', '>>>=', '&=', '^=', '|=']
+        const assignPattern = `\\b${name}\\s*(?:${assignOps.map(op => op.replace(/[|\\^$*+?.(){}\[\]]/g, r => `\\${r}`)).join('|')})`
+        const assignRe = new RegExp(assignPattern)
+        // ++/-- either side of the identifier
+        const incDecRe = new RegExp(`(?:\\+\\+|-- )?`.replace(/\s/g, '') + `(?:\\b${name}\\b)` + `(?: (?:\\+\\+|--))?`.replace(/\s/g, ''), 'g')
+        const directAssign = assignRe.test(rest)
+        const incDecChanged = new RegExp(`(?:^|[^$\w])(?:\\+\\+|--)\\s*${name}\\b|\\b${name}\\s*(?:\\+\\+|--)`).test(rest)
+        const changed = directAssign || incDecChanged
         if (!changed) {
           issues.push({ filePath: ctx.filePath, line: i + 1, column: Math.max(1, line.indexOf(name) + 1), ruleId: 'prefer-const', message: `'${name}' is never reassigned. Use 'const' instead`, severity: 'error' })
         }
