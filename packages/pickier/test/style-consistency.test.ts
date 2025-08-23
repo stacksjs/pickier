@@ -1,7 +1,6 @@
-/* eslint-disable no-console */
 import { describe, expect, it } from 'bun:test'
-import { scanContent } from '../src/linter'
 import { defaultConfig } from '../src/config'
+import { scanContent } from '../src/linter'
 
 function cfg() {
   return {
@@ -151,7 +150,7 @@ describe('style.consistent-list-newline', () => {
   })
   it('works with arrays and named imports', () => {
     const arr = '[ 1,\n  2, 3 ]\n'
-    const im = "import { a,\n b } from 'x'\n"
+    const im = 'import { a,\n b } from \'x\'\n'
     const i1 = scanContent('/v/a.ts', arr, cfg())
     const i2 = scanContent('/v/i.ts', im, cfg())
     expect(i1.some(i => i.ruleId === 'style/consistent-list-newline')).toBe(true)

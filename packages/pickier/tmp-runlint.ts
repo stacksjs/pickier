@@ -17,4 +17,4 @@ else {
   writeFileSync(file, content, 'utf8')
   await runLint([file], { reporter: 'json' })
 }
-main().catch(err => { console.error(err); process.exit(1) })
+main().catch((err) => { console.error(err); process.exit(1) })

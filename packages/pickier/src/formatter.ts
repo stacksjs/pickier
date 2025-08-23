@@ -24,7 +24,6 @@ async function withTimeout<T>(p: Promise<T>, ms: number, label: string): Promise
     return res as T
   }
   catch (e) {
-    // eslint-disable-next-line no-console
     console.error(`[pickier:error] ${label} failed:`, (e as any)?.message || e)
     trace('withTimeout error:', label, e)
     throw e

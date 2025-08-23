@@ -4,7 +4,7 @@ import type { RuleModule } from '../../types'
 // and warn when they are not sorted according to options.
 // Options: { type?: 'alphabetical' | 'natural' | 'line-length' | 'unsorted'; order?: 'asc' | 'desc'; ignoreCase?: boolean; partitionByNewLine?: boolean }
 
-type Options = {
+interface Options {
   type?: 'alphabetical' | 'natural' | 'line-length' | 'unsorted'
   order?: 'asc' | 'desc'
   ignoreCase?: boolean
@@ -41,7 +41,8 @@ export const sortExportsRule: RuleModule = {
     while (i < lines.length) {
       // Skip until we hit an export or end
       while (i < lines.length && !isExportLine(lines[i])) i++
-      if (i >= lines.length) break
+      if (i >= lines.length)
+        break
 
       const block: { idx: number, line: string }[] = []
       let j = i
@@ -86,12 +87,13 @@ export const sortExportsRule: RuleModule = {
   fix: (text, ctx) => {
     const opts: Options = ((ctx.config.pluginRules?.['pickier/sort-exports'] as any)?.[1]) || {}
     const lines = text.split(/\r?\n/)
-    let out = [...lines]
+    const out = [...lines]
 
     let i = 0
     while (i < out.length) {
       while (i < out.length && !isExportLine(out[i])) i++
-      if (i >= out.length) break
+      if (i >= out.length)
+        break
 
       const start = i
       const blockIdx: number[] = []

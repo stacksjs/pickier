@@ -1,10 +1,10 @@
-import { describe, it, expect, beforeEach, mock } from 'bun:test'
+import { beforeEach, describe, expect, it, mock } from 'bun:test'
+import { PickierStatusBar } from '../src/status-bar'
+
 import { createVscodeMock } from './utils/vscode-mock'
 
 // Mock VS Code API before importing module
 mock.module('vscode', () => createVscodeMock())
-
-import { PickierStatusBar } from '../src/status-bar'
 
 describe('PickierStatusBar', () => {
   beforeEach(() => {

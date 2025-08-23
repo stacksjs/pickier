@@ -1,5 +1,5 @@
-import { EventEmitter } from 'node:events'
 import { mock } from 'bun:test'
+import { EventEmitter } from 'node:events'
 
 export function createVscodeMock(overrides: Partial<any> = {}): any {
   // Simple event emitter helpers to simulate VS Code event API
@@ -7,7 +7,11 @@ export function createVscodeMock(overrides: Partial<any> = {}): any {
     const emitter = new EventEmitter()
     const event = (listener: (e: T) => any) => {
       emitter.on('event', listener)
-      return { dispose() { emitter.removeListener('event', listener) } }
+      return {
+        dispose() {
+          emitter.removeListener('event', listener)
+        },
+      }
     }
     return { emitter, event }
   }
@@ -21,6 +25,7 @@ export function createVscodeMock(overrides: Partial<any> = {}): any {
       this._emitter.on('cancel', listener)
       return { dispose: () => this._emitter.removeListener('cancel', listener) }
     }
+
     _cancel() {
       this.isCancellationRequested = true
       this._emitter.emit('cancel')
@@ -68,11 +73,14 @@ export function createVscodeMock(overrides: Partial<any> = {}): any {
     constructor(public fileName: string, private text: string, public languageId: string = 'typescript') {
       this.uri = { fsPath: this.fileName, toString: () => `file://${this.fileName}` }
     }
+
     getText(range?: any) {
-      if (!range) return this.text
+      if (!range)
+        return this.text
       // naive: assume full provided text for tests
       return this.text.substring(0)
     }
+
     positionAt(offset: number) {
       return new PositionImpl(0, offset)
     }
@@ -161,9 +169,11 @@ export function createVscodeMock(overrides: Partial<any> = {}): any {
             showOutputChannel: false,
             configPath: '',
           }
-          if (key in map) return map[key]
+          if (key in map)
+            return map[key]
           // support "pickier.xxx" keys
-          if (key.startsWith('pickier.')) return map[key.replace('pickier.', '')]
+          if (key.startsWith('pickier.'))
+            return map[key.replace('pickier.', '')]
           return defaultValue
         },
       })),

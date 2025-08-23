@@ -1,4 +1,6 @@
-import { describe, it, expect, beforeEach, mock } from 'bun:test'
+import { beforeEach, describe, expect, it, mock } from 'bun:test'
+import { lintPathsToDiagnostics, PickierDiagnosticProvider } from '../src/diagnostics'
+
 import { createVscodeMock } from './utils/vscode-mock'
 
 // Base VS Code mock
@@ -13,8 +15,6 @@ mock.module('pickier', () => ({
   runLintProgrammatic: undefined,
   runLint: async () => { console.log(JSON.stringify({ errors: 0, warnings: 1, issues: [] })) },
 }))
-
-import { PickierDiagnosticProvider, lintPathsToDiagnostics } from '../src/diagnostics'
 
 describe('PickierDiagnosticProvider', () => {
   beforeEach(() => {
@@ -46,7 +46,7 @@ describe('PickierDiagnosticProvider', () => {
   it('respects cancellation', async () => {
     mock.module('pickier', () => ({
       defaultConfig: {},
-      lintText: async () => new Promise((resolve) => setTimeout(() => resolve([]), 50)),
+      lintText: async () => new Promise(resolve => setTimeout(() => resolve([]), 50)),
     }))
     const vscode = await import('vscode')
     const output = vscode.window.createOutputChannel('Pickier')
@@ -89,9 +89,11 @@ describe('lintPathsToDiagnostics', () => {
 
   it('falls back to runLint and parses JSON', async () => {
     mock.module('pickier', () => ({
-      runLint: async () => { console.log(JSON.stringify({ errors: 0, warnings: 0, issues: [
-        { filePath: '/workspace/a.ts', line: 1, column: 1, ruleId: 'r', message: 'm', severity: 'warning' },
-      ] })) },
+      runLint: async () => {
+        console.log(JSON.stringify({ errors: 0, warnings: 0, issues: [
+          { filePath: '/workspace/a.ts', line: 1, column: 1, ruleId: 'r', message: 'm', severity: 'warning' },
+        ] }))
+      },
     }))
     const vscode = await import('vscode')
     const out = vscode.window.createOutputChannel('Pickier')

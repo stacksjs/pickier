@@ -1,16 +1,16 @@
 import type { PickierPlugin } from '../types'
+import { importDedupeRule } from '../rules/pickier/import-dedupe'
+import { noImportDistRule } from '../rules/pickier/no-import-dist'
+import { noImportNodeModulesByPathRule } from '../rules/pickier/no-import-node-modules-by-path'
 import { noUnusedVarsRule } from '../rules/pickier/no-unused-vars'
 import { preferConstRule } from '../rules/pickier/prefer-const'
+import { sortExportsRule } from '../rules/pickier/sort-exports'
 import { sortHeritageClausesRule } from '../rules/pickier/sort-heritage-clauses'
 import { sortImportsRule } from '../rules/pickier/sort-imports'
 import { sortKeysRule } from '../rules/pickier/sort-keys'
 import { sortNamedImportsRule } from '../rules/pickier/sort-named-imports'
 import { sortObjectsRule } from '../rules/pickier/sort-objects'
-import { importDedupeRule } from '../rules/pickier/import-dedupe'
-import { noImportDistRule } from '../rules/pickier/no-import-dist'
-import { noImportNodeModulesByPathRule } from '../rules/pickier/no-import-node-modules-by-path'
 import { topLevelFunctionRule } from '../rules/pickier/top-level-function'
-import { sortExportsRule } from '../rules/pickier/sort-exports'
 
 export const pickierPlugin: PickierPlugin = {
   name: 'pickier',

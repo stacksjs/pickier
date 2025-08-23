@@ -9,4 +9,3 @@ await Bun.build({
 })
 
 console.log('Built successfully!')
-

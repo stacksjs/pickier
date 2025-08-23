@@ -61,7 +61,8 @@ export class PickierDiagnosticProvider {
       if (typeof mod.lintText === 'function') {
         const signal = token ? tokenToAbortSignal(token) : undefined
         const issues = await mod.lintText(document.getText(), cfg, document.fileName, signal)
-        if (token?.isCancellationRequested) return []
+        if (token?.isCancellationRequested)
+          return []
         return issues.map(convertIssueToDiagnostic)
       }
     }
@@ -73,7 +74,8 @@ export class PickierDiagnosticProvider {
     // Fallback: temp file + stdout JSON capture
     const options = { reporter: 'json' as const, maxWarnings: -1 }
     const lintResult = await runPickierAndParseJson([document.fileName], options, this.outputChannel, token, document.getText())
-    if (token?.isCancellationRequested) return []
+    if (token?.isCancellationRequested)
+      return []
     return lintResult.issues.map(convertIssueToDiagnostic)
   }
 }
@@ -81,7 +83,7 @@ export class PickierDiagnosticProvider {
 // Helper: run pickier on paths and return parsed JSON
 async function runPickierAndParseJson(
   paths: string[],
-  options: { reporter: 'json'; maxWarnings: number },
+  options: { reporter: 'json', maxWarnings: number },
   output: vscode.OutputChannel,
   token?: vscode.CancellationToken,
   docTextForActive?: string,

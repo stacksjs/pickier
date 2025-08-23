@@ -14,15 +14,18 @@ export const topLevelFunctionRule: RuleModule = {
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i]
       // Skip indented lines and comments
-      if (/^\s+/.test(line)) continue
-      if (/^\s*(\/\/|\/\*)/.test(line)) continue
+      if (/^\s+/.test(line))
+        continue
+      if (/^\s*(\/\/|\/\*)/.test(line))
+        continue
 
       // Match: const name = (...)
       const m = line.match(/^const\s+([A-Za-z_$][\w$]*)\s*=\s*(.*)$/)
-      if (!m) continue
+      if (!m)
+        continue
       const rhs = m[2]
       // detect arrow fn or function expression on same line
-      if (/^\(?[A-Za-z_$,\s\n]*\)?\s*=>/.test(rhs) || /^function\b/.test(rhs)) {
+      if (/^\(?[A-Z_$,\s]*(?:\)\s*)?=>/i.test(rhs) || /^function\b/.test(rhs)) {
         const col = line.indexOf('const') + 1
         issues.push({
           filePath: ctx.filePath,
@@ -38,7 +41,7 @@ export const topLevelFunctionRule: RuleModule = {
       // If initializer spills to next lines, peek ahead a couple lines
       if (rhs.trim().length === 0 || /[,({]$/.test(rhs.trim())) {
         const next = lines[i + 1] || ''
-        if (/^\s*(\(?[A-Za-z_$,\s]*\)?\s*=>|function\b)/.test(next)) {
+        if (/^\s*(\(?[A-Za-z_$,\s]*(?:\)\s*)?=>|function\b)/.test(next)) {
           const col = line.indexOf('const') + 1
           issues.push({
             filePath: ctx.filePath,

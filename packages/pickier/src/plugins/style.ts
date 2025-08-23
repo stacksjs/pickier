@@ -1,10 +1,10 @@
 import type { PickierPlugin } from '../types'
-import { curlyRule } from '../rules/style/curly'
-import { maxStatementsPerLineRule } from '../rules/style/max-statements-per-line'
-import { ifNewlineRule } from '../rules/style/if-newline'
 import { consistentChainingRule } from '../rules/style/consistent-chaining'
 import { consistentListNewlineRule } from '../rules/style/consistent-list-newline'
+import { curlyRule } from '../rules/style/curly'
+import { ifNewlineRule } from '../rules/style/if-newline'
 import { indentUnindentRule } from '../rules/style/indent-unindent'
+import { maxStatementsPerLineRule } from '../rules/style/max-statements-per-line'
 
 export const stylePlugin: PickierPlugin = {
   name: 'style',

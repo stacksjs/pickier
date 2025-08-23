@@ -31,10 +31,10 @@ export const preferConstRule: RuleModule = {
         const rest = text.slice(restStartIdx + line.length)
         // Explicit assignment operator list to avoid fragile character classes
         const assignOps = ['=', '+=', '-=', '*=', '/=', '%=', '**=', '<<=', '>>=', '>>>=', '&=', '^=', '|=']
-        const assignPattern = `\\b${name}\\s*(?:${assignOps.map(op => op.replace(/[|\\^$*+?.(){}\[\]]/g, r => `\\${r}`)).join('|')})`
+        const assignPattern = `\\b${name}\\s*(?:${assignOps.map(op => op.replace(/[|\\^$*+?.(){}[\]]/g, r => `\\${r}`)).join('|')})`
         const assignRe = new RegExp(assignPattern)
         // ++/-- either side of the identifier
-        const incDecRe = new RegExp(`(?:\\+\\+|-- )?`.replace(/\s/g, '') + `(?:\\b${name}\\b)` + `(?: (?:\\+\\+|--))?`.replace(/\s/g, ''), 'g')
+        const incDecRe = new RegExp(`${`(?:\\+\\+|-- )?`.replace(/\s/g, '')}(?:\\b${name}\\b)${`(?: (?:\\+\\+|--))?`.replace(/\s/g, '')}`, 'g')
         const directAssign = assignRe.test(rest)
         const incDecChanged = new RegExp(`(?:^|[^$\w])(?:\\+\\+|--)\\s*${name}\\b|\\b${name}\\s*(?:\\+\\+|--)`).test(rest)
         const changed = directAssign || incDecChanged

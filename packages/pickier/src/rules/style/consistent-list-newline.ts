@@ -16,7 +16,8 @@ function checkDelimited(
   ruleId: string,
 ) {
   const close = findMatching(text, openIdx, openChar, closeChar)
-  if (close <= openIdx) return
+  if (close <= openIdx)
+    return
   const inner = text.slice(openIdx + 1, close)
   const hasNewline = /\r?\n/.test(inner)
   const map = buildSourceMap(text)
@@ -32,8 +33,12 @@ function checkDelimited(
     const e = openIdx + 1 + t.end
     rel = e
     if (t.type === 'Punct') {
-      if (t.value === openChar) depth++
-      else if (t.value === closeChar && depth > 0) depth--
+      if (t.value === openChar) {
+        depth++
+      }
+      else if (t.value === closeChar && depth > 0) {
+        depth--
+      }
       else if (t.value === ',' && depth === 0) {
         parts.push({ start, end: s })
         start = e
@@ -107,7 +112,8 @@ export const consistentListNewlineRule: RuleModule = {
           continue
         }
         const prev = text.slice(Math.max(0, i - 60), i)
-        if (/\b(function|class|interface|type|enum|try|catch|finally|if|else|for|while|switch)\b[\s\S]*$/.test(prev)) continue
+        if (/\b(function|class|interface|type|enum|try|catch|finally|if|else|for|while|switch)\b[\s\S]*$/.test(prev))
+          continue
         checkDelimited(text, ctx.filePath, issues, i, '{', '}', ruleId)
       }
       else if (ch === '[') {
@@ -116,11 +122,13 @@ export const consistentListNewlineRule: RuleModule = {
       else if (ch === 'i' && text.startsWith('import', i)) {
         // named import: import { a, b } from 'x'
         const open = text.indexOf('{', i)
-        if (open > -1) checkDelimited(text, ctx.filePath, issues, open, '{', '}', ruleId)
+        if (open > -1)
+          checkDelimited(text, ctx.filePath, issues, open, '{', '}', ruleId)
       }
       else if (ch === 'e' && text.startsWith('export', i)) {
         const open = text.indexOf('{', i)
-        if (open > -1) checkDelimited(text, ctx.filePath, issues, open, '{', '}', ruleId)
+        if (open > -1)
+          checkDelimited(text, ctx.filePath, issues, open, '{', '}', ruleId)
       }
     }
 

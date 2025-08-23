@@ -13,7 +13,10 @@ function createTempFile(content: string, suffix = '.ts'): string {
   return tempPath
 }
 function cleanupTempFiles(): void {
-  for (const f of tempFiles) if (existsSync(f)) unlinkSync(f)
+  for (const f of tempFiles) {
+    if (existsSync(f))
+      unlinkSync(f)
+  }
   tempFiles.length = 0
 }
 afterEach(() => cleanupTempFiles())
@@ -27,7 +30,8 @@ it('flags missing newline after if without braces', async () => {
   console.log = (msg: string) => { out += msg }
   try {
     await runLint([file], options)
-  } finally {
+  }
+  finally {
     console.log = orig
   }
   const result = JSON.parse(out)
@@ -43,7 +47,8 @@ it('does not flag when consequent on next line', async () => {
   console.log = (msg: string) => { out += msg }
   try {
     await runLint([file], options)
-  } finally {
+  }
+  finally {
     console.log = orig
   }
   const result = JSON.parse(out)

@@ -62,7 +62,8 @@ export const consistentChainingRule: RuleModule = {
         const indices = [...ln.matchAll(/\./g)].map(m => m.index || 0)
         for (const idx of indices) {
           // Skip dots that belong to the optional chaining operator '?.'
-          if (idx > 0 && ln[idx - 1] === '?') continue
+          if (idx > 0 && ln[idx - 1] === '?')
+            continue
           // If the dot is the first non-space on the line, treat as newline style
           if (/^\s*\./.test(ln) && (idx === ln.indexOf('.')) && ln.slice(0, idx).trim() === '')
             dotInfo.push('newline')
@@ -70,22 +71,25 @@ export const consistentChainingRule: RuleModule = {
             dotInfo.push('inline')
         }
       }
-      if (dotInfo.length <= 1) continue
+      if (dotInfo.length <= 1)
+        continue
       const expected = dotInfo[0]
       // Skip if all same
-      if (dotInfo.every(d => d === expected)) continue
+      if (dotInfo.every(d => d === expected))
+        continue
       // Report at the first mismatch
       const mismatchIdx = dotInfo.findIndex(d => d !== expected)
       // Compute line/column for reporting
-      let line = 1, col = 1, seenDots = 0
+      const line = 1; const col = 1; let seenDots = 0
       for (let i = 0; i < segLines.length; i++) {
         const ln = segLines[i]
         const indices = [...ln.matchAll(/\./g)].map(m => m.index || 0)
         for (const idx of indices) {
-          if (idx > 0 && ln[idx - 1] === '?') continue
+          if (idx > 0 && ln[idx - 1] === '?')
+            continue
           if (seenDots === mismatchIdx) {
             // Map to file position
-            let pre = text.slice(0, start)
+            const pre = text.slice(0, start)
             const preLines = pre.split(/\r?\n/)
             const baseLine = preLines.length
             const baseCol = (preLines[preLines.length - 1] || '').length

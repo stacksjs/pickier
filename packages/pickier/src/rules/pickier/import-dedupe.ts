@@ -9,7 +9,8 @@ export const importDedupeRule: RuleModule = {
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i]
       const m = line.match(/^\s*import\s*\{([^}]*)\}\s*from\s*['"][^'"]+['"]/)
-      if (!m) continue
+      if (!m)
+        continue
       const inner = m[1]
       const names = inner.split(',').map(s => s.trim()).filter(Boolean).map(s => s.split(/\s+as\s+/i)[0].trim())
       const seen = new Set<string>()

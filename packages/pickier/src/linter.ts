@@ -11,7 +11,7 @@ import { colors, expandPatterns, isCodeFile, loadConfigFromPath } from './utils'
 
 function trace(...args: any[]) {
   if (process.env.PICKIER_TRACE === '1')
-    // eslint-disable-next-line no-console
+
     console.error('[pickier:trace]', ...args)
 }
 
@@ -22,17 +22,21 @@ export async function lintText(
   filePath = 'untitled',
   signal?: AbortSignal,
 ): Promise<LintIssue[]> {
-  if (signal?.aborted) throw new Error('AbortError')
-  // Avoid duplicate plugin execution inside scanContent
-  ;(cfg as any)._internalSkipPluginRulesInScan = true
-  let issues = scanContent(filePath, text, cfg)
-  if (signal?.aborted) throw new Error('AbortError')
+  if (signal?.aborted) {
+    throw new Error('AbortError')
+    // Avoid duplicate plugin execution inside scanContent
+  }(cfg as any)._internalSkipPluginRulesInScan = true
+  const issues = scanContent(filePath, text, cfg)
+  if (signal?.aborted)
+    throw new Error('AbortError')
   try {
     const pluginIssues = await applyPlugins(filePath, text, cfg)
     const suppress = parseDisableNextLine(text)
     for (const i of pluginIssues) {
-      if (signal?.aborted) throw new Error('AbortError')
-      if (isSuppressed(i.ruleId as string, i.line, suppress)) continue
+      if (signal?.aborted)
+        throw new Error('AbortError')
+      if (isSuppressed(i.ruleId as string, i.line, suppress))
+        continue
       issues.push({
         filePath: i.filePath,
         line: i.line,
@@ -57,7 +61,8 @@ export async function runLintProgrammatic(
 ): Promise<{ errors: number, warnings: number, issues: LintIssue[] }> {
   trace('runLintProgrammatic:start', { globs, options })
   const cfg = await loadConfigFromPath(options.config)
-  if (signal?.aborted) throw new Error('AbortError')
+  if (signal?.aborted)
+    throw new Error('AbortError')
 
   const raw = globs.length ? globs : ['.']
   const patterns = expandPatterns(raw)
@@ -69,12 +74,13 @@ export async function runLintProgrammatic(
 
   const timeoutMs = Number(process.env.PICKIER_TIMEOUT_MS || '8000')
   let entries: string[] = []
-  const nonGlobSingle = patterns.length === 1 && !/[*?\[\]{}()!]/.test(patterns[0])
+  const nonGlobSingle = patterns.length === 1 && !/[*?[\]{}()!]/.test(patterns[0])
   if (nonGlobSingle) {
     try {
       const { statSync } = await import('node:fs')
       const st = statSync(patterns[0])
-      if (st.isFile()) entries = [patterns[0]]
+      if (st.isFile())
+        entries = [patterns[0]]
     }
     catch {}
   }
@@ -87,13 +93,15 @@ export async function runLintProgrammatic(
       const { join } = await import('node:path')
       const stack: string[] = [base]
       while (stack.length) {
-        if (signal?.aborted) throw new Error('AbortError')
+        if (signal?.aborted)
+          throw new Error('AbortError')
         const dir = stack.pop()!
         const items = readdirSync(dir)
         for (const it of items) {
           const full = join(dir, it)
           const st = statSync(full)
-          if (st.isDirectory()) stack.push(full)
+          if (st.isDirectory())
+            stack.push(full)
           else entries.push(full)
         }
       }
@@ -116,12 +124,14 @@ export async function runLintProgrammatic(
     }), timeoutMs, 'tinyGlob')
   }
 
-  if (signal?.aborted) throw new Error('AbortError')
+  if (signal?.aborted)
+    throw new Error('AbortError')
   const files = entries.filter((f: string) => isCodeFile(f, extSet))
 
   let allIssues: LintIssue[] = []
   for (const file of files) {
-    if (signal?.aborted) throw new Error('AbortError')
+    if (signal?.aborted)
+      throw new Error('AbortError')
     const src = readFileSync(file, 'utf8')
     ;(cfg as any)._internalSkipPluginRulesInScan = true
     let issues = scanContent(file, src, cfg)
@@ -129,8 +139,10 @@ export async function runLintProgrammatic(
       const pluginIssues = await applyPlugins(file, src, cfg)
       const suppress = parseDisableNextLine(src)
       for (const i of pluginIssues) {
-        if (signal?.aborted) throw new Error('AbortError')
-        if (isSuppressed(i.ruleId as string, i.line, suppress)) continue
+        if (signal?.aborted)
+          throw new Error('AbortError')
+        if (isSuppressed(i.ruleId as string, i.line, suppress))
+          continue
         issues.push({
           filePath: i.filePath,
           line: i.line,
@@ -151,7 +163,8 @@ export async function runLintProgrammatic(
         const parts = fixed.split(/\r?\n/)
         const next: string[] = []
         for (const ln of parts) {
-          if (dbgLine.test(ln)) continue
+          if (dbgLine.test(ln))
+            continue
           next.push(ln)
         }
         fixed = next.join('\n')
@@ -185,9 +198,11 @@ function parseDisableNextLine(content: string): SuppressMap {
     const t = lines[i].trim()
     // support eslint- and pickier- prefixes
     const m = t.match(/^\/\/\s*(?:eslint|pickier)-disable-next-line\s+(.+)$/)
-    if (!m) continue
+    if (!m)
+      continue
     const list = m[1].split(',').map(s => s.trim()).filter(Boolean)
-    if (!list.length) continue
+    if (!list.length)
+      continue
     const target = i + 2 // next line (1-indexed)
     const set = map.get(target) || new Set<string>()
     for (const item of list) set.add(item)
@@ -197,17 +212,22 @@ function parseDisableNextLine(content: string): SuppressMap {
 }
 function isSuppressed(ruleId: string, line: number, sup: SuppressMap): boolean {
   const set = sup.get(line)
-  if (!set || set.size === 0) return false
-  if (set.has('*')) return true
+  if (!set || set.size === 0)
+    return false
+  if (set.has('*'))
+    return true
   // exact match
-  if (set.has(ruleId)) return true
+  if (set.has(ruleId))
+    return true
   // core kebab/camel equivalence
   const keb = camelToKebab(ruleId)
-  if (set.has(keb) || set.has(kebabToCamel(ruleId))) return true
+  if (set.has(keb) || set.has(kebabToCamel(ruleId)))
+    return true
   // bare plugin id: allow matching suffix after '/'
   for (const pat of set) {
     if (!pat.includes('/')) {
-      if (ruleId.endsWith(`/${pat}`)) return true
+      if (ruleId.endsWith(`/${pat}`))
+        return true
     }
   }
   return false
@@ -225,7 +245,7 @@ async function withTimeout<T>(p: Promise<T>, ms: number, label: string): Promise
   }
   catch (e) {
     // Always surface timeouts to stderr so users see an error without enabling trace
-    // eslint-disable-next-line no-console
+
     console.error(`[pickier:error] ${label} failed:`, (e as any)?.message || e)
     trace('withTimeout error:', label, e)
     throw e
@@ -266,13 +286,17 @@ export async function applyPlugins(filePath: string, content: string, cfg: Picki
     let sev: 'error' | 'warning' | undefined
     let opts: any
     if (typeof raw === 'string') {
-      if (raw === 'error') sev = 'error'
-      else if (raw === 'warn' || raw === 'warning') sev = 'warning'
+      if (raw === 'error')
+        sev = 'error'
+      else if (raw === 'warn' || raw === 'warning')
+        sev = 'warning'
     }
     else if (Array.isArray(raw) && typeof raw[0] === 'string') {
       const s = raw[0]
-      if (s === 'error') sev = 'error'
-      else if (s === 'warn' || s === 'warning') sev = 'warning'
+      if (s === 'error')
+        sev = 'error'
+      else if (s === 'warn' || s === 'warning')
+        sev = 'warning'
       opts = raw[1]
     }
     return { enabled: !!sev, severity: sev, options: opts }
@@ -376,9 +400,11 @@ function applyPluginFixes(filePath: string, content: string, cfg: PickierConfig)
       for (const ruleName in plugin.rules) {
         const fullRuleId = `${plugin.name}/${ruleName}`
         const setting = getRuleSetting(fullRuleId)
-        if (!setting.enabled) continue
+        if (!setting.enabled)
+          continue
         const rule = plugin.rules[ruleName]!
-        if (typeof rule.fix !== 'function') continue
+        if (typeof rule.fix !== 'function')
+          continue
         const ctx: RuleContext = { ...baseCtx, options: setting.options }
         const next = rule.fix(out, ctx)
         if (next !== out) {
@@ -452,7 +478,8 @@ export function scanContent(filePath: string, content: string, cfg: PickierConfi
         }
         else {
           if ((inStr === 'double' && ch === '"') || (inStr === 'single' && ch === '\'')) {
-            if (prev !== '\\') inStr = null
+            if (prev !== '\\')
+              inStr = null
           }
           else if (ch === '$' && ln[k + 1] === '{' && prev !== '\\') {
             const lineNo = i + 1
@@ -527,8 +554,10 @@ export function scanContent(filePath: string, content: string, cfg: PickierConfi
       const getRuleSeverity = (ruleId: string): 'error' | 'warning' | undefined => {
         const raw = (rulesConfig as any)[ruleId]
         const setting = typeof raw === 'string' ? raw : undefined
-        if (setting === 'error') return 'error'
-        if (setting === 'warn' || setting === 'warning') return 'warning'
+        if (setting === 'error')
+          return 'error'
+        if (setting === 'warn' || setting === 'warning')
+          return 'warning'
         return undefined
       }
 
@@ -537,9 +566,11 @@ export function scanContent(filePath: string, content: string, cfg: PickierConfi
         const r = plugin.rules
         for (const ruleName in r) {
           const fullRuleId = `${plugin.name}/${ruleName}`
-          if (!isRuleEnabled(fullRuleId)) continue
+          if (!isRuleEnabled(fullRuleId))
+            continue
           const rule = r[ruleName]!
-          if (!rule || typeof (rule as any).check !== 'function') continue
+          if (!rule || typeof (rule as any).check !== 'function')
+            continue
           const out = (rule as any).check(content, ctx)
           for (const i of out) {
             if (!isSuppressed(i.ruleId as string, i.line, suppress)) {
@@ -646,7 +677,8 @@ export async function runLint(globs: string[], options: LintOptions): Promise<nu
         const pluginIssues = await applyPlugins(file, src, cfg)
         const suppress = parseDisableNextLine(src)
         for (const i of pluginIssues) {
-          if (isSuppressed(i.ruleId as string, i.line, suppress)) continue
+          if (isSuppressed(i.ruleId as string, i.line, suppress))
+            continue
           issues.push({
             filePath: i.filePath,
             line: i.line,
@@ -670,7 +702,8 @@ export async function runLint(globs: string[], options: LintOptions): Promise<nu
           const parts = fixed.split(/\r?\n/)
           const next: string[] = []
           for (const ln of parts) {
-            if (dbgLine.test(ln)) continue
+            if (dbgLine.test(ln))
+              continue
             next.push(ln)
           }
           fixed = next.join('\n')
@@ -730,7 +763,6 @@ export async function runLint(globs: string[], options: LintOptions): Promise<nu
     return 0
   }
   catch (e: any) {
-    // eslint-disable-next-line no-console
     console.error('[pickier:error] runLint failed:', e?.message || e)
     trace('runLint:exception', e)
     return 1

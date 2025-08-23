@@ -1,4 +1,6 @@
-import { describe, it, expect, beforeEach, mock } from 'bun:test'
+import { beforeEach, describe, expect, it, mock } from 'bun:test'
+import { PickierFormattingProvider } from '../src/formatter'
+
 import { createVscodeMock } from './utils/vscode-mock'
 
 mock.module('vscode', () => createVscodeMock())
@@ -7,8 +9,6 @@ mock.module('pickier', () => ({
   defaultConfig: { semi: false },
   formatCode: (text: string) => text.toUpperCase(),
 }))
-
-import { PickierFormattingProvider } from '../src/formatter'
 
 function makeDoc(text: string, fileName = '/workspace/file.ts'): any {
   return {

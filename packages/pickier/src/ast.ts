@@ -1,20 +1,21 @@
 // Lightweight parsing utilities (no deps). Intentionally minimal for Pickier rules.
 // Provides tokenization, simple bracket matching, and loc <-> index mapping.
 
-export interface Loc { line: number; column: number }
-export interface Range { start: number; end: number }
-export interface Token { type: string; value: string; start: number; end: number }
+export interface Loc { line: number, column: number }
+export interface Range { start: number, end: number }
+export interface Token { type: string, value: string, start: number, end: number }
 
 export interface SourceMap {
   // 0-based line starts byte offsets
   lineStarts: number[]
-  indexToLoc(idx: number): Loc
+  indexToLoc: (idx: number) => Loc
 }
 
 export function buildSourceMap(text: string): SourceMap {
   const lineStarts: number[] = [0]
   for (let i = 0; i < text.length; i++) {
-    if (text[i] === '\n') lineStarts.push(i + 1)
+    if (text[i] === '\n')
+      lineStarts.push(i + 1)
   }
   function indexToLoc(idx: number): Loc {
     // binary search for line
@@ -23,8 +24,10 @@ export function buildSourceMap(text: string): SourceMap {
       const mid = (lo + hi) >> 1
       const start = lineStarts[mid]
       const next = mid + 1 < lineStarts.length ? lineStarts[mid + 1] : Infinity
-      if (idx < start) hi = mid - 1
-      else if (idx >= next) lo = mid + 1
+      if (idx < start)
+        hi = mid - 1
+      else if (idx >= next)
+        lo = mid + 1
       else return { line: mid + 1, column: idx - start + 1 }
     }
     // fallback
@@ -60,7 +63,7 @@ export function tokenize(text: string): Token[] {
       continue
     }
     // string
-    if (c === '"' || c === "'") {
+    if (c === '"' || c === '\'') {
       const q = c; const s = i; i++
       while (i < n) {
         const ch = text[i]
@@ -121,14 +124,14 @@ export function tokenize(text: string): Token[] {
       continue
     }
     // punctuators (excluding '/') which is handled above
-    if ("(){}[];:,.<>+-*%&|^!?=~".includes(c)) {
+    if ('(){}[];:,.<>+-*%&|^!?=~'.includes(c)) {
       push('Punct', i, i + 1)
       i++
       continue
     }
     // identifier/number
     const s = i
-    while (i < n && /[^\s(){}\[\];:,.<>+\-*%&|^!?=~'"`/]/.test(text[i])) i++
+    while (i < n && /[^\s(){}[\];:,.<>+\-*%&|^!?=~'"`/]/.test(text[i])) i++
     if (i > s) {
       push('Word', s, i)
     }
@@ -142,12 +145,13 @@ export function tokenize(text: string): Token[] {
 }
 
 function isRegexPossible(tokens: Token[]): boolean {
-  if (tokens.length === 0) return true
+  if (tokens.length === 0)
+    return true
   const t = tokens[tokens.length - 1]
   // after these token types, a regex can appear
   return (
-    t.type === 'Punct' && /[(!,{;:?=]/.test(t.value) ||
-    t.type === 'Word' && /^(return|throw|case|of|in|instanceof|typeof|void|new)$/.test(t.value)
+    t.type === 'Punct' && /[(!,{;:?=]/.test(t.value)
+    || t.type === 'Word' && /^(return|throw|case|of|in|instanceof|typeof|void|new)$/.test(t.value)
   )
 }
 
@@ -165,7 +169,7 @@ export function findMatching(text: string, start: number, open: string, close: s
     while (i < text.length && !(text[i] === '*' && text[i + 1] === '/')) i++
     return Math.min(text.length, i + 2)
   }
-  const skipString = (i: number, quote: '"' | "'" | '`') => {
+  const skipString = (i: number, quote: '"' | '\'' | '`') => {
     const n = text.length
     if (quote === '`') {
       // Template with ${} tracking and inner string/comment skipping
@@ -177,7 +181,7 @@ export function findMatching(text: string, start: number, open: string, close: s
         if (ch === '`' && tplDepth === 0) { i++; break }
         if (ch === '$' && text[i + 1] === '{') { tplDepth++; i += 2; continue }
         if (ch === '}' && tplDepth > 0) { tplDepth--; i++; continue }
-        if (ch === '"' || ch === "'") { i = skipString(i, ch as '"' | "'"); continue }
+        if (ch === '"' || ch === '\'') { i = skipString(i, ch as '"' | '\''); continue }
         if (ch === '/' && text[i + 1] === '/') { i = skipLineComment(i + 2); continue }
         if (ch === '/' && text[i + 1] === '*') { i = skipBlockComment(i); continue }
         i++
@@ -200,9 +204,11 @@ export function findMatching(text: string, start: number, open: string, close: s
     while (j >= 0 && isWhitespace(text[j])) j--
     const prev = j >= 0 ? text[j] : ''
     // After these, a regex can start
-    if (/[(:[{;?,=!&|^~+\-*%<>]/.test(prev)) return true
+    if (/[(:[{;?,=!&|^~+\-*%<>]/.test(prev))
+      return true
     // Start of input
-    if (prev === '') return true
+    if (prev === '')
+      return true
     return false
   }
   const skipRegex = (i: number) => {
@@ -228,11 +234,12 @@ export function findMatching(text: string, start: number, open: string, close: s
     }
     if (ch === close) {
       depth--
-      if (depth === 0) return i
+      if (depth === 0)
+        return i
       continue
     }
     // Skip literals and comments to avoid false brace hits and performance issues
-    if (ch === '"' || ch === "'" || ch === '`') { i = skipString(i, ch as '"' | "'" | '`') - 1; continue }
+    if (ch === '"' || ch === '\'' || ch === '`') { i = skipString(i, ch as '"' | '\'' | '`') - 1; continue }
     if (ch === '/' && text[i + 1] === '/') { i = skipLineComment(i + 2) - 1; continue }
     if (ch === '/' && text[i + 1] === '*') { i = skipBlockComment(i) - 1; continue }
     if (ch === '/' && isRegexStart(i)) { i = skipRegex(i) - 1; continue }

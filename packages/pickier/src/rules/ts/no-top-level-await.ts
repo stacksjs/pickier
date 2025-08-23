@@ -37,11 +37,12 @@ export const noTopLevelAwaitRule: RuleModule = {
         continue
       }
 
-      if (inLine) continue
+      if (inLine)
+        continue
 
       // block comments
       if (inBlock) {
-        if (ch === '*' && next === '/') { inBlock = false; i++; col++; }
+        if (ch === '*' && next === '/') { inBlock = false; i++; col++ }
         continue
       }
 
@@ -61,14 +62,17 @@ export const noTopLevelAwaitRule: RuleModule = {
 
       // brace depth (ignore in strings/comments handled above)
       if (ch === '{') { depth++; continue }
-      if (ch === '}') { if (depth > 0) depth--; continue }
+      if (ch === '}') {
+        if (depth > 0)
+          depth--; continue
+      }
 
       // detect 'await' token
       if (ch === 'a' && text.slice(i, i + 5) === 'await') {
         const before = text.slice(Math.max(0, i - 6), i) // enough to catch 'for '
         const isForAwait = /for\s+$/.test(before)
-        const isWordBoundaryBefore = i === 0 || /[^_$\w]/.test(text[i - 1])
-        const isWordBoundaryAfter = /[^_$\w]/.test(text[i + 5] || ' ')
+        const isWordBoundaryBefore = i === 0 || /[^$\w]/.test(text[i - 1])
+        const isWordBoundaryAfter = /[^$\w]/.test(text[i + 5] || ' ')
         if (!isForAwait && isWordBoundaryBefore && isWordBoundaryAfter && depth === 0) {
           pushIssue(col)
         }

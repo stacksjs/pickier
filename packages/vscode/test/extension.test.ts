@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, mock } from 'bun:test'
+import { beforeEach, describe, expect, it, mock } from 'bun:test'
 import { createVscodeMock } from './utils/vscode-mock'
 
 // Mock VS Code and pickier before importing extension

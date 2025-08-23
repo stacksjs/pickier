@@ -1,10 +1,10 @@
-import { describe, expect, it } from 'bun:test'
-import { defaultConfig } from '../src/config'
-import { lintText, runLintProgrammatic } from '../src/index'
 import type { LintOptions } from '../src/types'
-import { mkdtempSync, writeFileSync, rmSync } from 'node:fs'
+import { describe, expect, it } from 'bun:test'
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import { defaultConfig } from '../src/config'
+import { lintText, runLintProgrammatic } from '../src/index'
 
 function makeAbortSignal(abortImmediately = false): AbortSignal {
   const controller = new AbortController()
@@ -15,7 +15,7 @@ function makeAbortSignal(abortImmediately = false): AbortSignal {
 
 describe('programmatic lintText', () => {
   it('returns issues for in-memory text without touching filesystem', async () => {
-    const text = "console.log('hi')\n"
+    const text = 'console.log(\'hi\')\n'
 
     const issues = await lintText(text, { ...defaultConfig }, 'file.ts')
 

@@ -33,10 +33,12 @@ function findIssues(content: string, ctx: RuleContext): LintIssue[] {
           escaped = true
         }
         else if (c === '[') {
-          if (!inClass) inClass = true
+          if (!inClass)
+            inClass = true
         }
         else if (c === ']') {
-          if (inClass) inClass = false
+          if (inClass)
+            inClass = false
         }
         else if (c === '/' && !inClass) {
           closedAt = i
@@ -65,7 +67,8 @@ function findIssues(content: string, ctx: RuleContext): LintIssue[] {
             const isEscaped = prev === '\\'
             if (!isEscaped) {
               const next2 = pattern.slice(j + 1, j + 3)
-              if (next2 !== '?:') capCount++
+              if (next2 !== '?:')
+                capCount++
             }
           }
         }

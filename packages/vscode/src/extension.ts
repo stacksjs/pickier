@@ -1,6 +1,6 @@
 import * as path from 'node:path'
 import * as vscode from 'vscode'
-import { PickierDiagnosticProvider, lintPathsToDiagnostics } from './diagnostics'
+import { lintPathsToDiagnostics, PickierDiagnosticProvider } from './diagnostics'
 // Import types and functions from the pickier package
 // Note: These will be dynamically imported to avoid bundling issues
 import { PickierFormattingProvider } from './formatter'
