@@ -5,7 +5,7 @@ export type RunOptions = (Partial<LintOptions> & Partial<FormatOptions>) & {
   mode?: 'auto' | 'lint' | 'format'
 }
 
-export async function run(globs: string[], options: RunOptions): Promise<number> {
+export async function runUnified(globs: string[], options: RunOptions): Promise<number> {
   const mode = options.mode || 'auto'
   if (mode === 'lint')
     return runLint(globs, options as LintOptions)

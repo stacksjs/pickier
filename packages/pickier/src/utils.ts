@@ -98,3 +98,41 @@ export function isCodeFile(file: string, allowedExts: Set<string>): boolean {
   const ext = file.slice(idx)
   return allowedExts.has(ext)
 }
+
+// Basic POSIX-like normalization for matching
+function toPosixPath(p: string): string {
+  return p.replace(/\\/g, '/').replace(/\/+/g, '/')
+}
+
+/**
+ * Lightweight ignore matcher supporting common patterns like double-star slash dir slash double-star.
+ * (Example: patterns matching any path segment named "dir" recursively.)
+ * Not a full glob engine; optimized for directory skip checks in manual traversal.
+ */
+export function shouldIgnorePath(absPath: string, ignoreGlobs: string[]): boolean {
+  const rel = toPosixPath(absPath.startsWith(process.cwd())
+    ? absPath.slice(process.cwd().length)
+    : absPath)
+  // quick checks for typical patterns **/name/**
+  for (const g of ignoreGlobs) {
+    // normalize
+    const gg = toPosixPath(g.trim())
+    // handle patterns like any-depth/name/any-depth (including dot-prefixed names)
+    const m = gg.match(/\*\*\/(.+?)\/\*\*$/)
+    if (m) {
+      const name = m[1]
+      if (rel.includes(`/${name}/`) || rel.endsWith(`/${name}`))
+        return true
+      continue
+    }
+    // handle any-depth/name (no trailing any-depth)
+    const m2 = gg.match(/\*\*\/(.+)$/)
+    if (m2) {
+      const name = m2[1].replace(/\/$/, '')
+      if (rel.includes(`/${name}/`) || rel.endsWith(`/${name}`))
+        return true
+      continue
+    }
+  }
+  return false
+}

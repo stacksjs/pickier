@@ -1,11 +1,9 @@
 export { config, defaultConfig } from './config'
 export * from './format'
 export { runFormat } from './formatter'
+export { lintText, runLint, runLintProgrammatic } from './linter'
+export { runUnified as run } from './run'
 
-export { runLint } from './linter'
-export { lintText, runLintProgrammatic } from './linter'
-// Unified CLI API
-export { run } from './run'
 export type { RunOptions } from './run'
 
 export * from './types'

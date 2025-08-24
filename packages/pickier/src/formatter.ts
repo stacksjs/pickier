@@ -6,7 +6,7 @@ import process from 'node:process'
 import { glob as tinyGlob } from 'tinyglobby'
 import { formatCode } from './format'
 import { getAllPlugins } from './plugins'
-import { colors, expandPatterns, loadConfigFromPath } from './utils'
+import { colors, expandPatterns, loadConfigFromPath, shouldIgnorePath } from './utils'
 
 function trace(...args: any[]) {
   if (process.env.PICKIER_TRACE === '1')
@@ -128,6 +128,8 @@ export async function runFormat(globs: string[], options: FormatOptions): Promis
         for (const it of items) {
           const full = join(dir, it)
           const st = statSync(full)
+          if (shouldIgnorePath(full, cfg.ignores))
+            continue
           if (st.isDirectory())
             stack.push(full)
           else
@@ -156,6 +158,8 @@ export async function runFormat(globs: string[], options: FormatOptions): Promis
   trace('globbed entries', entries.length)
 
   const files = entries.filter((f) => {
+    if (shouldIgnorePath(f, cfg.ignores))
+      return false
     const idx = f.lastIndexOf('.')
     if (idx < 0)
       return true // include files without extensions (edge-case test expects this)

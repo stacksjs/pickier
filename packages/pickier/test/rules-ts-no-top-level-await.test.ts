@@ -7,9 +7,9 @@ import { runLint } from '../src/linter'
 
 const tempFiles: string[] = []
 function create(c: string, ext = '.ts') {
-  const p = resolve(__dirname, `tmp-no-tla-${Date.now()}-${Math.random().toString(36).slice(2)}${ext}`);
-  writeFileSync(p, c);
-  tempFiles.push(p);
+  const p = resolve(__dirname, `tmp-no-tla-${Date.now()}-${Math.random().toString(36).slice(2)}${ext}`)
+  writeFileSync(p, c)
+  tempFiles.push(p)
   return p
 }
 function cleanup() {

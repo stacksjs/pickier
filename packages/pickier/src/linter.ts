@@ -1,13 +1,13 @@
 /* eslint-disable no-console */
 import type { LintIssue, LintOptions, PickierConfig, PickierPlugin, RuleContext, RulesConfigMap } from './types'
 import { readFileSync, writeFileSync } from 'node:fs'
-import { relative } from 'node:path'
+import { isAbsolute, relative, resolve } from 'node:path'
 import process from 'node:process'
 import { glob as tinyGlob } from 'tinyglobby'
 import { detectQuoteIssues, hasIndentIssue } from './format'
 import { formatStylish } from './formatter'
 import { getAllPlugins } from './plugins'
-import { colors, expandPatterns, isCodeFile, loadConfigFromPath } from './utils'
+import { colors, expandPatterns, isCodeFile, loadConfigFromPath, shouldIgnorePath } from './utils'
 
 function trace(...args: any[]) {
   if (process.env.PICKIER_TRACE === '1')
@@ -79,8 +79,10 @@ export async function runLintProgrammatic(
     try {
       const { statSync } = await import('node:fs')
       const st = statSync(patterns[0])
-      if (st.isFile())
-        entries = [patterns[0]]
+      if (st.isFile()) {
+        const abs = isAbsolute(patterns[0]) ? patterns[0] : resolve(process.cwd(), patterns[0])
+        entries = [abs]
+      }
     }
     catch {}
   }
@@ -88,10 +90,11 @@ export async function runLintProgrammatic(
   const simpleDirPattern = patterns.length === 1 && /\*\*\/*\*$/.test(patterns[0])
   if (!entries.length && simpleDirPattern) {
     const base = patterns[0].replace(/\/?\*\*\/*\*\*?$/, '')
+    const rootBase = isAbsolute(base) ? base : resolve(process.cwd(), base)
     try {
       const { readdirSync, statSync } = await import('node:fs')
       const { join } = await import('node:path')
-      const stack: string[] = [base]
+      const stack: string[] = [rootBase]
       while (stack.length) {
         if (signal?.aborted)
           throw new Error('AbortError')
@@ -100,6 +103,8 @@ export async function runLintProgrammatic(
         for (const it of items) {
           const full = join(dir, it)
           const st = statSync(full)
+          if (shouldIgnorePath(full, cfg.ignores))
+            continue
           if (st.isDirectory())
             stack.push(full)
           else entries.push(full)
@@ -126,7 +131,19 @@ export async function runLintProgrammatic(
 
   if (signal?.aborted)
     throw new Error('AbortError')
-  const files = entries.filter((f: string) => isCodeFile(f, extSet))
+  // filter with trace counters
+  let cntTotal = 0; let cntIncluded = 0; let cntNodeModules = 0; let cntIgnored = 0; let cntWrongExt = 0
+  const files: string[] = []
+  for (const f of entries) {
+    cntTotal++
+    const p = f.replace(/\\/g, '/')
+    if (p.includes('/node_modules/')) { cntNodeModules++; continue }
+    if (shouldIgnorePath(f, cfg.ignores)) { cntIgnored++; continue }
+    if (!isCodeFile(f, extSet)) { cntWrongExt++; continue }
+    files.push(f)
+    cntIncluded++
+  }
+  trace('filter:programmatic', { total: cntTotal, included: cntIncluded, node_modules: cntNodeModules, ignored: cntIgnored, wrongExt: cntWrongExt })
 
   let allIssues: LintIssue[] = []
   for (const file of files) {
@@ -628,13 +645,16 @@ export async function runLint(globs: string[], options: LintOptions): Promise<nu
       try {
         const { readdirSync, statSync } = await import('node:fs')
         const { join } = await import('node:path')
-        const stack: string[] = [base]
+        const rootBase = isAbsolute(base) ? base : resolve(process.cwd(), base)
+        const stack: string[] = [rootBase]
         while (stack.length) {
           const dir = stack.pop()!
           const items = readdirSync(dir)
           for (const it of items) {
             const full = join(dir, it)
             const st = statSync(full)
+            if (shouldIgnorePath(full, cfg.ignores))
+              continue
             if (st.isDirectory())
               stack.push(full)
             else
@@ -662,7 +682,19 @@ export async function runLint(globs: string[], options: LintOptions): Promise<nu
     }
 
     trace('globbed entries', entries.length)
-    const files = entries.filter((f: string) => isCodeFile(f, extSet))
+    // filter with trace counters
+    let cntTotal = 0; let cntIncluded = 0; let cntNodeModules = 0; let cntIgnored = 0; let cntWrongExt = 0
+    const files: string[] = []
+    for (const f of entries) {
+      cntTotal++
+      const p = f.replace(/\\/g, '/')
+      if (p.includes('/node_modules/')) { cntNodeModules++; continue }
+      if (shouldIgnorePath(f, cfg.ignores)) { cntIgnored++; continue }
+      if (!isCodeFile(f, extSet)) { cntWrongExt++; continue }
+      files.push(f)
+      cntIncluded++
+    }
+    trace('filter:cli', { total: cntTotal, included: cntIncluded, node_modules: cntNodeModules, ignored: cntIgnored, wrongExt: cntWrongExt })
     trace('filtered files', files.length)
 
     let allIssues: LintIssue[] = []

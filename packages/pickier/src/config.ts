@@ -2,7 +2,26 @@ import type { PickierConfig } from './types'
 import { loadConfig } from 'bunfig'
 
 export const defaultConfig: PickierConfig = {
-  ignores: ['**/node_modules/**', '**/dist/**', '**/build/**', '**/vendor/**', '**/coverage/**'],
+  ignores: [
+    '**/node_modules/**',
+    '**/.pnpm/**',
+    '**/.yarn/**',
+    '**/dist/**',
+    '**/build/**',
+    '**/out/**',
+    '**/.output/**',
+    '**/.next/**',
+    '**/.nuxt/**',
+    '**/.vite/**',
+    '**/.turbo/**',
+    '**/.cache/**',
+    '**/coverage/**',
+    '**/vendor/**',
+    '**/tmp/**',
+    '**/.git/**',
+    '**/.idea/**',
+    '**/.vscode/**',
+  ],
   lint: {
     extensions: ['ts', 'js', 'html', 'css', 'json', 'jsonc', 'md', 'yaml', 'yml', 'stx'],
     reporter: 'stylish',
