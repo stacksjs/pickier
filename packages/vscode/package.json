@@ -164,7 +164,7 @@
     "pickier": "workspace:*"
   },
   "devDependencies": {
-    "@types/bun": "1.2.20",
+    "@types/bun": "1.2.21",
     "@types/vscode": "^1.103.0",
     "@vscode/test-electron": "^2.5.2",
     "@vscode/vsce": "^3.6.0"
