@@ -7,10 +7,15 @@ import { glob as tinyGlob } from 'tinyglobby'
 import { formatCode } from './format'
 import { getAllPlugins } from './plugins'
 import { colors, expandPatterns, loadConfigFromPath, shouldIgnorePath } from './utils'
+import { Logger } from '@stacksjs/clarity'
+
+const logger = new Logger('pickier', {
+  showTags: false
+})
 
 function trace(...args: any[]) {
   if (process.env.PICKIER_TRACE === '1')
-    console.log('[pickier:trace]', ...args)
+    logger.debug('[pickier:trace]', args)
 }
 
 async function withTimeout<T>(p: Promise<T>, ms: number, label: string): Promise<T> {
@@ -24,7 +29,7 @@ async function withTimeout<T>(p: Promise<T>, ms: number, label: string): Promise
     return res as T
   }
   catch (e) {
-    console.error(`[pickier:error] ${label} failed:`, (e as any)?.message || e)
+    logger.error(`[pickier:error] ${label} failed:`, (e as any)?.message || e)
     trace('withTimeout error:', label, e)
     throw e
   }
@@ -176,7 +181,7 @@ export async function runFormat(globs: string[], options: FormatOptions): Promis
     const fmt = formatCode(src, cfg, file)
     if (options.check) {
       if (fmt !== src) {
-        console.log(`${relative(process.cwd(), file)} needs formatting`)
+        logger.debug(`${relative(process.cwd(), file)} needs formatting`)
         changed++
       }
       checked++
@@ -191,7 +196,7 @@ export async function runFormat(globs: string[], options: FormatOptions): Promis
     else {
       // default to check mode when neither flag specified
       if (fmt !== src) {
-        console.log(`${relative(process.cwd(), file)} needs formatting`)
+        logger.debug(`${relative(process.cwd(), file)} needs formatting`)
         changed++
       }
       checked++
@@ -199,7 +204,7 @@ export async function runFormat(globs: string[], options: FormatOptions): Promis
   }
 
   if (options.verbose) {
-    console.log(colors.gray(`Checked ${checked} files, ${changed} changed.`))
+    logger.debug(colors.gray(`Checked ${checked} files, ${changed} changed.`))
   }
 
   // In check mode, non-zero exit when changes are needed; otherwise 0

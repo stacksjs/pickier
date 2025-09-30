@@ -8,11 +8,16 @@ import { detectQuoteIssues, hasIndentIssue } from './format'
 import { formatStylish } from './formatter'
 import { getAllPlugins } from './plugins'
 import { colors, expandPatterns, isCodeFile, loadConfigFromPath, shouldIgnorePath } from './utils'
+import { Logger } from '@stacksjs/clarity'
+
+const logger = new Logger('pickier:lint', {
+  showTags: false
+})
 
 function trace(...args: any[]) {
   if (process.env.PICKIER_TRACE === '1')
 
-    console.error('[pickier:trace]', ...args)
+    logger.error('[pickier:trace]', args)
 }
 
 // Programmatic single-text lint with optional cancellation
@@ -263,7 +268,7 @@ async function withTimeout<T>(p: Promise<T>, ms: number, label: string): Promise
   catch (e) {
     // Always surface timeouts to stderr so users see an error without enabling trace
 
-    console.error(`[pickier:error] ${label} failed:`, (e as any)?.message || e)
+    logger.error(`[pickier:error] ${label} failed:`, (e as any)?.message || e)
     trace('withTimeout error:', label, e)
     throw e
   }
@@ -748,7 +753,7 @@ export async function runLint(globs: string[], options: LintOptions): Promise<nu
         issues = scanContent(file, fixed, cfg)
 
         if (options.dryRun && src !== fixed && (options.verbose || cfg.verbose)) {
-          console.log(colors.gray(`dry-run: would apply fixes in ${relative(process.cwd(), file)}`))
+          logger.debug(colors.gray(`dry-run: would apply fixes in ${relative(process.cwd(), file)}`))
         }
       }
 
@@ -762,19 +767,19 @@ export async function runLint(globs: string[], options: LintOptions): Promise<nu
 
     const reporter = options.reporter || cfg.lint.reporter
     if (reporter === 'json') {
-      console.log(JSON.stringify({ errors, warnings, issues: allIssues }, null, 2))
+      logger.debug(JSON.stringify({ errors, warnings, issues: allIssues }, null, 2))
     }
     else if (reporter === 'compact') {
       for (const i of allIssues) {
-        console.log(`${relative(process.cwd(), i.filePath)}:${i.line}:${i.column} ${i.severity} ${i.ruleId} ${i.message}`)
+        logger.debug(`${relative(process.cwd(), i.filePath)}:${i.line}:${i.column} ${i.severity} ${i.ruleId} ${i.message}`)
       }
     }
     else if (allIssues.length > 0) {
-      console.log(formatStylish(allIssues))
+      logger.debug(formatStylish(allIssues))
     }
 
     if (options.verbose || cfg.verbose) {
-      console.log(colors.gray(`Scanned ${files.length} files, found ${errors} errors and ${warnings} warnings.`))
+      logger.debug(colors.gray(`Scanned ${files.length} files, found ${errors} errors and ${warnings} warnings.`))
     }
 
     const maxWarnings = options.maxWarnings ?? cfg.lint.maxWarnings
@@ -795,7 +800,7 @@ export async function runLint(globs: string[], options: LintOptions): Promise<nu
     return 0
   }
   catch (e: any) {
-    console.error('[pickier:error] runLint failed:', e?.message || e)
+    logger.error('[pickier:error] runLint failed:', e?.message || e)
     trace('runLint:exception', e)
     return 1
   }
