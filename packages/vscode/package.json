@@ -28,7 +28,6 @@
     "Linters"
   ],
   "main": "./dist/index.js",
-  "icon": "images/logo.png",
   "engines": {
     "vscode": "^1.74.0"
   },
@@ -63,6 +62,26 @@
         "command": "pickier.lintWorkspace",
         "title": "Lint Workspace",
         "category": "Pickier"
+      },
+      {
+        "command": "pickier.organizeImports",
+        "title": "Organize Imports",
+        "category": "Pickier"
+      },
+      {
+        "command": "pickier.fixAll",
+        "title": "Fix All Auto-fixable Issues",
+        "category": "Pickier"
+      },
+      {
+        "command": "pickier.showOutputChannel",
+        "title": "Show Output Channel",
+        "category": "Pickier"
+      },
+      {
+        "command": "pickier.restartExtension",
+        "title": "Restart Extension",
+        "category": "Pickier"
       }
     ],
     "configuration": {
@@ -89,10 +108,30 @@
           "default": true,
           "description": "Lint files on save"
         },
+        "pickier.lintOnChange": {
+          "type": "boolean",
+          "default": true,
+          "description": "Lint files as you type (with 500ms debounce)"
+        },
+        "pickier.formatOnPaste": {
+          "type": "boolean",
+          "default": false,
+          "description": "Format pasted code automatically"
+        },
         "pickier.showOutputChannel": {
           "type": "boolean",
           "default": false,
           "description": "Show Pickier output channel"
+        },
+        "pickier.codeActions.enable": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable code actions (quick fixes) for auto-fixable issues"
+        },
+        "pickier.statusBar.showIssueCount": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show issue count in status bar"
         }
       }
     },

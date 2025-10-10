@@ -16,11 +16,18 @@ function setupPickierMock() {
   }))
 }
 
+function setupBunfigMock() {
+  mock.module('bunfig', () => ({
+    loadConfig: async (opts: any) => opts.defaultConfig || {},
+  }))
+}
+
 describe('extension activate/deactivate', () => {
   beforeEach(() => {
     mock.restore()
     setupVscodeMock()
     setupPickierMock()
+    setupBunfigMock()
   })
 
   it('activates: registers commands, providers, and sets up initial state', async () => {

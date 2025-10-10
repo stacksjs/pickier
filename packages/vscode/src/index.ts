@@ -1,3 +1,6 @@
+export * from './code-actions'
+export * from './commands'
+export * from './config'
 export * from './diagnostics'
 export * from './extension'
 export * from './formatter'

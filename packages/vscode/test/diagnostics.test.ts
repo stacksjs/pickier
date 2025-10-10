@@ -16,6 +16,10 @@ mock.module('pickier', () => ({
   runLint: async () => { console.log(JSON.stringify({ errors: 0, warnings: 1, issues: [] })) },
 }))
 
+mock.module('bunfig', () => ({
+  loadConfig: async (opts: any) => opts.defaultConfig || {},
+}))
+
 describe('PickierDiagnosticProvider', () => {
   beforeEach(() => {
     mock.restore()
@@ -28,6 +32,9 @@ describe('PickierDiagnosticProvider', () => {
       runLintProgrammatic: undefined,
       runLint: async () => { console.log(JSON.stringify({ errors: 0, warnings: 1, issues: [] })) },
     }))
+    mock.module('bunfig', () => ({
+      loadConfig: async (opts: any) => opts.defaultConfig || {},
+    }))
   })
 
   it('provides diagnostics via programmatic lintText', async () => {
@@ -39,6 +46,8 @@ describe('PickierDiagnosticProvider', () => {
     const doc = { getText: () => 'code', fileName: '/workspace/a.ts', languageId: 'typescript', uri: { fsPath: '/workspace/a.ts', toString: () => 'file:///workspace/a.ts' } } as any
     await provider.provideDiagnostics(doc)
 
+    // Both delete (to clear old diagnostics) and set should be called
+    expect(coll.delete).toHaveBeenCalled()
     expect(coll.set).toHaveBeenCalled()
   })
 
@@ -69,6 +78,9 @@ describe('lintPathsToDiagnostics', () => {
       const { createVscodeMock } = require('./utils/vscode-mock')
       return createVscodeMock()
     })
+    mock.module('bunfig', () => ({
+      loadConfig: async (opts: any) => opts.defaultConfig || {},
+    }))
   })
 
   it('uses runLintProgrammatic when available', async () => {

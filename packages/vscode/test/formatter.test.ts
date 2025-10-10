@@ -10,6 +10,10 @@ mock.module('pickier', () => ({
   formatCode: (text: string) => text.toUpperCase(),
 }))
 
+mock.module('bunfig', () => ({
+  loadConfig: async (opts: any) => opts.defaultConfig || {},
+}))
+
 function makeDoc(text: string, fileName = '/workspace/file.ts'): any {
   return {
     fileName,
@@ -25,6 +29,9 @@ describe('PickierFormattingProvider', () => {
     mock.module('pickier', () => ({
       defaultConfig: { semi: false },
       formatCode: (text: string) => text.toUpperCase(),
+    }))
+    mock.module('bunfig', () => ({
+      loadConfig: async (opts: any) => opts.defaultConfig || {},
     }))
   })
 
