@@ -227,22 +227,24 @@ export function createVscodeMock(overrides: Partial<any> = {}): any {
 
     workspace: {
       getConfiguration: mock(() => ({
-        get: (key: string, defaultValue: any) => {
+        get: (key: string, defaultValue: any = undefined) => {
           const map: Record<string, any> = {
             enable: true,
             lintOnSave: true,
             lintOnChange: true,
             formatOnSave: false,
+            formatOnPaste: false,
             showOutputChannel: false,
             configPath: '',
             'codeActions.enable': true,
+            'statusBar.showIssueCount': true,
           }
           if (key in map)
             return map[key]
           // support "pickier.xxx" keys
           if (key.startsWith('pickier.'))
             return map[key.replace('pickier.', '')]
-          return defaultValue
+          return defaultValue !== undefined ? defaultValue : false
         },
       })),
       applyEdit: mock(async () => true),
