@@ -67,6 +67,64 @@ export function createVscodeMock(overrides: Partial<any> = {}): any {
     Right: 2,
   } as const
 
+  const CodeActionKind = {
+    Empty: '',
+    QuickFix: 'quickfix',
+    Refactor: 'refactor',
+    RefactorExtract: 'refactor.extract',
+    RefactorInline: 'refactor.inline',
+    RefactorRewrite: 'refactor.rewrite',
+    Source: 'source',
+    SourceOrganizeImports: 'source.organizeImports',
+    SourceFixAll: 'source.fixAll',
+  } as const
+
+  class CodeActionImpl {
+    title: string
+    kind?: any
+    diagnostics?: any[]
+    isPreferred?: boolean
+    command?: any
+    edit?: any
+
+    constructor(title: string, kind?: any) {
+      this.title = title
+      this.kind = kind
+    }
+  }
+
+  // CodeActionProvider interface (for TypeScript implements checking)
+  interface CodeActionProvider {
+    provideCodeActions(
+      document: any,
+      range: any,
+      context: any,
+      token: any,
+    ): Promise<any[] | undefined>
+  }
+
+  class WorkspaceEditImpl {
+    private changes = new Map<string, any[]>()
+
+    replace(uri: any, range: any, newText: string) {
+      const key = typeof uri === 'string' ? uri : uri.toString()
+      const edits = this.changes.get(key) || []
+      edits.push({ range, newText })
+      this.changes.set(key, edits)
+    }
+  }
+
+  class RelativePatternImpl {
+    constructor(public base: string, public pattern: string) {}
+  }
+
+  class FileSystemWatcherImpl {
+    onDidCreate = makeEvent<any>().event
+    onDidChange = makeEvent<any>().event
+    onDidDelete = makeEvent<any>().event
+    dispose = mock(() => {})
+  }
+
   // Minimal TextDocument
   class TextDocumentImpl {
     uri: any
@@ -111,11 +169,15 @@ export function createVscodeMock(overrides: Partial<any> = {}): any {
   const diagnosticStore = new Map<string, any[]>()
   const diagnosticCollection = {
     set: mock((uri: any, diagnostics: any[]) => {
-      const key = typeof uri === 'string' ? uri : uri.fsPath
+      const key = typeof uri === 'string' ? uri : uri.toString()
       diagnosticStore.set(key, diagnostics)
     }),
+    get: mock((uri: any) => {
+      const key = typeof uri === 'string' ? uri : uri.toString()
+      return diagnosticStore.get(key) || []
+    }),
     delete: mock((uri: any) => {
-      const key = typeof uri === 'string' ? uri : uri.fsPath
+      const key = typeof uri === 'string' ? uri : uri.toString()
       diagnosticStore.delete(key)
     }),
     dispose: mock(() => {}),
@@ -141,6 +203,11 @@ export function createVscodeMock(overrides: Partial<any> = {}): any {
     TextEdit: TextEditImpl,
     StatusBarAlignment,
     CancellationTokenSource: CancellationTokenSourceImpl,
+    CodeAction: CodeActionImpl,
+    CodeActionKind,
+    WorkspaceEdit: WorkspaceEditImpl,
+    RelativePattern: RelativePatternImpl,
+    CodeActionProvider: null as any, // Interface for TypeScript checking
 
     // namespace APIs
     Uri: { file: (fsPath: string) => ({ fsPath, toString: () => `file://${fsPath}` }) },
@@ -168,6 +235,7 @@ export function createVscodeMock(overrides: Partial<any> = {}): any {
             formatOnSave: false,
             showOutputChannel: false,
             configPath: '',
+            'codeActions.enable': true,
           }
           if (key in map)
             return map[key]
@@ -177,6 +245,8 @@ export function createVscodeMock(overrides: Partial<any> = {}): any {
           return defaultValue
         },
       })),
+      applyEdit: mock(async () => true),
+      createFileSystemWatcher: mock(() => new FileSystemWatcherImpl()),
       onDidSaveTextDocument: onDidSaveTextDocument.event,
       onDidChangeTextDocument: onDidChangeTextDocument.event,
       onDidOpenTextDocument: onDidOpenTextDocument.event,
@@ -187,6 +257,7 @@ export function createVscodeMock(overrides: Partial<any> = {}): any {
       createDiagnosticCollection: mock(() => diagnosticCollection),
       registerDocumentFormattingEditProvider: mock(() => ({ dispose() {} })),
       registerDocumentRangeFormattingEditProvider: mock(() => ({ dispose() {} })),
+      registerCodeActionsProvider: mock(() => ({ dispose() {} })),
     },
 
     commands: {

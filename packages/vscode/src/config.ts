@@ -5,6 +5,11 @@ let cachedConfig: any = null
 let configWatcher: vscode.FileSystemWatcher | null = null
 
 export async function getPickierConfig(workspaceRoot?: string): Promise<any> {
+  // Return cached config if available
+  if (cachedConfig !== null) {
+    return cachedConfig
+  }
+
   if (!workspaceRoot) {
     const workspaceFolders = vscode.workspace.workspaceFolders
     if (!workspaceFolders) {

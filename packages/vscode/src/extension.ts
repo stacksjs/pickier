@@ -1,5 +1,4 @@
 import * as vscode from 'vscode'
-import { applyFix, fixAllInDocument, PickierCodeActionProvider } from './code-actions'
 import { organizeImports, restartExtension, showOutputChannel } from './commands'
 import { clearConfigCache, disposeConfigWatcher, getPickierConfig, watchConfigFile } from './config'
 import { lintPathsToDiagnostics, PickierDiagnosticProvider } from './diagnostics'
@@ -46,7 +45,8 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     )
   })
 
-  // Register code actions provider
+  // Register code actions provider (dynamic import to avoid circular dependency)
+  const { PickierCodeActionProvider } = await import('./code-actions')
   const codeActionProvider = new PickierCodeActionProvider()
   supportedLanguages.forEach((language) => {
     context.subscriptions.push(
@@ -82,6 +82,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   }
 
   // Register commands
+  const { applyFix, fixAllInDocument } = await import('./code-actions')
   context.subscriptions.push(
     vscode.commands.registerCommand('pickier.format', () => formatDocument()),
     vscode.commands.registerCommand('pickier.formatSelection', () => formatSelection()),

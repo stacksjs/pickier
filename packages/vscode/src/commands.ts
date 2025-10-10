@@ -93,8 +93,10 @@ export async function formatPastedText(
 /**
  * Show the Pickier output channel
  */
-export function showOutputChannel(outputChannel: vscode.OutputChannel): void {
-  outputChannel.show()
+export function showOutputChannel(outputChannel?: vscode.OutputChannel): void {
+  if (outputChannel) {
+    outputChannel.show()
+  }
 }
 
 /**

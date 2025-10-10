@@ -1,9 +1,7 @@
 import { beforeEach, describe, expect, it, mock } from 'bun:test'
-import { lintPathsToDiagnostics, PickierDiagnosticProvider } from '../src/diagnostics'
-
 import { createVscodeMock } from './utils/vscode-mock'
 
-// Base VS Code mock
+// Set up mocks BEFORE importing from source
 mock.module('vscode', () => createVscodeMock())
 
 // Default pickier mock; individual tests override as needed
@@ -20,9 +18,11 @@ mock.module('bunfig', () => ({
   loadConfig: async (opts: any) => opts.defaultConfig || {},
 }))
 
+import { lintPathsToDiagnostics, PickierDiagnosticProvider } from '../src/diagnostics'
+
 describe('PickierDiagnosticProvider', () => {
   beforeEach(() => {
-    mock.restore()
+    // Don't call mock.restore() to keep module-level mocks
     mock.module('vscode', () => createVscodeMock())
     mock.module('pickier', () => ({
       defaultConfig: {},
@@ -73,7 +73,7 @@ describe('PickierDiagnosticProvider', () => {
 
 describe('lintPathsToDiagnostics', () => {
   beforeEach(() => {
-    mock.restore()
+    // Don't call mock.restore() to keep module-level mocks
     mock.module('vscode', () => {
       const { createVscodeMock } = require('./utils/vscode-mock')
       return createVscodeMock()
@@ -85,6 +85,8 @@ describe('lintPathsToDiagnostics', () => {
 
   it('uses runLintProgrammatic when available', async () => {
     mock.module('pickier', () => ({
+      defaultConfig: {},
+      lintText: async () => [],
       runLintProgrammatic: async () => ({ errors: 0, warnings: 0, issues: [
         { filePath: '/workspace/a.ts', line: 1, column: 1, ruleId: 'r', message: 'm', severity: 'error' },
       ] }),
@@ -99,6 +101,8 @@ describe('lintPathsToDiagnostics', () => {
 
   it('falls back to runLint and parses JSON', async () => {
     mock.module('pickier', () => ({
+      defaultConfig: {},
+      lintText: async () => [],
       runLint: async () => {
         console.log(JSON.stringify({ errors: 0, warnings: 0, issues: [
           { filePath: '/workspace/a.ts', line: 1, column: 1, ruleId: 'r', message: 'm', severity: 'warning' },
