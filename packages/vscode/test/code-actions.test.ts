@@ -3,9 +3,6 @@ import { createVscodeMock } from './utils/vscode-mock'
 
 // Set up mocks at module level
 mock.module('vscode', () => createVscodeMock())
-
-// Use real pickier - no need to mock it!
-
 mock.module('bunfig', () => ({
   loadConfig: async (opts: any) => opts.defaultConfig || {},
 }))
@@ -76,23 +73,37 @@ describe('PickierCodeActionProvider', () => {
   it('returns fix action for pickier diagnostics with fixable rules', async () => {
     const vscode = await import('vscode')
     const { PickierCodeActionProvider } = await import('../src/code-actions')
+    const { lintText, formatCode, defaultConfig } = await import('pickier')
     const provider = new PickierCodeActionProvider()
 
+    // Use real code with quote style issues (fixable by formatCode)
+    const code = 'const x = "test"'
     const doc = {
-      getText: () => 'debugger',
+      getText: () => code,
       fileName: '/test.ts',
       uri: { toString: () => 'file:///test.ts' },
     } as any
 
+    // Verify pickier detects the quote issue and can fix it
+    const config = { ...defaultConfig, format: { ...defaultConfig.format, quotes: 'single' as const } }
+    const issues = await lintText(code, config, '/test.ts')
+    expect(issues.length).toBeGreaterThan(0)
+    expect(issues[0].ruleId).toBe('quotes')
+
+    // Verify formatCode fixes it
+    const fixed = formatCode(code, config, '/test.ts')
+    expect(fixed).toContain("'test'")
+    expect(fixed).not.toContain('"test"')
+
     const diagnostic = new vscode.Diagnostic(
-      new vscode.Range(new vscode.Position(0, 0), new vscode.Position(0, 8)),
-      'debugger statement found',
-      vscode.DiagnosticSeverity.Error,
+      new vscode.Range(new vscode.Position(0, 0), new vscode.Position(0, 16)),
+      'Inconsistent quote style',
+      vscode.DiagnosticSeverity.Warning,
     )
     diagnostic.source = 'pickier'
-    diagnostic.code = 'noDebugger'
+    diagnostic.code = 'quotes'
 
-    const range = new vscode.Range(new vscode.Position(0, 0), new vscode.Position(0, 10))
+    const range = new vscode.Range(new vscode.Position(0, 0), new vscode.Position(0, 16))
     const context = { diagnostics: [diagnostic], only: undefined } as any
     const token = new vscode.CancellationTokenSource().token
 
@@ -172,18 +183,33 @@ describe('applyFix', () => {
   it('applies fix to document', async () => {
     const vscode = await import('vscode')
     const { applyFix } = await import('../src/code-actions')
+    const { lintText, formatCode, defaultConfig } = await import('pickier')
 
+    // Code with fixable quote issues
+    const code = 'const x = "test"\nconst y = "another"'
     const doc = {
-      getText: () => 'debugger',
+      getText: () => code,
       fileName: '/test.ts',
       uri: vscode.Uri.file('/test.ts'),
       positionAt: (offset: number) => new vscode.Position(0, offset),
     } as any
 
+    // Verify pickier can fix it
+    const config = { ...defaultConfig, format: { ...defaultConfig.format, quotes: 'single' as const } }
+    const issuesBefore = await lintText(code, config, '/test.ts')
+    expect(issuesBefore.some(i => i.ruleId === 'quotes')).toBe(true)
+
+    const fixed = formatCode(code, config, '/test.ts')
+    expect(fixed).not.toContain('"test"')
+    expect(fixed).toContain("'test'")
+
+    const issuesAfter = await lintText(fixed, config, '/test.ts')
+    expect(issuesAfter.some(i => i.ruleId === 'quotes')).toBe(false)
+
     const diagnostic = new vscode.Diagnostic(
-      new vscode.Range(new vscode.Position(0, 0), new vscode.Position(0, 8)),
-      'debugger statement',
-      vscode.DiagnosticSeverity.Error,
+      new vscode.Range(new vscode.Position(0, 0), new vscode.Position(0, 16)),
+      'Inconsistent quote style',
+      vscode.DiagnosticSeverity.Warning,
     )
 
     await applyFix(doc, diagnostic)
@@ -226,14 +252,26 @@ describe('fixAllInDocument', () => {
   it('fixes issues in document', async () => {
     const vscode = await import('vscode')
     const { fixAllInDocument } = await import('../src/code-actions')
+    const { lintText, formatCode, defaultConfig } = await import('pickier')
 
-    // Use code with actual issues that pickier can fix
+    // Use code with actual fixable issues (quote style)
+    const code = 'const x = "test"\nconst y = "another"'
     const doc = {
-      getText: () => 'debugger',
+      getText: () => code,
       fileName: '/test.ts',
       uri: vscode.Uri.file('/test.ts'),
       positionAt: (offset: number) => new vscode.Position(0, offset),
     } as any
+
+    // Verify pickier detects and can fix the issue
+    const config = { ...defaultConfig, format: { ...defaultConfig.format, quotes: 'single' as const } }
+    const issuesBefore = await lintText(code, config, '/test.ts')
+    expect(issuesBefore.some(i => i.ruleId === 'quotes')).toBe(true)
+
+    const fixed = formatCode(code, config, '/test.ts')
+    expect(fixed).not.toBe(code)
+    expect(fixed).toContain("'test'")
+    expect(fixed).not.toContain('"test"')
 
     await fixAllInDocument(doc)
 

@@ -3,9 +3,6 @@ import { createVscodeMock } from './utils/vscode-mock'
 
 // Set up mocks at module level
 mock.module('vscode', () => createVscodeMock())
-
-// Use real pickier - no need to mock it!
-
 mock.module('bunfig', () => ({
   loadConfig: async (opts: any) => ({
     ...opts.defaultConfig,

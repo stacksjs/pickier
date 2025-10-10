@@ -4,10 +4,12 @@ import { createVscodeMock } from './utils/vscode-mock'
 // Set up mocks BEFORE importing from source
 mock.module('vscode', () => createVscodeMock())
 
-// Use real pickier - no need to mock it!
-
+// Bunfig mock should return the defaultConfig passed to it
 mock.module('bunfig', () => ({
-  loadConfig: async (opts: any) => opts.defaultConfig || {},
+  loadConfig: async (opts: any) => {
+    // Return the defaultConfig as-is (simulating successful config load)
+    return opts.defaultConfig || {}
+  },
 }))
 
 describe('PickierDiagnosticProvider', () => {
@@ -20,11 +22,53 @@ describe('PickierDiagnosticProvider', () => {
     const coll = vscode.languages.createDiagnosticCollection('pickier')
     const provider = new PickierDiagnosticProvider(coll, output)
 
-    // Use real TypeScript code - pickier will lint it for real
-    const doc = { getText: () => 'const x = 1', fileName: '/workspace/a.ts', languageId: 'typescript', uri: { fsPath: '/workspace/a.ts', toString: () => 'file:///workspace/a.ts' } } as any
+    // Use real pickier to lint code - we're testing the integration, not pickier itself
+    const code = `const x = "test"; const y = 'another'`
+
+    const doc = {
+      getText: () => code,
+      fileName: '/workspace/test.ts',
+      languageId: 'typescript',
+      uri: { fsPath: '/workspace/test.ts', toString: () => 'file:///workspace/test.ts' }
+    } as any
+
     await provider.provideDiagnostics(doc)
 
     // Both delete (to clear old diagnostics) and set should be called
+    expect(coll.delete).toHaveBeenCalled()
+    expect(coll.set).toHaveBeenCalled()
+
+    // NOTE: We've verified pickier works correctly with real code in separate direct tests.
+    // Here we're just testing that our VSCode provider integrates with pickier properly.
+  })
+
+  it('provides no diagnostics for clean code', async () => {
+    const vscode = await import('vscode')
+    const { PickierDiagnosticProvider } = await import('../src/diagnostics')
+    const { lintText } = await import('pickier')
+    const { defaultConfig } = await import('pickier')
+    const output = vscode.window.createOutputChannel('Pickier')
+    const coll = vscode.languages.createDiagnosticCollection('pickier')
+    const provider = new PickierDiagnosticProvider(coll, output)
+
+    // Clean code with no errors
+    const code = `const x = 1
+const y = 2`
+
+    const doc = {
+      getText: () => code,
+      fileName: '/workspace/clean.ts',
+      languageId: 'typescript',
+      uri: { fsPath: '/workspace/clean.ts', toString: () => 'file:///workspace/clean.ts' }
+    } as any
+
+    // Verify pickier detects no errors
+    const issues = await lintText(code, defaultConfig, '/workspace/clean.ts')
+    expect(issues.length).toBe(0)
+
+    await provider.provideDiagnostics(doc)
+
+    // Should still be called even with no issues
     expect(coll.delete).toHaveBeenCalled()
     expect(coll.set).toHaveBeenCalled()
   })
