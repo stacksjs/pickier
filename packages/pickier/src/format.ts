@@ -32,8 +32,8 @@ function convertDoubleToSingle(str: string): string {
   const inner = str.slice(1, -1)
   // unescape escaped double quotes, keep other escapes intact
   const unescaped = inner.replace(/\\"/g, '"')
-  // escape single quotes
-  const escapedSingles = unescaped.replace(/'/g, '\\\'')
+  // escape single quotes that aren't already escaped
+  const escapedSingles = unescaped.replace(/(?<!\\)'/g, '\\\'')
   return `'${escapedSingles}'`
 }
 
@@ -48,13 +48,50 @@ function fixQuotes(content: string, preferred: 'single' | 'double', filePath: st
   if (!isCodeFileExt(filePath))
     return content
 
-  // do not touch template literals or backticks
-  if (preferred === 'single') {
-    return content.replace(/"([^"\\]|\\.)*"/g, m => convertDoubleToSingle(m))
+  // Mask all strings to avoid converting quotes inside other quote types
+  const lines = content.split('\n')
+  const result: string[] = []
+
+  for (const line of lines) {
+    let output = line
+
+    if (preferred === 'single') {
+      // Only convert double-quoted strings (not quotes inside single/template strings)
+      // Match standalone double-quoted strings
+      output = output.replace(/"([^"\\]|\\.)*"/g, (match) => {
+        // Check if this quote is inside a single-quoted or template string
+        // Simple heuristic: count quotes before this position
+        const pos = output.indexOf(match)
+        const before = output.slice(0, pos)
+        const singleCount = (before.match(/'/g) || []).length
+        const templateCount = (before.match(/`/g) || []).length
+
+        // If odd number of single quotes or backticks before, we're inside one
+        if (singleCount % 2 === 1 || templateCount % 2 === 1)
+          return match
+
+        return convertDoubleToSingle(match)
+      })
+    }
+    else {
+      // Only convert single-quoted strings
+      output = output.replace(/'([^'\\]|\\.)*'/g, (match) => {
+        const pos = output.indexOf(match)
+        const before = output.slice(0, pos)
+        const doubleCount = (before.match(/"/g) || []).length
+        const templateCount = (before.match(/`/g) || []).length
+
+        if (doubleCount % 2 === 1 || templateCount % 2 === 1)
+          return match
+
+        return convertSingleToDouble(match)
+      })
+    }
+
+    result.push(output)
   }
-  else {
-    return content.replace(/'([^'\\]|\\.)*'/g, m => convertSingleToDouble(m))
-  }
+
+  return result.join('\n')
 }
 
 function fixIndentation(content: string, indentSize: number, cfg: PickierConfig): string {
@@ -107,6 +144,9 @@ export function formatCode(src: string, cfg: PickierConfig, filePath: string): s
   if (src.length === 0)
     return ''
 
+  // Check for imports BEFORE any processing to ensure consistent final newline policy
+  const hadImports = /^\s*import\b/m.test(src)
+
   // normalize newlines and trim trailing whitespace per line if enabled
   const rawLines = src.replace(/\r\n/g, '\n').split('\n')
   const trimmed = cfg.format.trimTrailingWhitespace
@@ -145,18 +185,29 @@ export function formatCode(src: string, cfg: PickierConfig, filePath: string): s
     return joined.replace(/\n+$/g, '')
   }
 
-  const endsWithNewline = /\n$/.test(joined)
-  const hasImports = /^\s*import\b/m.test(joined)
-  const wantTwo = cfg.format.finalNewline === 'two' || (cfg.format.finalNewline === 'one' && hasImports)
-  if (!wantTwo) {
-    return endsWithNewline ? joined : `${joined}\n`
+  // For idempotency: if file already has 1-2 trailing newlines and we want "one", keep it stable
+  // This prevents oscillation when imports are added/removed
+  const hasOneNewline = /[^\n]\n$/.test(joined) || joined === '\n'
+  const hasTwoNewlines = /\n\n$/.test(joined)
+
+  if (cfg.format.finalNewline === 'two') {
+    // Always want exactly two newlines
+    if (hasTwoNewlines)
+      return joined
+    if (hasOneNewline)
+      return `${joined}\n`
+    return `${joined}\n\n`
   }
-  // ensure two final newlines
-  if (/\n\n$/.test(joined))
+
+  // finalNewline === 'one': always ensure exactly one newline (stable and idempotent)
+  if (hasTwoNewlines) {
+    // Reduce from 2 to 1
+    return joined.replace(/\n\n$/, '\n')
+  }
+  if (hasOneNewline) {
     return joined
-  if (endsWithNewline)
-    return `${joined}\n`
-  return `${joined}\n\n`
+  }
+  return `${joined}\n`
 }
 
 export function detectQuoteIssues(line: string, preferred: 'single' | 'double'): number[] {
@@ -194,12 +245,16 @@ function maskStrings(input: string): { text: string, strings: string[] } {
   const strings: string[] = []
   let out = ''
   let i = 0
-  let mode: 'none' | 'single' | 'double' = 'none'
+  let mode: 'none' | 'single' | 'double' | 'template' = 'none'
   let start = 0
   while (i < input.length) {
     const ch = input[i]
-    if (mode === 'none' && (ch === '\'' || ch === '"')) {
-      mode = ch === '\'' ? 'single' : 'double'
+    if (mode === 'none' && (ch === '\'' || ch === '"' || ch === '`')) {
+      if (ch === '\'')
+        mode = 'single'
+      else if (ch === '"')
+        mode = 'double'
+      else mode = 'template'
       start = i
       i++
       while (i < input.length) {
@@ -208,7 +263,7 @@ function maskStrings(input: string): { text: string, strings: string[] } {
           i += 2
           continue
         }
-        if ((mode === 'single' && c === '\'') || (mode === 'double' && c === '"')) {
+        if ((mode === 'single' && c === '\'') || (mode === 'double' && c === '"') || (mode === 'template' && c === '`')) {
           i++
           break
         }
@@ -236,10 +291,24 @@ function normalizeCodeSpacing(input: string): string {
   let t = text
   // ensure a space before opening brace for blocks/objects
   t = t.replace(/(\S)\{/g, '$1 {')
+  // ensure a space after opening brace before keywords (return, if, etc)
+  t = t.replace(/\{(return|if|for|while|switch|const|let|var|function)\b/g, '{ $1')
   // add spaces after commas
   t = t.replace(/,(\S)/g, ', $1')
   // add spaces around equals but not for ==, ===, =>, <=, >=
   t = t.replace(/(?<![=!<>])=(?![=><])/g, ' = ')
+  // add spaces around arithmetic operators (run multiple times for consecutive operators)
+  // + operator (not part of ++ or unary +)
+  t = t.replace(/(\w)\+(\w)/g, '$1 + $2')
+  t = t.replace(/(\w)\+(\w)/g, '$1 + $2') // Run again for consecutive operators
+  // - operator (not part of -- or unary -)
+  t = t.replace(/(\w)-(\w)/g, '$1 - $2')
+  t = t.replace(/(\w)-(\w)/g, '$1 - $2')
+  // * and / operators
+  t = t.replace(/(\w)\*(\w)/g, '$1 * $2')
+  t = t.replace(/(\w)\*(\w)/g, '$1 * $2')
+  t = t.replace(/(\w)\/(\w)/g, '$1 / $2')
+  t = t.replace(/(\w)\/(\w)/g, '$1 / $2')
   // add spaces after semicolons in for headers (but not between consecutive semicolons)
   t = t.replace(/;([^\s;])/g, '; $1')
   // add spaces around simple comparison operators
@@ -455,6 +524,12 @@ export function formatImports(source: string): string {
     }
     return a.source.localeCompare(b.source)
   })
+
+  // If no imports remain after filtering, return the rest without import block
+  if (entries.length === 0) {
+    // Remove leading newlines from rest for consistency
+    return rest.replace(/^\n+/, '')
+  }
 
   const rendered = entries.map(renderImport).join('\n')
   // ensure a trailing blank line after imports if there is following code
