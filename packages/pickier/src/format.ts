@@ -241,14 +241,34 @@ export function hasIndentIssue(
   return spaces % indentSize !== 0
 }
 
-function maskStrings(input: string): { text: string, strings: string[] } {
-  const strings: string[] = []
+function maskStringsAndComments(input: string): { text: string, masked: string[] } {
+  const masked: string[] = []
   let out = ''
   let i = 0
   let mode: 'none' | 'single' | 'double' | 'template' = 'none'
   let start = 0
   while (i < input.length) {
     const ch = input[i]
+
+    // Mask single-line comments (but only full lines starting with //)
+    if (mode === 'none' && (i === 0 || (i > 0 && input[i - 1] === '\n'))) {
+      // Check if this line starts with a comment
+      let j = i
+      while (j < input.length && (input[j] === ' ' || input[j] === '\t'))
+        j++
+      if (j + 1 < input.length && input[j] === '/' && input[j + 1] === '/') {
+        // This is a comment-only line, mask it
+        start = i
+        while (i < input.length && input[i] !== '\n')
+          i++
+        const s = input.slice(start, i)
+        const token = `@@M${masked.length}@@`
+        masked.push(s)
+        out += token
+        continue
+      }
+    }
+
     if (mode === 'none' && (ch === '\'' || ch === '"' || ch === '`')) {
       if (ch === '\'')
         mode = 'single'
@@ -270,8 +290,8 @@ function maskStrings(input: string): { text: string, strings: string[] } {
         i++
       }
       const s = input.slice(start, i)
-      const token = `@@S${strings.length}@@`
-      strings.push(s)
+      const token = `@@M${masked.length}@@`
+      masked.push(s)
       out += token
       mode = 'none'
       continue
@@ -279,62 +299,50 @@ function maskStrings(input: string): { text: string, strings: string[] } {
     out += ch
     i++
   }
-  return { text: out, strings }
+  return { text: out, masked }
 }
 
-function unmaskStrings(text: string, strings: string[]): string {
-  return text.replace(/@@S(\d+)@@/g, (_, idx: string) => strings[Number(idx)] ?? '')
+function unmask(text: string, masked: string[]): string {
+  return text.replace(/@@M(\d+)@@/g, (_, idx: string) => masked[Number(idx)] ?? '')
 }
 
 function normalizeCodeSpacing(input: string): string {
-  const lines = input.split('\n')
-  const result: string[] = []
-
-  for (const line of lines) {
-    // Skip processing for comment-only lines to avoid spacing issues in comments
-    if (/^\s*\/\//.test(line) || /^\s*\/\*/.test(line)) {
-      result.push(line)
-      continue
-    }
-
-    const { text, strings } = maskStrings(line)
-    let t = text
-    // ensure a space before opening brace for blocks/objects
-    t = t.replace(/(\S)\{/g, '$1 {')
-    // ensure a space after opening brace before keywords (return, if, etc)
-    t = t.replace(/\{(return|if|for|while|switch|const|let|var|function)\b/g, '{ $1')
-    // add spaces after commas
-    t = t.replace(/,(\S)/g, ', $1')
-    // add spaces around equals but not for ==, ===, =>, <=, >=
-    t = t.replace(/(?<![=!<>])=(?![=><])/g, ' = ')
-    // add spaces around arithmetic operators (run multiple times for consecutive operators)
-    // + operator (not part of ++ or unary +)
-    t = t.replace(/(\w)\+(\w)/g, '$1 + $2')
-    t = t.replace(/(\w)\+(\w)/g, '$1 + $2') // Run again for consecutive operators
-    // - operator (not part of -- or unary -)
-    t = t.replace(/(\w)-(\w)/g, '$1 - $2')
-    t = t.replace(/(\w)-(\w)/g, '$1 - $2')
-    // * and / operators
-    t = t.replace(/(\w)\*(\w)/g, '$1 * $2')
-    t = t.replace(/(\w)\*(\w)/g, '$1 * $2')
-    t = t.replace(/(\w)\/(\w)/g, '$1 / $2')
-    t = t.replace(/(\w)\/(\w)/g, '$1 / $2')
-    // add spaces after semicolons in for headers (but not between consecutive semicolons)
-    t = t.replace(/;([^\s;])/g, '; $1')
-    // add spaces around simple comparison operators
-    t = t.replace(/([\w\])])<(\S)/g, '$1 < $2')
-    t = t.replace(/(\S)>([\w[(])/g, '$1 > $2')
-    // collapse multiple spaces to single, but not leading indentation
-    const trimmedStart = t.trimStart()
-    const leadLength = t.length - trimmedStart.length
-    const lead = t.slice(0, leadLength)
-    const rest = t.slice(leadLength)
-    const processed = lead + rest.replace(/\s{2,}/g, ' ')
-
-    result.push(unmaskStrings(processed, strings))
-  }
-
-  return result.join('\n')
+  const { text, masked } = maskStringsAndComments(input)
+  let t = text
+  // ensure a space before opening brace for blocks/objects
+  t = t.replace(/(\S)\{/g, '$1 {')
+  // ensure a space after opening brace before keywords (return, if, etc)
+  t = t.replace(/\{(return|if|for|while|switch|const|let|var|function)\b/g, '{ $1')
+  // add spaces after commas
+  t = t.replace(/,(\S)/g, ', $1')
+  // add spaces around equals but not for ==, ===, =>, <=, >=
+  t = t.replace(/(?<![=!<>])=(?![=><])/g, ' = ')
+  // add spaces around arithmetic operators (run multiple times for consecutive operators)
+  // + operator (not part of ++ or unary +)
+  t = t.replace(/(\w)\+(\w)/g, '$1 + $2')
+  t = t.replace(/(\w)\+(\w)/g, '$1 + $2') // Run again for consecutive operators
+  // - operator (not part of -- or unary -)
+  t = t.replace(/(\w)-(\w)/g, '$1 - $2')
+  t = t.replace(/(\w)-(\w)/g, '$1 - $2')
+  // * and / operators
+  t = t.replace(/(\w)\*(\w)/g, '$1 * $2')
+  t = t.replace(/(\w)\*(\w)/g, '$1 * $2')
+  t = t.replace(/(\w)\/(\w)/g, '$1 / $2')
+  t = t.replace(/(\w)\/(\w)/g, '$1 / $2')
+  // add spaces after semicolons in for headers (but not between consecutive semicolons)
+  t = t.replace(/;([^\s;])/g, '; $1')
+  // add spaces around simple comparison operators
+  t = t.replace(/([\w\])])<(\S)/g, '$1 < $2')
+  t = t.replace(/(\S)>([\w[(])/g, '$1 > $2')
+  // collapse multiple spaces to single, but not leading indentation
+  t = t.split('\n').map((line) => {
+    const trimmedStart = line.trimStart()
+    const leadLength = line.length - trimmedStart.length
+    const lead = line.slice(0, leadLength)
+    const rest = line.slice(leadLength)
+    return lead + rest.replace(/\s{2,}/g, ' ')
+  }).join('\n')
+  return unmask(t, masked)
 }
 
 function removeStylisticSemicolons(input: string): string {
