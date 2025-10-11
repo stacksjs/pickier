@@ -58,10 +58,10 @@
     "test": "bun test --coverage"
   },
   "dependencies": {
-    "@stacksjs/clapp": "^0.1.16",
+    "@stacksjs/clapp": "^0.2.0",
     "tinyglobby": "^0.2.14"
   },
   "devDependencies": {
-    "bunfig": "^0.10.1"
+    "bunfig": "^0.15.0"
   }
 }
