@@ -145,7 +145,7 @@ export function formatCode(src: string, cfg: PickierConfig, filePath: string): s
     return ''
 
   // Check for imports BEFORE any processing to ensure consistent final newline policy
-  const hadImports = /^\s*import\b/m.test(src)
+  const _hadImports = /^\s*import\b/m.test(src)
 
   // normalize newlines and trim trailing whitespace per line if enabled
   const rawLines = src.replace(/\r\n/g, '\n').split('\n')

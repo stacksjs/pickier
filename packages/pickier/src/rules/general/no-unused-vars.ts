@@ -127,11 +127,11 @@ export const noUnusedVarsRule: RuleModule = {
 
       // arrow functions (single identifier param without parentheses): x => ... possibly embedded, e.g., arr.map(x=>x)
       {
-        const reSingleArrow = /(^|[=,:({\s])\s*([$A-Z_][\w$]*)\s*=>/gi
+        const reSingleArrow = /(?:^|[=,:({\s])\s*([$A-Z_][\w$]*)\s*=>/gi
         let match: RegExpExecArray | null
         // eslint-disable-next-line no-cond-assign
         while ((match = reSingleArrow.exec(line)) !== null) {
-          const name = match[2]
+          const name = match[1]
           if (!name || argIgnoreRe.test(name))
             continue
           const arrowIdx = match.index + match[0].lastIndexOf('=>')

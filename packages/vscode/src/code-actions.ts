@@ -146,7 +146,7 @@ export class PickierCodeActionProvider implements vscode.CodeActionProvider {
 
 export async function applyFix(
   document: vscode.TextDocument,
-  diagnostic: vscode.Diagnostic,
+  _diagnostic: vscode.Diagnostic,
 ): Promise<void> {
   try {
     const { getPickierConfig } = await import('./config')

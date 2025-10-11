@@ -46,7 +46,7 @@ export const consistentChainingRule: RuleModule = {
   meta: { docs: 'Enforce consistent line breaks in member-access/call chains' },
   check: (text, ctx) => {
     const issues: ReturnType<RuleModule['check']> = []
-    const lines = text.split(/\r?\n/)
+    const _lines = text.split(/\r?\n/)
 
     // Inspect each chain and ensure consistency between adjacent dots
     const chains = findChains(text)

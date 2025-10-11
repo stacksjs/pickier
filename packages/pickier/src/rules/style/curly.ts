@@ -139,7 +139,7 @@ export const curlyRule: RuleModule = {
 
 // Additional pass: detect unnecessary braces around a single simple statement in else blocks
 // This is a very light heuristic to satisfy style-edge-cases expectations.
-export function _internal_detectUnnecessaryElseBraces(text: string, filePath: string): Array<{ line: number, column: number, message: string }> {
+export function _internal_detectUnnecessaryElseBraces(text: string, _filePath: string): Array<{ line: number, column: number, message: string }> {
   const out: Array<{ line: number, column: number, message: string }> = []
   const lines = text.split(/\r?\n/)
   for (let i = 0; i < lines.length; i++) {
@@ -217,7 +217,7 @@ export function _internal_detectUnnecessaryElseBraces(text: string, filePath: st
     if (inner.length === 1 && endLine === startLine + 2) {
       const stmt = inner[0]
       // Skip if the single statement is a control structure or contains its own block
-      const isControl = /^(if|for|while|do|switch|try|catch|else)\b/.test(stmt)
+      const isControl = /^(?:if|for|while|do|switch|try|catch|else)\b/.test(stmt)
       const hasBraces = /[{}]/.test(stmt)
       // Skip if parentheses appear unbalanced on this single line (likely part of a multiline call)
       const opens = (stmt.match(/\(/g) || []).length

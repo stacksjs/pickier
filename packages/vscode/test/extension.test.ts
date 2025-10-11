@@ -8,7 +8,7 @@ mock.module('pickier', () => ({
   defaultConfig: {},
   formatCode: (t: string) => t,
   lintText: async () => [],
-  runLintProgrammatic: async (paths: string[]) => ({ errors: 0, warnings: 0, issues: [] }),
+  runLintProgrammatic: async (_paths: string[]) => ({ errors: 0, warnings: 0, issues: [] }),
   runLint: async () => { console.log(JSON.stringify({ errors: 0, warnings: 0, issues: [] })) },
 }))
 mock.module('bunfig', () => ({
@@ -25,7 +25,7 @@ function setupPickierMock() {
     defaultConfig: {},
     formatCode: (t: string) => t,
     lintText: async () => [],
-    runLintProgrammatic: async (paths: string[]) => ({ errors: 0, warnings: 0, issues: [] }),
+    runLintProgrammatic: async (_paths: string[]) => ({ errors: 0, warnings: 0, issues: [] }),
     runLint: async () => { console.log(JSON.stringify({ errors: 0, warnings: 0, issues: [] })) },
   }))
 }

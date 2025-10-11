@@ -188,8 +188,8 @@ function isRegexPossible(tokens: Token[]): boolean {
   const t = tokens[tokens.length - 1]
   // after these token types, a regex can appear
   return (
-    t.type === 'Punct' && /[(!,{;:?=]/.test(t.value)
-    || t.type === 'Word' && /^(return|throw|case|of|in|instanceof|typeof|void|new)$/.test(t.value)
+    (t.type === 'Punct' && /[(!,{;:?=]/.test(t.value))
+    || (t.type === 'Word' && /^(?:return|throw|case|of|in|instanceof|typeof|void|new)$/.test(t.value))
   )
 }
 

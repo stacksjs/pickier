@@ -14,6 +14,7 @@ describe('ast.tokenize', () => {
   })
 
   it('recognizes template literals and nested expressions', () => {
+    // eslint-disable-next-line no-template-curly-in-string
     const src = 'const s = `a${1+2}b${`x${y}`}`;\n'
     const tokens = tokenize(src)
     expect(tokens.some(t => t.type === 'Template')).toBe(true)
@@ -38,6 +39,7 @@ describe('ast.tokenize', () => {
   })
 
   it('handles unclosed strings/templates without hanging', () => {
+    // eslint-disable-next-line no-template-curly-in-string
     const src = 'const a=\'unterminated\nconst b="also\nconst t=`tmpl${1+2}`\n'
     const tokens = tokenize(src)
     // Should produce some tokens and not hang
@@ -45,6 +47,7 @@ describe('ast.tokenize', () => {
   })
 
   it('handles deeply nested templates without hanging', () => {
+    // eslint-disable-next-line no-template-curly-in-string
     const src = 'const s = `a${`b${`c${1}`}`}`;\n'
     const tokens = tokenize(src)
     expect(tokens.some(t => t.type === 'Template')).toBe(true)
@@ -69,6 +72,7 @@ describe('ast.tokenize', () => {
   })
 
   it('handles unclosed strings/templates without hanging', () => {
+    // eslint-disable-next-line no-template-curly-in-string
     const src = 'const a=\'unterminated\nconst b="also\nconst t=`tmpl${1+2}`\n'
     const tokens = tokenize(src)
     // Should produce some tokens and not hang
@@ -76,6 +80,7 @@ describe('ast.tokenize', () => {
   })
 
   it('handles deeply nested templates without hanging', () => {
+    // eslint-disable-next-line no-template-curly-in-string
     const src = 'const s = `a${`b${`c${1}`}`}`;\n'
     const tokens = tokenize(src)
     expect(tokens.some(t => t.type === 'Template')).toBe(true)

@@ -27,11 +27,11 @@ function checkDelimited(
   let depth = 0
   let start = openIdx + 1
   const tokens = tokenize(text.slice(openIdx + 1, close))
-  let rel = 0
+  let _rel = 0
   for (const t of tokens) {
     const s = openIdx + 1 + t.start
     const e = openIdx + 1 + t.end
-    rel = e
+    _rel = e
     if (t.type === 'Punct') {
       if (t.value === openChar) {
         depth++
@@ -112,7 +112,7 @@ export const consistentListNewlineRule: RuleModule = {
           continue
         }
         const prev = text.slice(Math.max(0, i - 60), i)
-        if (/\b(function|class|interface|type|enum|try|catch|finally|if|else|for|while|switch)\b[\s\S]*$/.test(prev))
+        if (/\b(?:function|class|interface|type|enum|try|catch|finally|if|else|for|while|switch)\b[\s\S]*$/.test(prev))
           continue
         checkDelimited(text, ctx.filePath, issues, i, '{', '}', ruleId)
       }

@@ -232,7 +232,7 @@ function parseDisableNextLine(content: string): SuppressMap {
   for (let i = 0; i < lines.length; i++) {
     const t = lines[i].trim()
     // support eslint- and pickier- prefixes
-    const m = t.match(/^\/\/\s*(?:eslint|pickier)-disable-next-line\s+(.+)$/)
+    const m = t.match(/^\/\/\s*(?:eslint|pickier)-disable-next-line\s+(\S.*)$/)
     if (!m)
       continue
     const list = m[1].split(',').map(s => s.trim()).filter(Boolean)
@@ -538,7 +538,7 @@ export function scanContent(filePath: string, content: string, cfg: PickierConfi
 
     // no-cond-assign: forbid assignments inside condition parentheses
     if (wantNoCondAssign) {
-      const checkCond = (cond: string) => /(\^|[^=!<>])=(?![=])/.test(cond)
+      const checkCond = (cond: string) => /[^=!<>]=(?![=])/.test(cond)
       const m1 = line.match(/\b(?:if|while)\s*\(([^)]*)\)/)
       if (m1) {
         const cond = m1[1]

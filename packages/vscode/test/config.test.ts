@@ -150,10 +150,10 @@ describe('watchConfigFile', () => {
 
   it('creates a file system watcher for config files', async () => {
     const vscode = await import('vscode')
-    let callbackCalled = false
+    let _callbackCalled = false
 
     const watcher = watchConfigFile('/workspace', async () => {
-      callbackCalled = true
+      _callbackCalled = true
     })
 
     expect(vscode.workspace.createFileSystemWatcher).toHaveBeenCalled()
@@ -163,12 +163,12 @@ describe('watchConfigFile', () => {
 
   it('calls callback when config file changes', async () => {
     const vscode = await import('vscode')
-    let callbackCalled = false
-    let callbackCount = 0
+    let _callbackCalled = false
+    let _callbackCount = 0
 
     const watcher = watchConfigFile('/workspace', async () => {
-      callbackCalled = true
-      callbackCount++
+      _callbackCalled = true
+      _callbackCount++
     })
 
     // Simulate file change event

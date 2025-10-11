@@ -94,7 +94,7 @@ export function createVscodeMock(overrides: Partial<any> = {}): any {
   }
 
   // CodeActionProvider interface (for TypeScript implements checking)
-  interface CodeActionProvider {
+  interface _CodeActionProvider {
     provideCodeActions: (
       document: any,
       range: any,
@@ -126,7 +126,7 @@ export function createVscodeMock(overrides: Partial<any> = {}): any {
   }
 
   // Minimal TextDocument
-  class TextDocumentImpl {
+  class _TextDocumentImpl {
     uri: any
     constructor(public fileName: string, private text: string, public languageId: string = 'typescript') {
       this.uri = { fsPath: this.fileName, toString: () => `file://${this.fileName}` }
@@ -184,7 +184,7 @@ export function createVscodeMock(overrides: Partial<any> = {}): any {
   }
 
   // Commands registry
-  const commandsMap = new Map<string, Function>()
+  const commandsMap = new Map<string, (...args: any[]) => any>()
 
   // Workspace events
   const onDidSaveTextDocument = makeEvent<any>()
@@ -263,7 +263,7 @@ export function createVscodeMock(overrides: Partial<any> = {}): any {
     },
 
     commands: {
-      registerCommand: mock((cmd: string, cb: Function) => {
+      registerCommand: mock((cmd: string, cb: (...args: any[]) => any) => {
         commandsMap.set(cmd, cb)
         return {
           dispose() {
