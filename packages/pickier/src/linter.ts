@@ -1,17 +1,16 @@
-/* eslint-disable no-console */
 import type { LintIssue, LintOptions, PickierConfig, PickierPlugin, RuleContext, RulesConfigMap } from './types'
 import { readFileSync, writeFileSync } from 'node:fs'
 import { isAbsolute, relative, resolve } from 'node:path'
 import process from 'node:process'
+import { Logger } from '@stacksjs/clarity'
 import { glob as tinyGlob } from 'tinyglobby'
 import { detectQuoteIssues, hasIndentIssue } from './format'
 import { formatStylish } from './formatter'
 import { getAllPlugins } from './plugins'
 import { colors, expandPatterns, isCodeFile, loadConfigFromPath, shouldIgnorePath } from './utils'
-import { Logger } from '@stacksjs/clarity'
 
 const logger = new Logger('pickier:lint', {
-  showTags: false
+  showTags: false,
 })
 
 function trace(...args: any[]) {
@@ -30,7 +29,8 @@ export async function lintText(
   if (signal?.aborted) {
     throw new Error('AbortError')
     // Avoid duplicate plugin execution inside scanContent
-  }(cfg as any)._internalSkipPluginRulesInScan = true
+  }
+  ;(cfg as any)._internalSkipPluginRulesInScan = true
   const issues = scanContent(filePath, text, cfg)
   if (signal?.aborted)
     throw new Error('AbortError')
@@ -137,14 +137,27 @@ export async function runLintProgrammatic(
   if (signal?.aborted)
     throw new Error('AbortError')
   // filter with trace counters
-  let cntTotal = 0; let cntIncluded = 0; let cntNodeModules = 0; let cntIgnored = 0; let cntWrongExt = 0
+  let cntTotal = 0
+  let cntIncluded = 0
+  let cntNodeModules = 0
+  let cntIgnored = 0
+  let cntWrongExt = 0
   const files: string[] = []
   for (const f of entries) {
     cntTotal++
     const p = f.replace(/\\/g, '/')
-    if (p.includes('/node_modules/')) { cntNodeModules++; continue }
-    if (shouldIgnorePath(f, cfg.ignores)) { cntIgnored++; continue }
-    if (!isCodeFile(f, extSet)) { cntWrongExt++; continue }
+    if (p.includes('/node_modules/')) {
+      cntNodeModules++
+      continue
+    }
+    if (shouldIgnorePath(f, cfg.ignores)) {
+      cntIgnored++
+      continue
+    }
+    if (!isCodeFile(f, extSet)) {
+      cntWrongExt++
+      continue
+    }
     files.push(f)
     cntIncluded++
   }
@@ -495,8 +508,16 @@ export function scanContent(filePath: string, content: string, cfg: PickierConfi
       for (let k = 0; k < ln.length; k++) {
         const ch = ln[k]
         if (!inStr) {
-          if (ch === '"') { inStr = 'double'; prev = ch; continue }
-          if (ch === '\'') { inStr = 'single'; prev = ch; continue }
+          if (ch === '"') {
+            inStr = 'double'
+            prev = ch
+            continue
+          }
+          if (ch === '\'') {
+            inStr = 'single'
+            prev = ch
+            continue
+          }
         }
         else {
           if ((inStr === 'double' && ch === '"') || (inStr === 'single' && ch === '\'')) {
@@ -688,14 +709,27 @@ export async function runLint(globs: string[], options: LintOptions): Promise<nu
 
     trace('globbed entries', entries.length)
     // filter with trace counters
-    let cntTotal = 0; let cntIncluded = 0; let cntNodeModules = 0; let cntIgnored = 0; let cntWrongExt = 0
+    let cntTotal = 0
+    let cntIncluded = 0
+    let cntNodeModules = 0
+    let cntIgnored = 0
+    let cntWrongExt = 0
     const files: string[] = []
     for (const f of entries) {
       cntTotal++
       const p = f.replace(/\\/g, '/')
-      if (p.includes('/node_modules/')) { cntNodeModules++; continue }
-      if (shouldIgnorePath(f, cfg.ignores)) { cntIgnored++; continue }
-      if (!isCodeFile(f, extSet)) { cntWrongExt++; continue }
+      if (p.includes('/node_modules/')) {
+        cntNodeModules++
+        continue
+      }
+      if (shouldIgnorePath(f, cfg.ignores)) {
+        cntIgnored++
+        continue
+      }
+      if (!isCodeFile(f, extSet)) {
+        cntWrongExt++
+        continue
+      }
       files.push(f)
       cntIncluded++
     }

@@ -95,12 +95,12 @@ export function createVscodeMock(overrides: Partial<any> = {}): any {
 
   // CodeActionProvider interface (for TypeScript implements checking)
   interface CodeActionProvider {
-    provideCodeActions(
+    provideCodeActions: (
       document: any,
       range: any,
       context: any,
       token: any,
-    ): Promise<any[] | undefined>
+    ) => Promise<any[] | undefined>
   }
 
   class WorkspaceEditImpl {
@@ -229,13 +229,13 @@ export function createVscodeMock(overrides: Partial<any> = {}): any {
       getConfiguration: mock(() => ({
         get: (key: string, defaultValue: any = undefined) => {
           const map: Record<string, any> = {
-            enable: true,
-            lintOnSave: true,
-            lintOnChange: true,
-            formatOnSave: false,
-            formatOnPaste: false,
-            showOutputChannel: false,
-            configPath: '',
+            'enable': true,
+            'lintOnSave': true,
+            'lintOnChange': true,
+            'formatOnSave': false,
+            'formatOnPaste': false,
+            'showOutputChannel': false,
+            'configPath': '',
             'codeActions.enable': true,
             'statusBar.showIssueCount': true,
           }
@@ -265,7 +265,11 @@ export function createVscodeMock(overrides: Partial<any> = {}): any {
     commands: {
       registerCommand: mock((cmd: string, cb: Function) => {
         commandsMap.set(cmd, cb)
-        return { dispose() { commandsMap.delete(cmd) } }
+        return {
+          dispose() {
+            commandsMap.delete(cmd)
+          },
+        }
       }),
       _invoke: (cmd: string, ...args: any[]) => commandsMap.get(cmd)?.(...args),
     },

@@ -1,4 +1,6 @@
 import { beforeEach, describe, expect, it, mock } from 'bun:test'
+import { clearConfigCache, getPickierConfig, watchConfigFile } from '../src/config'
+
 import { createVscodeMock } from './utils/vscode-mock'
 
 // Set up mocks at module level
@@ -10,8 +12,6 @@ mock.module('bunfig', () => ({
     customOption: 'test',
   }),
 }))
-
-import { clearConfigCache, getPickierConfig, watchConfigFile } from '../src/config'
 
 describe('getPickierConfig', () => {
   beforeEach(() => {

@@ -1,4 +1,6 @@
 import { beforeEach, describe, expect, it, mock } from 'bun:test'
+import { PickierFormattingProvider } from '../src/formatter'
+
 import { createVscodeMock } from './utils/vscode-mock'
 
 // Set up mocks BEFORE importing from source
@@ -12,8 +14,6 @@ mock.module('pickier', () => ({
 mock.module('bunfig', () => ({
   loadConfig: async (opts: any) => opts.defaultConfig || {},
 }))
-
-import { PickierFormattingProvider } from '../src/formatter'
 
 function makeDoc(text: string, fileName = '/workspace/file.ts'): any {
   return {

@@ -95,7 +95,7 @@ export const sortExportsRule: RuleModule = {
       if (i >= out.length)
         break
 
-      const start = i
+      // const start = i
       const blockIdx: number[] = []
       let j = i
       while (j < out.length) {

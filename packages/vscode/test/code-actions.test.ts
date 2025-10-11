@@ -21,7 +21,7 @@ describe('PickierCodeActionProvider', () => {
     // Save original and override config to disable code actions
     const originalGetConfiguration = vscode.workspace.getConfiguration
     ;(vscode.workspace as any).getConfiguration = mock(() => ({
-      get: (key: string) => key === 'codeActions.enable' ? false : true,
+      get: (key: string) => key !== 'codeActions.enable',
     }))
 
     const doc = {
@@ -92,7 +92,7 @@ describe('PickierCodeActionProvider', () => {
 
     // Verify formatCode fixes it
     const fixed = formatCode(code, config, '/test.ts')
-    expect(fixed).toContain("'test'")
+    expect(fixed).toContain('\'test\'')
     expect(fixed).not.toContain('"test"')
 
     const diagnostic = new vscode.Diagnostic(
@@ -201,7 +201,7 @@ describe('applyFix', () => {
 
     const fixed = formatCode(code, config, '/test.ts')
     expect(fixed).not.toContain('"test"')
-    expect(fixed).toContain("'test'")
+    expect(fixed).toContain('\'test\'')
 
     const issuesAfter = await lintText(fixed, config, '/test.ts')
     expect(issuesAfter.some(i => i.ruleId === 'quotes')).toBe(false)
@@ -270,7 +270,7 @@ describe('fixAllInDocument', () => {
 
     const fixed = formatCode(code, config, '/test.ts')
     expect(fixed).not.toBe(code)
-    expect(fixed).toContain("'test'")
+    expect(fixed).toContain('\'test\'')
     expect(fixed).not.toContain('"test"')
 
     await fixAllInDocument(doc)

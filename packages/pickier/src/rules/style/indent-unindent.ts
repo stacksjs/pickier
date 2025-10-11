@@ -18,6 +18,7 @@ export const indentUnindentRule: RuleModule = {
       // Find any occurrence of <tag>` starting anywhere in the line
       const re = /([$A-Z_][\w$]*)\s*`/gi
       let m: RegExpExecArray | null
+      // eslint-disable-next-line no-cond-assign
       while ((m = re.exec(line))) {
         const tag = m[1]
         if (!DEFAULT_TAGS.includes(tag))
@@ -30,7 +31,10 @@ export const indentUnindentRule: RuleModule = {
         // Find closing backtick line
         let endLine = -1
         for (let j = i + 1; j < lines.length; j++) {
-          if (lines[j].includes('`')) { endLine = j; break }
+          if (lines[j].includes('`')) {
+            endLine = j
+            break
+          }
         }
         if (endLine < 0)
           continue

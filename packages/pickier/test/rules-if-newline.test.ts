@@ -27,7 +27,9 @@ it('flags missing newline after if without braces', async () => {
   const options: LintOptions = { reporter: 'json' }
   const orig = console.log
   let out = ''
-  console.log = (msg: string) => { out += msg }
+  console.log = (msg: string) => {
+    out += msg
+  }
   try {
     await runLint([file], options)
   }
@@ -44,7 +46,9 @@ it('does not flag when consequent on next line', async () => {
   const options: LintOptions = { reporter: 'json' }
   const orig = console.log
   let out = ''
-  console.log = (msg: string) => { out += msg }
+  console.log = (msg: string) => {
+    out += msg
+  }
   try {
     await runLint([file], options)
   }

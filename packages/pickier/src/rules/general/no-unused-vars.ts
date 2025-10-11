@@ -129,6 +129,7 @@ export const noUnusedVarsRule: RuleModule = {
       {
         const reSingleArrow = /(^|[=,:({\s])\s*([$A-Z_][\w$]*)\s*=>/gi
         let match: RegExpExecArray | null
+        // eslint-disable-next-line no-cond-assign
         while ((match = reSingleArrow.exec(line)) !== null) {
           const name = match[2]
           if (!name || argIgnoreRe.test(name))

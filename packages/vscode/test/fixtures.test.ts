@@ -107,8 +107,8 @@ describe('Test Fixtures with Real Pickier', () => {
     expect(issues.length).toBeGreaterThan(0)
     expect(
       issues.some(i =>
-        i.ruleId?.includes('no-import-node-modules-by-path') || i.ruleId?.includes('no-import-dist')
-      )
+        i.ruleId?.includes('no-import-node-modules-by-path') || i.ruleId?.includes('no-import-dist'),
+      ),
     ).toBe(true)
   })
 
@@ -295,8 +295,8 @@ describe('Test Fixtures with Real Pickier', () => {
     expect(issues.length).toBeGreaterThan(0)
     expect(
       issues.some(i =>
-        i.ruleId?.includes('no-super-linear-backtracking') || i.ruleId?.includes('no-unused-capturing-group')
-      )
+        i.ruleId?.includes('no-super-linear-backtracking') || i.ruleId?.includes('no-unused-capturing-group'),
+      ),
     ).toBe(true)
   })
 
@@ -319,7 +319,7 @@ describe('Test Fixtures with Real Pickier', () => {
     // After formatting, should have consistent quotes
     expect(formatted).not.toBe(code)
     // Should convert double quotes to single
-    expect(formatted).toContain("'Hello World'")
+    expect(formatted).toContain('\'Hello World\'')
   })
 
   it('formatCode fixes indentation issues', async () => {
@@ -355,7 +355,7 @@ describe('Test Fixtures with Real Pickier', () => {
     // After formatting, should fix trailing whitespace and consecutive blank lines
     expect(formatted).not.toBe(code)
     // Should not have more than 1 consecutive blank line
-    expect(formatted).not.toMatch(/\n\n\n+/)
+    expect(formatted).not.toMatch(/\n{3,}/)
   })
 
   it('formatCode is idempotent - formatting twice produces same result', async () => {
@@ -407,10 +407,10 @@ describe('Edge Case Tests - Stress Testing', () => {
     expect(issues.length).toBeGreaterThan(0)
     // Should detect at least some of: unsorted objects, inconsistent chaining, unused vars
     expect(issues.some(i =>
-      i.ruleId?.includes('sort') ||
-      i.ruleId?.includes('unused') ||
-      i.ruleId?.includes('chaining') ||
-      i.ruleId?.includes('noCondAssign')
+      i.ruleId?.includes('sort')
+      || i.ruleId?.includes('unused')
+      || i.ruleId?.includes('chaining')
+      || i.ruleId?.includes('noCondAssign'),
     )).toBe(true)
   })
 
@@ -480,9 +480,9 @@ describe('Edge Case Tests - Stress Testing', () => {
     // Should handle multi-line constructs without issues
     expect(issues.length).toBeGreaterThan(0)
     expect(issues.some(i =>
-      i.ruleId?.includes('sort') ||
-      i.ruleId?.includes('chaining') ||
-      i.ruleId?.includes('list-newline')
+      i.ruleId?.includes('sort')
+      || i.ruleId?.includes('chaining')
+      || i.ruleId?.includes('list-newline'),
     )).toBe(true)
   })
 
@@ -528,8 +528,8 @@ describe('Edge Case Tests - Stress Testing', () => {
     // Real-world patterns should be linted correctly
     expect(issues.length).toBeGreaterThan(0)
     expect(issues.some(i =>
-      i.ruleId?.includes('sort') ||
-      i.ruleId?.includes('top-level-function')
+      i.ruleId?.includes('sort')
+      || i.ruleId?.includes('top-level-function'),
     )).toBe(true)
   })
 
@@ -738,7 +738,7 @@ describe('Edge Case Tests - Stress Testing', () => {
       // Each test file should trigger at least one issue
       expect(issues.length).toBeGreaterThan(0)
       // All issues should have required properties
-      issues.forEach(issue => {
+      issues.forEach((issue) => {
         expect(issue.filePath).toBeDefined()
         expect(issue.line).toBeGreaterThan(0)
         expect(issue.column).toBeGreaterThan(0)

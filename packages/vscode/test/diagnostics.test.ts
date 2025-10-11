@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, mock } from 'bun:test'
+import { describe, expect, it, mock } from 'bun:test'
 import { createVscodeMock } from './utils/vscode-mock'
 
 // Set up mocks BEFORE importing from source
@@ -29,7 +29,7 @@ describe('PickierDiagnosticProvider', () => {
       getText: () => code,
       fileName: '/workspace/test.ts',
       languageId: 'typescript',
-      uri: { fsPath: '/workspace/test.ts', toString: () => 'file:///workspace/test.ts' }
+      uri: { fsPath: '/workspace/test.ts', toString: () => 'file:///workspace/test.ts' },
     } as any
 
     await provider.provideDiagnostics(doc)
@@ -59,7 +59,7 @@ const y = 2`
       getText: () => code,
       fileName: '/workspace/clean.ts',
       languageId: 'typescript',
-      uri: { fsPath: '/workspace/clean.ts', toString: () => 'file:///workspace/clean.ts' }
+      uri: { fsPath: '/workspace/clean.ts', toString: () => 'file:///workspace/clean.ts' },
     } as any
 
     // Verify pickier detects no errors

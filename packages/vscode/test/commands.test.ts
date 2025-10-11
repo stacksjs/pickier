@@ -1,4 +1,6 @@
-import { beforeEach, describe, expect, it, mock } from 'bun:test'
+import { describe, expect, it, mock } from 'bun:test'
+import { organizeImports, restartExtension, showOutputChannel } from '../src/commands'
+
 import { createVscodeMock } from './utils/vscode-mock'
 
 // Set up mocks at module level
@@ -6,8 +8,6 @@ mock.module('vscode', () => createVscodeMock())
 mock.module('bunfig', () => ({
   loadConfig: async (opts: any) => opts.defaultConfig || {},
 }))
-
-import { organizeImports, restartExtension, showOutputChannel } from '../src/commands'
 
 describe('organizeImports', () => {
   // Use real pickier - no need to mock!
@@ -93,7 +93,6 @@ const x = 1`
 })
 
 describe('showOutputChannel', () => {
-
   it('shows the output channel', async () => {
     const vscode = await import('vscode')
     const outputChannel = vscode.window.createOutputChannel('Pickier')
@@ -110,7 +109,6 @@ describe('showOutputChannel', () => {
 })
 
 describe('restartExtension', () => {
-
   it('shows information message about restart', async () => {
     const vscode = await import('vscode')
 

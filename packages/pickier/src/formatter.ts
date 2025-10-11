@@ -1,16 +1,15 @@
-/* eslint-disable no-console */
 import type { FormatOptions, LintIssue, PickierConfig, PickierPlugin, RulesConfigMap } from './types'
 import { readFileSync, writeFileSync } from 'node:fs'
 import { relative } from 'node:path'
 import process from 'node:process'
+import { Logger } from '@stacksjs/clarity'
 import { glob as tinyGlob } from 'tinyglobby'
 import { formatCode } from './format'
 import { getAllPlugins } from './plugins'
 import { colors, expandPatterns, loadConfigFromPath, shouldIgnorePath } from './utils'
-import { Logger } from '@stacksjs/clarity'
 
 const logger = new Logger('pickier', {
-  showTags: false
+  showTags: false,
 })
 
 function trace(...args: any[]) {

@@ -1,6 +1,7 @@
 import { writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import process from 'node:process'
 import { runLint } from './src/linter'
 
 async function main() {
@@ -17,4 +18,8 @@ else {
   writeFileSync(file, content, 'utf8')
   await runLint([file], { reporter: 'json' })
 }
-main().catch((err) => { console.error(err); process.exit(1) })
+
+main().catch((err) => {
+  console.error(err)
+  process.exit(1)
+})

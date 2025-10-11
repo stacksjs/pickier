@@ -170,7 +170,8 @@ export function _internal_detectUnnecessaryElseBraces(text: string, filePath: st
         for (let k = start; k < lines.length; k++) {
           if (lines[k].trim() !== '')
             return k
-        }; return -1
+        }
+        return -1
       }) (i + 1)
       if (j < 0)
         continue
@@ -192,7 +193,10 @@ export function _internal_detectUnnecessaryElseBraces(text: string, filePath: st
         }
         else if (ch === '}') {
           depth--
-          if (depth === 0) { endLine = k; break }
+          if (depth === 0) {
+            endLine = k
+            break
+          }
         }
       }
       if (endLine >= 0)
@@ -240,7 +244,8 @@ export function _internal_detectUnnecessaryElseBraces(text: string, filePath: st
             for (let k2 = start; k2 < lines.length; k2++) {
               if (lines[k2].trim() !== '')
                 return k2
-            }; return -1
+            }
+            return -1
           })(j + 1)
           if (nn < 0)
             break
@@ -250,7 +255,8 @@ export function _internal_detectUnnecessaryElseBraces(text: string, filePath: st
           start2 = nn
         }
         // match closing for this branch
-        let d2 = 0; let end2 = -1
+        let d2 = 0
+        let end2 = -1
         for (let k2 = start2; k2 < lines.length; k2++) {
           const ln2 = lines[k2]
           const cStart2 = (k2 === start2 ? Math.max(0, pos2) : 0)
@@ -259,7 +265,13 @@ export function _internal_detectUnnecessaryElseBraces(text: string, filePath: st
             if (ch2 === '{') {
               d2++
             }
-            else if (ch2 === '}') { d2--; if (d2 === 0) { end2 = k2; break } }
+            else if (ch2 === '}') {
+              d2--
+              if (d2 === 0) {
+                end2 = k2
+                break
+              }
+            }
           }
           if (end2 >= 0)
             break
@@ -271,7 +283,10 @@ export function _internal_detectUnnecessaryElseBraces(text: string, filePath: st
             if (tr === '' || /^\/\//.test(tr))
               continue
             count++
-            if (count > 1) { chainHasMulti = true; break }
+            if (count > 1) {
+              chainHasMulti = true
+              break
+            }
           }
         }
         if (chainHasMulti)
@@ -281,9 +296,11 @@ export function _internal_detectUnnecessaryElseBraces(text: string, filePath: st
       if (!chainHasMulti && kind === 'if') {
         const nn = (function nextNonEmpty(start: number): number {
           for (let k3 = start; k3 < lines.length; k3++) {
-            const tt = lines[k3].trim(); if (tt !== '' && tt !== '}' && !/^\/\//.test(tt))
+            const tt = lines[k3].trim()
+            if (tt !== '' && tt !== '}' && !/^\/\//.test(tt))
               return k3
-          }; return -1
+          }
+          return -1
         })(endLine + 1)
         if (nn >= 0 && /^else\b/.test(lines[nn].trim())) {
           let after3 = lines[nn].indexOf('else') + 'else'.length
@@ -297,12 +314,17 @@ export function _internal_detectUnnecessaryElseBraces(text: string, filePath: st
               for (let k4 = start; k4 < lines.length; k4++) {
                 if (lines[k4].trim() !== '')
                   return k4
-              }; return -1
+              }
+              return -1
             })(nn + 1)
-            if (mm >= 0) { pos3 = lines[mm].indexOf('{'); start3 = pos3 >= 0 ? mm : start3 }
+            if (mm >= 0) {
+              pos3 = lines[mm].indexOf('{')
+              start3 = pos3 >= 0 ? mm : start3
+            }
           }
           if (pos3 >= 0) {
-            let d3 = 0; let end3 = -1
+            let d3 = 0
+            let end3 = -1
             for (let k4 = start3; k4 < lines.length; k4++) {
               const ln3 = lines[k4]
               const cStart3 = (k4 === start3 ? Math.max(0, pos3) : 0)
@@ -311,7 +333,13 @@ export function _internal_detectUnnecessaryElseBraces(text: string, filePath: st
                 if (ch3 === '{') {
                   d3++
                 }
-                else if (ch3 === '}') { d3--; if (d3 === 0) { end3 = k4; break } }
+                else if (ch3 === '}') {
+                  d3--
+                  if (d3 === 0) {
+                    end3 = k4
+                    break
+                  }
+                }
               }
               if (end3 >= 0)
                 break
@@ -322,7 +350,10 @@ export function _internal_detectUnnecessaryElseBraces(text: string, filePath: st
                 const tr3 = lines[k4].trim()
                 if (tr3 === '' || /^\/\//.test(tr3))
                   continue
-                if (++cnt > 1) { chainHasMulti = true; break }
+                if (++cnt > 1) {
+                  chainHasMulti = true
+                  break
+                }
               }
             }
           }

@@ -63,11 +63,11 @@ export class PickierFormattingProvider implements vscode.DocumentFormattingEditP
   }
 
   async provideOnTypeFormattingEdits(
-    document: vscode.TextDocument,
-    position: vscode.Position,
-    ch: string,
-    options: vscode.FormattingOptions,
-    token: vscode.CancellationToken,
+    _document: vscode.TextDocument,
+    _position: vscode.Position,
+    _ch: string,
+    _options: vscode.FormattingOptions,
+    _token: vscode.CancellationToken,
   ): Promise<vscode.TextEdit[]> {
     // Format on type for specific trigger characters
     return []

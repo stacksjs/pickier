@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { beforeEach, describe, expect, it, mock } from 'bun:test'
 import { createVscodeMock } from './utils/vscode-mock'
 
