@@ -30,7 +30,6 @@ describe('format imports (edge cases)', () => {
       'const n = NS && Y',
       'export { n }',
       '',
-      '',
     ].join('\n')
     writeFileSync(join(dir, file), src, 'utf8')
     const code = await runFormat([dir], { write: true })
@@ -52,7 +51,6 @@ describe('format imports (edge cases)', () => {
       'import { A as AA, Used } from \'pkg\'',
       '',
       'console.log(Used)',
-      '',
       '',
     ].join('\n')
     writeFileSync(join(dir, file), src, 'utf8')
@@ -77,7 +75,6 @@ describe('format imports (edge cases)', () => {
       'import { B } from \'lib\'',
       '',
       'export const x = B',
-      '',
       '',
     ].join('\n')
     writeFileSync(join(dir, file), src, 'utf8')

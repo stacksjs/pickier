@@ -801,19 +801,23 @@ export async function runLint(globs: string[], options: LintOptions): Promise<nu
 
     const reporter = options.reporter || cfg.lint.reporter
     if (reporter === 'json') {
-      logger.debug(JSON.stringify({ errors, warnings, issues: allIssues }, null, 2))
+      // eslint-disable-next-line no-console
+      console.log(JSON.stringify({ errors, warnings, issues: allIssues }, null, 2))
     }
     else if (reporter === 'compact') {
       for (const i of allIssues) {
-        logger.debug(`${relative(process.cwd(), i.filePath)}:${i.line}:${i.column} ${i.severity} ${i.ruleId} ${i.message}`)
+        // eslint-disable-next-line no-console
+        console.log(`${relative(process.cwd(), i.filePath)}:${i.line}:${i.column} ${i.severity} ${i.ruleId} ${i.message}`)
       }
     }
     else if (allIssues.length > 0) {
-      logger.debug(formatStylish(allIssues))
+      // eslint-disable-next-line no-console
+      console.log(formatStylish(allIssues))
     }
 
     if (options.verbose || cfg.verbose) {
-      logger.debug(colors.gray(`Scanned ${files.length} files, found ${errors} errors and ${warnings} warnings.`))
+      // eslint-disable-next-line no-console
+      console.log(colors.gray(`Scanned ${files.length} files, found ${errors} errors and ${warnings} warnings.`))
     }
 
     const maxWarnings = options.maxWarnings ?? cfg.lint.maxWarnings

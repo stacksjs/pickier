@@ -249,6 +249,39 @@ function maskStrings(input: string): { text: string, strings: string[] } {
   let start = 0
   while (i < input.length) {
     const ch = input[i]
+    const next = i + 1 < input.length ? input[i + 1] : ''
+
+    // Mask single-line comments
+    if (mode === 'none' && ch === '/' && next === '/') {
+      start = i
+      i += 2
+      while (i < input.length && input[i] !== '\n')
+        i++
+      const s = input.slice(start, i)
+      const token = `@@S${strings.length}@@`
+      strings.push(s)
+      out += token
+      continue
+    }
+
+    // Mask multi-line comments
+    if (mode === 'none' && ch === '/' && next === '*') {
+      start = i
+      i += 2
+      while (i < input.length) {
+        if (input[i] === '*' && i + 1 < input.length && input[i + 1] === '/') {
+          i += 2
+          break
+        }
+        i++
+      }
+      const s = input.slice(start, i)
+      const token = `@@S${strings.length}@@`
+      strings.push(s)
+      out += token
+      continue
+    }
+
     if (mode === 'none' && (ch === '\'' || ch === '"' || ch === '`')) {
       if (ch === '\'')
         mode = 'single'

@@ -23,7 +23,7 @@ export const topLevelFunctionRule: RuleModule = {
       const m = line.match(/^const\s+([A-Za-z_$][\w$]*)\s*=(.*)$/)
       if (!m)
         continue
-      const rhs = m[2]
+      const rhs = m[2].trim()
       // detect arrow fn or function expression on same line
       if (/^\(?[A-Z_$,]*(?:\)\s*)?=>/i.test(rhs) || /^function\b/.test(rhs)) {
         const col = line.indexOf('const') + 1
