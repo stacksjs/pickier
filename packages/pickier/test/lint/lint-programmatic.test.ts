@@ -21,7 +21,7 @@ describe('programmatic lintText', () => {
 
     expect(Array.isArray(issues)).toBe(true)
     // default config warns on console
-    expect(issues.some(i => i.ruleId === 'noConsole')).toBe(true)
+    expect(issues.some(i => i.ruleId === 'no-console')).toBe(true)
   })
 
   it('supports cancellation via AbortSignal', async () => {

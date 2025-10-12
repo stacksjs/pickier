@@ -494,10 +494,46 @@ export function scanContent(filePath: string, content: string, cfg: PickierConfi
         issues.push({ filePath, line: lineNo, column: 1, ruleId: 'noDebugger', message: 'Unexpected debugger statement', severity: wantDebugger })
     }
     if (wantConsole && consoleCall.test(line)) {
-      const lineNo = i + 1
-      const col = Math.max(1, line.indexOf('console.') + 1)
-      if (!isSuppressed('noConsole', lineNo, suppress))
-        issues.push({ filePath, line: lineNo, column: col, ruleId: 'noConsole', message: 'Unexpected console call', severity: wantConsole })
+      // Skip if console appears in a comment
+      const commentIdx = line.indexOf('//')
+      const consoleIdx = line.indexOf('console.')
+      if (commentIdx !== -1 && consoleIdx > commentIdx) {
+        // console is inside a comment, skip it
+      }
+      else {
+        // Check if console is inside a string literal
+        let inString: 'single' | 'double' | 'template' | null = null
+        let isConsoleInString = false
+        for (let k = 0; k < line.length; k++) {
+          const ch = line[k]
+          if (!inString) {
+            if (ch === '"')
+              inString = 'double'
+            else if (ch === '\'')
+              inString = 'single'
+            else if (ch === '`')
+              inString = 'template'
+            else if (line.slice(k).startsWith('console.')) {
+              // Found console outside of string, this is a real console call
+              const lineNo = i + 1
+              const col = k + 1
+              if (!isSuppressed('no-console', lineNo, suppress))
+                issues.push({ filePath, line: lineNo, column: col, ruleId: 'no-console', message: 'Unexpected console call', severity: wantConsole })
+              break
+            }
+          }
+          else {
+            // Check for string end
+            if ((inString === 'double' && ch === '"') || (inString === 'single' && ch === '\'') || (inString === 'template' && ch === '`')) {
+              if (k === 0 || line[k - 1] !== '\\')
+                inString = null
+            }
+            else if (line.slice(k).startsWith('console.')) {
+              isConsoleInString = true
+            }
+          }
+        }
+      }
     }
 
     // no-template-curly-in-string: flag ${...} inside normal strings (" or '), not in template literals
