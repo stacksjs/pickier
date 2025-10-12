@@ -101,9 +101,55 @@ export const noUnusedVarsRule: RuleModule = {
 
     // Function parameters: function foo(a,b) { ... } | const f = (a,b)=>{...} | const f=(x)=>x
     const getParamNames = (raw: string): string[] => {
-      // Strip TypeScript type annotations (everything after : including brackets)
+      // First, strip default values (everything after = including strings, objects, etc.)
+      // Need to find the = and strip everything after it while being aware of strings
+      const stripDefaults = (s: string): string => {
+        let result = ''
+        let inStr: 'single' | 'double' | 'template' | null = null
+        let escaped = false
+        let depth = 0 // for (), {}, []
+
+        for (let i = 0; i < s.length; i++) {
+          const ch = s[i]
+
+          if (escaped) {
+            escaped = false
+            continue
+          }
+
+          if (ch === '\\' && inStr) {
+            escaped = true
+            continue
+          }
+
+          if (!inStr) {
+            if (ch === '\'') inStr = 'single'
+            else if (ch === '"') inStr = 'double'
+            else if (ch === '`') inStr = 'template'
+            else if (ch === '(' || ch === '{' || ch === '[') depth++
+            else if (ch === ')' || ch === '}' || ch === ']') depth--
+            else if (ch === '=' && depth === 0) {
+              // Found assignment, strip everything from here
+              return result
+            }
+          }
+          else {
+            if ((inStr === 'single' && ch === '\'') ||
+                (inStr === 'double' && ch === '"') ||
+                (inStr === 'template' && ch === '`')) {
+              inStr = null
+            }
+          }
+
+          result += ch
+        }
+        return result
+      }
+
+      const withoutDefaults = stripDefaults(raw)
+      // Then strip TypeScript type annotations (everything after : including brackets)
       // Example: 'args: any[]' -> 'args', 'x: number' -> 'x'
-      const cleaned = raw.replace(/:\s*[^,)]+/g, '')
+      const cleaned = withoutDefaults.replace(/:\s*[^,)]+/g, '')
       return cleaned.split(/[^$\w]+/).filter(Boolean)
     }
     const findBodyRange = (startLine: number, startColFrom?: number): { from: number, to: number } | null => {
@@ -113,10 +159,11 @@ export const noUnusedVarsRule: RuleModule = {
         const s = lines[ln]
         let startIdx = 0
         if (!openFound) {
-          // Find first '{' outside of strings
+          // Find first '{' outside of strings and angle brackets (generics)
           let foundIdx = -1
           let inStr: 'single' | 'double' | 'template' | null = null
           let esc = false
+          let angleDepth = 0
           const searchStart = typeof startColFrom === 'number' ? startColFrom : 0
           for (let i = searchStart; i < s.length; i++) {
             const c = s[i]
@@ -132,7 +179,9 @@ export const noUnusedVarsRule: RuleModule = {
               if (c === '\'') inStr = 'single'
               else if (c === '"') inStr = 'double'
               else if (c === '`') inStr = 'template'
-              else if (c === '{') {
+              else if (c === '<') angleDepth++
+              else if (c === '>') angleDepth = Math.max(0, angleDepth - 1)
+              else if (c === '{' && angleDepth === 0) {
                 foundIdx = i
                 break
               }
@@ -151,9 +200,10 @@ export const noUnusedVarsRule: RuleModule = {
           depth = 1
           startIdx = foundIdx + 1
         }
-        // Track string state to skip braces inside strings
+        // Track string state and angle brackets to skip braces inside strings and generics
         let inString: 'single' | 'double' | 'template' | null = null
         let escaped = false
+        let angleDepth = 0
         for (let k = startIdx; k < s.length; k++) {
           const ch = s[k]
 
@@ -172,8 +222,10 @@ export const noUnusedVarsRule: RuleModule = {
             if (ch === '\'') inString = 'single'
             else if (ch === '"') inString = 'double'
             else if (ch === '`') inString = 'template'
-            else if (ch === '{') depth++
-            else if (ch === '}') {
+            else if (ch === '<') angleDepth++
+            else if (ch === '>') angleDepth = Math.max(0, angleDepth - 1)
+            else if (ch === '{' && angleDepth === 0) depth++
+            else if (ch === '}' && angleDepth === 0) {
               depth--
               if (depth === 0)
                 return { from: startLine, to: ln }
@@ -194,8 +246,98 @@ export const noUnusedVarsRule: RuleModule = {
 
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i]
+
+      // Skip comment-only lines
+      if (/^\s*\/\//.test(line))
+        continue
+
+      // Strip inline comments for processing (but keep original line for column reporting)
+      // Need to be careful not to strip // inside strings or regex literals
+      let codeOnly = line
+      // Find // that's outside of strings and regex
+      let inStr: 'single' | 'double' | 'template' | null = null
+      let inRegex = false
+      let escaped = false
+      for (let idx = 0; idx < line.length - 1; idx++) {
+        const ch = line[idx]
+        const next = line[idx + 1]
+
+        if (escaped) {
+          escaped = false
+          continue
+        }
+
+        if (ch === '\\' && (inStr || inRegex)) {
+          escaped = true
+          continue
+        }
+
+        if (!inStr && !inRegex) {
+          if (ch === '\'') inStr = 'single'
+          else if (ch === '"') inStr = 'double'
+          else if (ch === '`') inStr = 'template'
+          else if (ch === '/') {
+            // Check if this is a regex or a comment
+            // Regex can appear after: = ( [ { , : ; ! & | ? or at start of line
+            const prevChar = line[idx - 1] || ''
+            const prev2Chars = idx >= 2 ? line.slice(idx - 2, idx) : ''
+            if (/[=([{,:;!?]/.test(prevChar) || prev2Chars === '&&' || prev2Chars === '||' || /^\s*$/.test(line.slice(0, idx))) {
+              inRegex = true
+            }
+            else if (next === '/') {
+              codeOnly = line.slice(0, idx)
+              break
+            }
+          }
+        }
+        else if (inStr) {
+          if ((inStr === 'single' && ch === '\'') ||
+              (inStr === 'double' && ch === '"') ||
+              (inStr === 'template' && ch === '`')) {
+            inStr = null
+          }
+        }
+        else if (inRegex && ch === '/') {
+          inRegex = false
+        }
+      }
+
+      // Also strip regex literals to avoid matching => inside regex patterns
+      // Use the same helper function from linter.ts
+      const stripRegex = (str: string): string => {
+        let result = ''
+        let i = 0
+        while (i < str.length) {
+          if (str[i] === '/' && i > 0) {
+            const before = str.slice(0, i).trimEnd()
+            if (/[=([{,:;!&|?]$/.test(before) || before.endsWith('return')) {
+              i++ // skip opening /
+              while (i < str.length) {
+                if (str[i] === '\\') {
+                  i += 2
+                  continue
+                }
+                if (str[i] === '/') {
+                  i++ // skip closing /
+                  while (i < str.length && /[gimsuvy]/.test(str[i])) {
+                    i++
+                  }
+                  break
+                }
+                i++
+              }
+              continue
+            }
+          }
+          result += str[i]
+          i++
+        }
+        return result
+      }
+      const codeNoRegex = stripRegex(codeOnly)
+
       // function declarations or expressions
-      let m = line.match(/\bfunction\b/)
+      let m = codeNoRegex.match(/\bfunction\b/)
       if (m) {
         // Find the opening ( for parameters
         const funcIdx = m.index!
@@ -222,7 +364,8 @@ export const noUnusedVarsRule: RuleModule = {
         // Extract parameters between the parentheses
         const paramStr = line.slice(openParenIdx + 1, closeParenIdx)
         const params = getParamNames(paramStr)
-        const bodyRange = findBodyRange(i)
+        // Start searching for function body after the closing parenthesis to avoid matching braces in type annotations
+        const bodyRange = findBodyRange(i, closeParenIdx)
         // Get body text starting from the line after opening '{' to avoid matching parameter declarations
         let bodyText = ''
         if (bodyRange) {
@@ -257,14 +400,14 @@ export const noUnusedVarsRule: RuleModule = {
       // Use word boundary or assignment context to avoid matching function calls like registerCommand('...', () => ...)
       // Also skip 'async' keyword: (async () => ...)
       // Handle TypeScript return type annotations: (a: string): ReturnType =>
-      m = line.match(/(?:^|[=,;{([]\s*)(?:const|let|var)?\s*(\w*)\s*=?\s*(?!async\s)\(([^)]*)\)(?::\s*[^=]+?)?\s*=>/)
+      m = codeNoRegex.match(/(?:^|[=,;{([]\s*)(?:const|let|var)?\s*(\w*)\s*=?\s*(?!async\s)\(([^)]*)\)(?::\s*[^=]+?)?\s*=>/)
       if (m) {
         const params = getParamNames(m[m.length - 1]) // last capture group is the params
-        const arrowIdx = line.indexOf('=>')
+        const arrowIdx = codeOnly.indexOf('=>')
         let bodyText = ''
         // Check if there's a function body with braces (not just object literals in the expression)
         // Function body braces appear immediately after => with only whitespace in between
-        const afterArrow = line.slice(arrowIdx + 2).trimStart()
+        const afterArrow = codeOnly.slice(arrowIdx + 2).trimStart()
         if (afterArrow.startsWith('{')) {
           const bodyRange = findBodyRange(i, arrowIdx)
           // Get body text, avoiding parameter declarations
@@ -286,7 +429,7 @@ export const noUnusedVarsRule: RuleModule = {
           }
         }
         else {
-          bodyText = line.slice(arrowIdx + 2)
+          bodyText = codeOnly.slice(arrowIdx + 2)
         }
         for (const name of params) {
           if (!name || argIgnoreRe.test(name))
@@ -304,14 +447,14 @@ export const noUnusedVarsRule: RuleModule = {
         const reSingleArrow = /(?:^|[=,:({\s])\s*([$A-Z_][\w$]*)\s*=>/gi
         let match: RegExpExecArray | null
         // eslint-disable-next-line no-cond-assign
-        while ((match = reSingleArrow.exec(line)) !== null) {
+        while ((match = reSingleArrow.exec(codeNoRegex)) !== null) {
           const name = match[1]
           if (!name || argIgnoreRe.test(name))
             continue
           const arrowIdx = match.index + match[0].lastIndexOf('=>')
           let bodyText = ''
           // Check if there's a function body with braces (not just object literals in the expression)
-          const afterArrow = line.slice(arrowIdx + 2).trimStart()
+          const afterArrow = codeOnly.slice(arrowIdx + 2).trimStart()
           if (afterArrow.startsWith('{')) {
             const bodyRange = findBodyRange(i, arrowIdx)
             // Get body text, avoiding parameter declarations
@@ -333,7 +476,7 @@ export const noUnusedVarsRule: RuleModule = {
             }
           }
           else {
-            bodyText = line.slice(arrowIdx + 2)
+            bodyText = codeOnly.slice(arrowIdx + 2)
           }
           const useRe = new RegExp(`\\b${name}\\b`, 'g')
           if (!useRe.test(bodyText)) {
