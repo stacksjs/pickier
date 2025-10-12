@@ -55,12 +55,21 @@ test/
 
 ## Running Tests
 
-```bash
-# Run all tests
-bun test
+Tests can be run from **anywhere** in the monorepo thanks to proper workspace configuration.
 
-# Run tests for specific category
-bun test test/format
+```bash
+# From monorepo root (~/Code/pickier)
+bun test                    # Run all pickier tests
+bun run test:format         # Run format tests only
+bun run test:lint           # Run lint tests only
+bun run test:rules          # Run all rule tests
+bun run test:plugin         # Run plugin tests only
+bun run test:core           # Run core tests only
+bun run test:watch          # Run tests in watch mode
+
+# From package directory (~/Code/pickier/packages/pickier)
+bun test                    # Run all tests
+bun test test/format        # Run tests for specific category
 bun test test/lint
 bun test test/rules
 bun test test/plugin
@@ -70,6 +79,9 @@ bun test test/core
 bun test test/rules/sort
 bun test test/rules/style
 bun test test/format/imports
+
+# Run with coverage
+bun test --coverage
 ```
 
 ## Test Helpers

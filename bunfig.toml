@@ -2,5 +2,6 @@
 registry = { url = "https://registry.npmjs.org/", token = "$BUN_AUTH_TOKEN" }
 
 [test]
-# Run setup file before tests to enable VS Code mocking globally
-# preload = [ "./packages/vscode/test/setup.ts" ]
+# Specify root directory for test discovery
+# When running `bun test` from root, only look in pickier package
+root = "./packages/pickier"

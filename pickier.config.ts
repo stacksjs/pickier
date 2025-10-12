@@ -2,14 +2,20 @@
 // You can customize lint/format behavior and rule severities here.
 // All fields are optional; defaults are shown below.
 
-import type { PickierConfig } from 'pickier'
-
-const config: PickierConfig = {
+const config = {
   // Increase verbosity of CLI outputs
   verbose: false,
 
   // Glob patterns to ignore
-  ignores: ['**/node_modules/**', '**/dist/**', '**/build/**'],
+  ignores: [
+    '**/node_modules/**',
+    '**/dist/**',
+    '**/build/**',
+    '**/test/fixtures/**',
+    '**/test/output/**',
+    'docs/**',
+    'packages/vscode/examples/**',
+  ],
 
   // Lint-specific options
   lint: {
@@ -42,6 +48,24 @@ const config: PickierConfig = {
   rules: {
     noDebugger: 'error', // remove debugger statements
     noConsole: 'warn', // warn on console usage
+    noTemplateCurlyInString: 'error', // catch ${} in regular strings
+    noCondAssign: 'error', // no assignments in conditionals
+    'prefer-const': 'warn', // prefer const over let
+  },
+
+  // Plugin rules (advanced linting)
+  pluginRules: {
+    'style/curly': 'warn',
+    'style/if-newline': 'warn',
+    'pickier/no-unused-vars': 'error', // catch unused imports/vars
+    'pickier/sort-imports': 'warn', // sort import statements
+    'pickier/sort-named-imports': 'warn', // sort named imports
+    'pickier/sort-objects': 'warn', // sort object keys
+    'pickier/sort-exports': 'warn', // sort exports
+    'pickier/import-dedupe': 'warn', // dedupe imports
+    'pickier/no-import-node-modules-by-path': 'error',
+    'pickier/no-import-dist': 'error',
+    'ts/no-top-level-await': 'error',
   },
 }
 

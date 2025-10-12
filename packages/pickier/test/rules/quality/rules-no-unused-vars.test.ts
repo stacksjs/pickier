@@ -134,4 +134,26 @@ describe('pickier/no-unused-vars', () => {
     const code = await runLint([dir], { config: cfgPath, reporter: 'json' })
     expect(code).toBe(0)
   })
+
+  it('does not flag TypeScript generic type parameters as unused variables', async () => {
+    const dir = tmp()
+    const file = 'g.ts'
+    // Test case: commas inside generic type parameters should not be treated as variable separators
+    const src = 'const timers = new Map<string, NodeJS.Timeout>()\nsetTimeout(() => timers.clear(), 100)\n'
+    writeFileSync(join(dir, file), src, 'utf8')
+
+    const cfgPath = join(dir, 'pickier.config.json')
+    writeFileSync(cfgPath, JSON.stringify({
+      verbose: false,
+      ignores: [],
+      lint: { extensions: ['ts'], reporter: 'json', cache: false, maxWarnings: -1 },
+      format: { extensions: ['ts'], trimTrailingWhitespace: true, maxConsecutiveBlankLines: 1, finalNewline: 'one', indent: 2, quotes: 'single', semi: false },
+      rules: { noDebugger: 'off', noConsole: 'off' },
+      plugins: [{ name: 'pickier', rules: {} }],
+      pluginRules: { 'pickier/no-unused-vars': 'error' },
+    }, null, 2), 'utf8')
+
+    const code = await runLint([dir], { config: cfgPath, reporter: 'json' })
+    expect(code).toBe(0) // Should pass - NodeJS is a type, not an unused variable
+  })
 })

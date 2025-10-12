@@ -815,6 +815,59 @@ export async function runLint(globs: string[], options: LintOptions): Promise<nu
       console.log(formatStylish(allIssues))
     }
 
+    // Print summary (similar to ESLint)
+    if (allIssues.length > 0 && reporter !== 'json') {
+      const total = errors + warnings
+      const problemsText = total === 1 ? 'problem' : 'problems'
+      const errorsText = errors === 1 ? 'error' : 'errors'
+      const warningsText = warnings === 1 ? 'warning' : 'warnings'
+
+      // Count fixable issues (rules with fix functions)
+      const pluginDefs = getAllPlugins()
+      const fixableRuleIds = new Set<string>()
+
+      // Built-in fixable rules
+      fixableRuleIds.add('noDebugger')
+
+      // Plugin rules with fix functions
+      for (const plugin of pluginDefs) {
+        for (const ruleName in plugin.rules) {
+          const rule = plugin.rules[ruleName]
+          if (rule && typeof rule.fix === 'function') {
+            fixableRuleIds.add(`${plugin.name}/${ruleName}`)
+          }
+        }
+      }
+
+      let fixableErrors = 0
+      let fixableWarnings = 0
+      for (const issue of allIssues) {
+        const ruleId = issue.ruleId as string
+        // Check both full rule ID (plugin/rule) and short form (rule)
+        const isFixable = fixableRuleIds.has(ruleId)
+          || Array.from(fixableRuleIds).some(id => id.endsWith(`/${ruleId}`))
+
+        if (isFixable) {
+          if (issue.severity === 'error')
+            fixableErrors++
+          else if (issue.severity === 'warning')
+            fixableWarnings++
+        }
+      }
+
+      // eslint-disable-next-line no-console
+      console.log()
+      // eslint-disable-next-line no-console
+      console.log(colors.red(`✖ ${total} ${problemsText} (${errors} ${errorsText}, ${warnings} ${warningsText})`))
+
+      if (fixableErrors > 0 || fixableWarnings > 0) {
+        const fixableErrorsText = fixableErrors === 1 ? 'error' : 'errors'
+        const fixableWarningsText = fixableWarnings === 1 ? 'warning' : 'warnings'
+        // eslint-disable-next-line no-console
+        console.log(colors.gray(`  ${fixableErrors} ${fixableErrorsText} and ${fixableWarnings} ${fixableWarningsText} potentially fixable with the \`--fix\` option.`))
+      }
+    }
+
     if (options.verbose || cfg.verbose) {
       // eslint-disable-next-line no-console
       console.log(colors.gray(`Scanned ${files.length} files, found ${errors} errors and ${warnings} warnings.`))

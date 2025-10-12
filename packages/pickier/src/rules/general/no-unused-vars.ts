@@ -20,7 +20,27 @@ export const noUnusedVarsRule: RuleModule = {
       if (!decl)
         continue
       const after = decl[1]
-      const parts = after.split(',')
+
+      // Smart comma split: ignore commas inside < >, [ ], { }, ( )
+      const parts: string[] = []
+      let current = ''
+      let depth = 0
+      let angleDepth = 0
+      for (let k = 0; k < after.length; k++) {
+        const ch = after[k]
+        if (ch === '<') angleDepth++
+        else if (ch === '>') angleDepth--
+        else if (ch === '(' || ch === '[' || ch === '{') depth++
+        else if (ch === ')' || ch === ']' || ch === '}') depth--
+        else if (ch === ',' && depth === 0 && angleDepth === 0) {
+          parts.push(current)
+          current = ''
+          continue
+        }
+        current += ch
+      }
+      if (current) parts.push(current)
+
       for (const partRaw of parts) {
         const part = partRaw.trim()
         if (!part)
@@ -101,10 +121,12 @@ export const noUnusedVarsRule: RuleModule = {
         continue
       }
 
-      // arrow functions (parenthesized params)
-      m = line.match(/\(([^)]*)\)\s*=>/)
+      // arrow functions (parenthesized params) - match patterns like: const f = (a,b) => ..., or standalone (a,b) => ...
+      // Use word boundary or assignment context to avoid matching function calls like registerCommand('...', () => ...)
+      // Also skip 'async' keyword: (async () => ...)
+      m = line.match(/(?:^|[=,;{([]\s*)(?:const|let|var)?\s*(?!async\s)(\w*)\s*=?\s*\(([^)]*)\)\s*=>/)
       if (m) {
-        const params = getParamNames(m[1])
+        const params = getParamNames(m[m.length - 1]) // last capture group is the params
         const arrowIdx = line.indexOf('=>')
         let bodyText = ''
         if (line.includes('{', arrowIdx)) {
