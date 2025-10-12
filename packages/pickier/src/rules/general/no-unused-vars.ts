@@ -113,22 +113,79 @@ export const noUnusedVarsRule: RuleModule = {
         const s = lines[ln]
         let startIdx = 0
         if (!openFound) {
-          const idx = s.indexOf('{', typeof startColFrom === 'number' ? startColFrom : 0)
-          if (idx === -1)
+          // Find first '{' outside of strings
+          let foundIdx = -1
+          let inStr: 'single' | 'double' | 'template' | null = null
+          let esc = false
+          const searchStart = typeof startColFrom === 'number' ? startColFrom : 0
+          for (let i = searchStart; i < s.length; i++) {
+            const c = s[i]
+            if (esc) {
+              esc = false
+              continue
+            }
+            if (c === '\\' && inStr) {
+              esc = true
+              continue
+            }
+            if (!inStr) {
+              if (c === '\'') inStr = 'single'
+              else if (c === '"') inStr = 'double'
+              else if (c === '`') inStr = 'template'
+              else if (c === '{') {
+                foundIdx = i
+                break
+              }
+            }
+            else {
+              if ((inStr === 'single' && c === '\'') ||
+                  (inStr === 'double' && c === '"') ||
+                  (inStr === 'template' && c === '`')) {
+                inStr = null
+              }
+            }
+          }
+          if (foundIdx === -1)
             continue
           openFound = true
           depth = 1
-          startIdx = idx + 1
+          startIdx = foundIdx + 1
         }
+        // Track string state to skip braces inside strings
+        let inString: 'single' | 'double' | 'template' | null = null
+        let escaped = false
         for (let k = startIdx; k < s.length; k++) {
           const ch = s[k]
-          if (ch === '{') {
-            depth++
+
+          if (escaped) {
+            escaped = false
+            continue
           }
-          else if (ch === '}') {
-            depth--
-            if (depth === 0)
-              return { from: startLine, to: ln }
+
+          if (ch === '\\' && inString) {
+            escaped = true
+            continue
+          }
+
+          // Track string boundaries
+          if (!inString) {
+            if (ch === '\'') inString = 'single'
+            else if (ch === '"') inString = 'double'
+            else if (ch === '`') inString = 'template'
+            else if (ch === '{') depth++
+            else if (ch === '}') {
+              depth--
+              if (depth === 0)
+                return { from: startLine, to: ln }
+            }
+          }
+          else {
+            // Check for string end
+            if ((inString === 'single' && ch === '\'') ||
+                (inString === 'double' && ch === '"') ||
+                (inString === 'template' && ch === '`')) {
+              inString = null
+            }
           }
         }
       }
@@ -166,14 +223,30 @@ export const noUnusedVarsRule: RuleModule = {
         const paramStr = line.slice(openParenIdx + 1, closeParenIdx)
         const params = getParamNames(paramStr)
         const bodyRange = findBodyRange(i)
-        const bodyText = bodyRange ? lines.slice(bodyRange.from, bodyRange.to + 1).join('\n') : ''
+        // Get body text starting from the line after opening '{' to avoid matching parameter declarations
+        let bodyText = ''
+        if (bodyRange) {
+          // If body is on the same line as declaration, get content after '{'
+          if (bodyRange.from === i) {
+            const bodyStartLine = lines[bodyRange.from]
+            const braceIdx = bodyStartLine.lastIndexOf('{')
+            const restOfFirstLine = braceIdx >= 0 ? bodyStartLine.slice(braceIdx + 1) : ''
+            if (bodyRange.to > bodyRange.from) {
+              bodyText = restOfFirstLine + '\n' + lines.slice(bodyRange.from + 1, bodyRange.to + 1).join('\n')
+            }
+            else {
+              bodyText = restOfFirstLine
+            }
+          }
+          else {
+            bodyText = lines.slice(bodyRange.from, bodyRange.to + 1).join('\n')
+          }
+        }
         for (const name of params) {
           if (!name || argIgnoreRe.test(name))
             continue
           const re = new RegExp(`\\b${name}\\b`, 'g')
-          const afterParamsIdx = closeParenIdx + 1
-          const localSlice = (`${line.slice(afterParamsIdx)}\n${bodyText}`)
-          if (!re.test(localSlice)) {
+          if (!re.test(bodyText)) {
             issues.push({ filePath: ctx.filePath, line: i + 1, column: Math.max(1, line.indexOf(name) + 1), ruleId: 'pickier/no-unused-vars', message: `'${name}' is defined but never used (function parameter). Allowed unused args must match pattern: ${argsIgnorePattern}`, severity: 'error' })
           }
         }
@@ -183,14 +256,34 @@ export const noUnusedVarsRule: RuleModule = {
       // arrow functions (parenthesized params) - match patterns like: const f = (a,b) => ..., or standalone (a,b) => ...
       // Use word boundary or assignment context to avoid matching function calls like registerCommand('...', () => ...)
       // Also skip 'async' keyword: (async () => ...)
-      m = line.match(/(?:^|[=,;{([]\s*)(?:const|let|var)?\s*(\w*)\s*=?\s*(?!async\s)\(([^)]*)\)\s*=>/)
+      // Handle TypeScript return type annotations: (a: string): ReturnType =>
+      m = line.match(/(?:^|[=,;{([]\s*)(?:const|let|var)?\s*(\w*)\s*=?\s*(?!async\s)\(([^)]*)\)(?::\s*[^=]+?)?\s*=>/)
       if (m) {
         const params = getParamNames(m[m.length - 1]) // last capture group is the params
         const arrowIdx = line.indexOf('=>')
         let bodyText = ''
-        if (line.includes('{', arrowIdx)) {
+        // Check if there's a function body with braces (not just object literals in the expression)
+        // Function body braces appear immediately after => with only whitespace in between
+        const afterArrow = line.slice(arrowIdx + 2).trimStart()
+        if (afterArrow.startsWith('{')) {
           const bodyRange = findBodyRange(i, arrowIdx)
-          bodyText = bodyRange ? lines.slice(bodyRange.from, bodyRange.to + 1).join('\n') : ''
+          // Get body text, avoiding parameter declarations
+          if (bodyRange) {
+            if (bodyRange.from === i) {
+              const bodyStartLine = lines[bodyRange.from]
+              const braceIdx = bodyStartLine.indexOf('{', arrowIdx)
+              const restOfFirstLine = braceIdx >= 0 ? bodyStartLine.slice(braceIdx + 1) : ''
+              if (bodyRange.to > bodyRange.from) {
+                bodyText = restOfFirstLine + '\n' + lines.slice(bodyRange.from + 1, bodyRange.to + 1).join('\n')
+              }
+              else {
+                bodyText = restOfFirstLine
+              }
+            }
+            else {
+              bodyText = lines.slice(bodyRange.from, bodyRange.to + 1).join('\n')
+            }
+          }
         }
         else {
           bodyText = line.slice(arrowIdx + 2)
@@ -217,9 +310,27 @@ export const noUnusedVarsRule: RuleModule = {
             continue
           const arrowIdx = match.index + match[0].lastIndexOf('=>')
           let bodyText = ''
-          if (line.includes('{', arrowIdx)) {
+          // Check if there's a function body with braces (not just object literals in the expression)
+          const afterArrow = line.slice(arrowIdx + 2).trimStart()
+          if (afterArrow.startsWith('{')) {
             const bodyRange = findBodyRange(i, arrowIdx)
-            bodyText = bodyRange ? lines.slice(bodyRange.from, bodyRange.to + 1).join('\n') : ''
+            // Get body text, avoiding parameter declarations
+            if (bodyRange) {
+              if (bodyRange.from === i) {
+                const bodyStartLine = lines[bodyRange.from]
+                const braceIdx = bodyStartLine.indexOf('{', arrowIdx)
+                const restOfFirstLine = braceIdx >= 0 ? bodyStartLine.slice(braceIdx + 1) : ''
+                if (bodyRange.to > bodyRange.from) {
+                  bodyText = restOfFirstLine + '\n' + lines.slice(bodyRange.from + 1, bodyRange.to + 1).join('\n')
+                }
+                else {
+                  bodyText = restOfFirstLine
+                }
+              }
+              else {
+                bodyText = lines.slice(bodyRange.from, bodyRange.to + 1).join('\n')
+              }
+            }
           }
           else {
             bodyText = line.slice(arrowIdx + 2)
