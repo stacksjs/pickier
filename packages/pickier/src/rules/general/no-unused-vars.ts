@@ -21,21 +21,51 @@ export const noUnusedVarsRule: RuleModule = {
         continue
       const after = decl[1]
 
-      // Smart comma split: ignore commas inside < >, [ ], { }, ( )
+      // Smart comma split: ignore commas inside < >, [ ], { }, ( ), and strings
       const parts: string[] = []
       let current = ''
       let depth = 0
       let angleDepth = 0
+      let inString: 'single' | 'double' | 'template' | null = null
+      let escaped = false
       for (let k = 0; k < after.length; k++) {
         const ch = after[k]
-        if (ch === '<') angleDepth++
-        else if (ch === '>') angleDepth--
-        else if (ch === '(' || ch === '[' || ch === '{') depth++
-        else if (ch === ')' || ch === ']' || ch === '}') depth--
-        else if (ch === ',' && depth === 0 && angleDepth === 0) {
-          parts.push(current)
-          current = ''
+
+        // Handle escape sequences in strings
+        if (escaped) {
+          escaped = false
+          current += ch
           continue
+        }
+
+        if (ch === '\\' && inString) {
+          escaped = true
+          current += ch
+          continue
+        }
+
+        // Track string boundaries
+        if (!inString) {
+          if (ch === '\'') inString = 'single'
+          else if (ch === '"') inString = 'double'
+          else if (ch === '`') inString = 'template'
+          else if (ch === '<') angleDepth++
+          else if (ch === '>') angleDepth--
+          else if (ch === '(' || ch === '[' || ch === '{') depth++
+          else if (ch === ')' || ch === ']' || ch === '}') depth--
+          else if (ch === ',' && depth === 0 && angleDepth === 0) {
+            parts.push(current)
+            current = ''
+            continue
+          }
+        }
+        else {
+          // Inside string - check for end
+          if ((inString === 'single' && ch === '\'') ||
+              (inString === 'double' && ch === '"') ||
+              (inString === 'template' && ch === '`')) {
+            inString = null
+          }
         }
         current += ch
       }
