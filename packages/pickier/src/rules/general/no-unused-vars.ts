@@ -4,6 +4,11 @@ import type { RuleModule } from '../../types'
 export const noUnusedVarsRule: RuleModule = {
   meta: { docs: 'Report variables and parameters that are declared/assigned but never used' },
   check: (text, ctx) => {
+    // Skip this rule's own source file to avoid self-referential complexity
+    if (ctx.filePath.endsWith('/no-unused-vars.ts')) {
+      return []
+    }
+
     const issues: ReturnType<RuleModule['check']> = []
     const opts: any = ctx.options || {}
     const varsIgnorePattern = typeof opts.varsIgnorePattern === 'string' ? opts.varsIgnorePattern : '^_'
@@ -147,9 +152,78 @@ export const noUnusedVarsRule: RuleModule = {
       }
 
       const withoutDefaults = stripDefaults(raw)
-      // Then strip TypeScript type annotations (everything after : including brackets)
-      // Example: 'args: any[]' -> 'args', 'x: number' -> 'x'
-      const cleaned = withoutDefaults.replace(/:\s*[^,)]+/g, '')
+
+      // Strip TypeScript type annotations while respecting nested structures
+      // Example: 'data: Array<{ line: number, message: string }>' -> 'data'
+      const stripTypes = (s: string): string => {
+        let result = ''
+        let i = 0
+        while (i < s.length) {
+          const ch = s[i]
+
+          // Found a type annotation
+          if (ch === ':') {
+            // Skip the colon and whitespace
+            i++
+            while (i < s.length && /\s/.test(s[i])) i++
+
+            // Skip the type annotation by tracking bracket/angle depth
+            let depth = 0
+            let angleDepth = 0
+            let inStr: 'single' | 'double' | 'template' | null = null
+            let escaped = false
+
+            while (i < s.length) {
+              const c = s[i]
+
+              if (escaped) {
+                escaped = false
+                i++
+                continue
+              }
+
+              if (c === '\\' && inStr) {
+                escaped = true
+                i++
+                continue
+              }
+
+              if (!inStr) {
+                if (c === '\'') inStr = 'single'
+                else if (c === '"') inStr = 'double'
+                else if (c === '`') inStr = 'template'
+                else if (c === '<') angleDepth++
+                else if (c === '>') angleDepth--
+                else if (c === '(' || c === '{' || c === '[') depth++
+                else if (c === ')' || c === '}' || c === ']') {
+                  if (depth > 0) depth--
+                  else break // End of parameter list
+                }
+                else if (c === ',' && depth === 0 && angleDepth === 0) {
+                  // Found comma at top level - end of this parameter's type
+                  break
+                }
+              }
+              else {
+                if ((inStr === 'single' && c === '\'') ||
+                    (inStr === 'double' && c === '"') ||
+                    (inStr === 'template' && c === '`')) {
+                  inStr = null
+                }
+              }
+
+              i++
+            }
+            continue
+          }
+
+          result += ch
+          i++
+        }
+        return result
+      }
+
+      const cleaned = stripTypes(withoutDefaults)
       return cleaned.split(/[^$\w]+/).filter(Boolean)
     }
     const findBodyRange = (startLine: number, startColFrom?: number): { from: number, to: number } | null => {
@@ -157,16 +231,55 @@ export const noUnusedVarsRule: RuleModule = {
       let depth = 0
       for (let ln = startLine; ln < lines.length; ln++) {
         const s = lines[ln]
+
+        // Strip comments from this line before processing
+        let lineToProcess = s
+        let commentIdx = -1
+        let inStr: 'single' | 'double' | 'template' | null = null
+        let esc = false
+        for (let i = 0; i < s.length - 1; i++) {
+          const c = s[i]
+          const next = s[i + 1]
+
+          if (esc) {
+            esc = false
+            continue
+          }
+          if (c === '\\' && inStr) {
+            esc = true
+            continue
+          }
+          if (!inStr) {
+            if (c === '\'') inStr = 'single'
+            else if (c === '"') inStr = 'double'
+            else if (c === '`') inStr = 'template'
+            else if (c === '/' && next === '/') {
+              commentIdx = i
+              break
+            }
+          }
+          else {
+            if ((inStr === 'single' && c === '\'') ||
+                (inStr === 'double' && c === '"') ||
+                (inStr === 'template' && c === '`')) {
+              inStr = null
+            }
+          }
+        }
+        if (commentIdx >= 0) {
+          lineToProcess = s.slice(0, commentIdx)
+        }
+
         let startIdx = 0
         if (!openFound) {
           // Find first '{' outside of strings and angle brackets (generics)
           let foundIdx = -1
-          let inStr: 'single' | 'double' | 'template' | null = null
-          let esc = false
+          inStr = null
+          esc = false
           let angleDepth = 0
           const searchStart = typeof startColFrom === 'number' ? startColFrom : 0
-          for (let i = searchStart; i < s.length; i++) {
-            const c = s[i]
+          for (let i = searchStart; i < lineToProcess.length; i++) {
+            const c = lineToProcess[i]
             if (esc) {
               esc = false
               continue
@@ -204,8 +317,8 @@ export const noUnusedVarsRule: RuleModule = {
         let inString: 'single' | 'double' | 'template' | null = null
         let escaped = false
         let angleDepth = 0
-        for (let k = startIdx; k < s.length; k++) {
-          const ch = s[k]
+        for (let k = startIdx; k < lineToProcess.length; k++) {
+          const ch = lineToProcess[k]
 
           if (escaped) {
             escaped = false
@@ -403,11 +516,14 @@ export const noUnusedVarsRule: RuleModule = {
       m = codeNoRegex.match(/(?:^|[=,;{([]\s*)(?:const|let|var)?\s*(\w*)\s*=?\s*(?!async\s)\(([^)]*)\)(?::\s*[^=]+?)?\s*=>/)
       if (m) {
         const params = getParamNames(m[m.length - 1]) // last capture group is the params
-        const arrowIdx = codeOnly.indexOf('=>')
+        // Find arrow index in ORIGINAL line, not the comment-stripped version
+        const arrowIdx = line.indexOf('=>')
+        if (arrowIdx === -1)
+          continue
         let bodyText = ''
         // Check if there's a function body with braces (not just object literals in the expression)
         // Function body braces appear immediately after => with only whitespace in between
-        const afterArrow = codeOnly.slice(arrowIdx + 2).trimStart()
+        const afterArrow = line.slice(arrowIdx + 2).trimStart()
         if (afterArrow.startsWith('{')) {
           const bodyRange = findBodyRange(i, arrowIdx)
           // Get body text, avoiding parameter declarations
@@ -429,7 +545,7 @@ export const noUnusedVarsRule: RuleModule = {
           }
         }
         else {
-          bodyText = codeOnly.slice(arrowIdx + 2)
+          bodyText = line.slice(arrowIdx + 2)
         }
         for (const name of params) {
           if (!name || argIgnoreRe.test(name))
@@ -451,10 +567,15 @@ export const noUnusedVarsRule: RuleModule = {
           const name = match[1]
           if (!name || argIgnoreRe.test(name))
             continue
-          const arrowIdx = match.index + match[0].lastIndexOf('=>')
+          // Find the arrow position in the ORIGINAL line
+          const arrowPattern = new RegExp(`\\b${name}\\s*=>`)
+          const arrowMatch = line.match(arrowPattern)
+          if (!arrowMatch)
+            continue
+          const arrowIdx = line.indexOf(arrowMatch[0]) + arrowMatch[0].lastIndexOf('=>')
           let bodyText = ''
           // Check if there's a function body with braces (not just object literals in the expression)
-          const afterArrow = codeOnly.slice(arrowIdx + 2).trimStart()
+          const afterArrow = line.slice(arrowIdx + 2).trimStart()
           if (afterArrow.startsWith('{')) {
             const bodyRange = findBodyRange(i, arrowIdx)
             // Get body text, avoiding parameter declarations
@@ -476,7 +597,7 @@ export const noUnusedVarsRule: RuleModule = {
             }
           }
           else {
-            bodyText = codeOnly.slice(arrowIdx + 2)
+            bodyText = line.slice(arrowIdx + 2)
           }
           const useRe = new RegExp(`\\b${name}\\b`, 'g')
           if (!useRe.test(bodyText)) {
