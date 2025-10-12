@@ -212,6 +212,12 @@ export function formatCode(src: string, cfg: PickierConfig, filePath: string): s
 
 export function detectQuoteIssues(line: string, preferred: 'single' | 'double'): number[] {
   // return character indices (0-based) where offending quote starts
+
+  // Skip TypeScript triple-slash directives (they must use double quotes)
+  if (/^\s*\/\/\/\s*<reference/.test(line)) {
+    return []
+  }
+
   const indices: number[] = []
   if (preferred === 'single') {
     const re = /"(?:[^"\\]|\\.)*"/g

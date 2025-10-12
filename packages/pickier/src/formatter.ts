@@ -92,16 +92,37 @@ export function applyFixes(filePath: string, content: string, cfg: PickierConfig
 }
 
 export function formatStylish(issues: LintIssue[]): string {
-  const rel = (p: string) => relative(process.cwd(), p)
-  let out = ''
-  let lastFile = ''
+  if (issues.length === 0)
+    return ''
+
+  // Group issues by file
+  const byFile = new Map<string, LintIssue[]>()
   for (const issue of issues) {
-    if (issue.filePath !== lastFile) {
-      lastFile = issue.filePath
-      out += `\n${colors.bold(rel(issue.filePath))}\n`
+    const list = byFile.get(issue.filePath) || []
+    list.push(issue)
+    byFile.set(issue.filePath, list)
+  }
+
+  let out = ''
+  for (const [filePath, fileIssues] of byFile) {
+    // Use full absolute path and underline it (ESLint style)
+    out += `\n${colors.bold('\x1B[4m' + filePath + '\x1B[24m')}\n`
+
+    for (const issue of fileIssues) {
+      const sev = issue.severity === 'error' ? colors.red('error') : colors.yellow('warn ')
+
+      // Format: "  line:col  severity  message  ruleId"
+      // Pad line:col to align nicely (e.g., "  5:10")
+      const lineCol = `${issue.line}:${issue.column}`
+      const paddedLineCol = lineCol.padStart(6)
+
+      // Align message and ruleId with proper spacing
+      // Message on left, ruleId on right (like ESLint)
+      const messageWidth = 60
+      const paddedMessage = issue.message.padEnd(messageWidth)
+
+      out += `${paddedLineCol}  ${sev}  ${paddedMessage}  ${colors.blue(issue.ruleId)}\n`
     }
-    const sev = issue.severity === 'error' ? colors.red('error') : colors.yellow('warn ')
-    out += `${sev}  ${colors.gray(String(issue.line))}:${colors.gray(String(issue.column))}  ${colors.blue(issue.ruleId)}  ${issue.message}\n`
   }
   return out
 }

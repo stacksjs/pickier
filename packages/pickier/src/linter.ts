@@ -503,7 +503,7 @@ export function scanContent(filePath: string, content: string, cfg: PickierConfi
     // no-template-curly-in-string: flag ${...} inside normal strings (" or '), not in template literals
     if (wantNoTemplateCurly) {
       const ln = line
-      let inStr: 'single' | 'double' | null = null
+      let inStr: 'single' | 'double' | 'template' | null = null
       let prev = ''
       for (let k = 0; k < ln.length; k++) {
         const ch = ln[k]
@@ -518,13 +518,18 @@ export function scanContent(filePath: string, content: string, cfg: PickierConfi
             prev = ch
             continue
           }
+          if (ch === '`') {
+            inStr = 'template'
+            prev = ch
+            continue
+          }
         }
         else {
-          if ((inStr === 'double' && ch === '"') || (inStr === 'single' && ch === '\'')) {
+          if ((inStr === 'double' && ch === '"') || (inStr === 'single' && ch === '\'') || (inStr === 'template' && ch === '`')) {
             if (prev !== '\\')
               inStr = null
           }
-          else if (ch === '$' && ln[k + 1] === '{' && prev !== '\\') {
+          else if (ch === '$' && ln[k + 1] === '{' && prev !== '\\' && inStr !== 'template') {
             const lineNo = i + 1
             if (!isSuppressed('noTemplateCurlyInString', lineNo, suppress)) {
               issues.push({ filePath, line: lineNo, column: k + 1, ruleId: 'noTemplateCurlyInString', message: 'Unexpected template string expression in normal string', severity: wantNoTemplateCurly })
@@ -657,7 +662,8 @@ export async function runLint(globs: string[], options: LintOptions): Promise<nu
         const { statSync } = await import('node:fs')
         const st = statSync(patterns[0])
         if (st.isFile()) {
-          entries = [patterns[0]]
+          const abs = isAbsolute(patterns[0]) ? patterns[0] : resolve(process.cwd(), patterns[0])
+          entries = [abs]
         }
       }
       catch {

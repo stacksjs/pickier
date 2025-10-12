@@ -12,6 +12,17 @@ function createTempFile(content: string, suffix = '.ts'): string {
   tempFiles.push(tempPath)
   return tempPath
 }
+function createConfigWithStyleRules(): string {
+  const configPath = resolve(__dirname, `temp-config-${Date.now()}.json`)
+  writeFileSync(configPath, JSON.stringify({
+    lint: { extensions: ['ts'], reporter: 'json', cache: false, maxWarnings: -1 },
+    format: { extensions: ['ts'], indent: 2, quotes: 'single', semi: false, trimTrailingWhitespace: true, maxConsecutiveBlankLines: 1, finalNewline: 'one' },
+    rules: { noDebugger: 'off', noConsole: 'off' },
+    pluginRules: { 'style/curly': 'warn', 'style/if-newline': 'warn' },
+  }))
+  tempFiles.push(configPath)
+  return configPath
+}
 function cleanupTempFiles(): void {
   for (const f of tempFiles) {
     if (existsSync(f))
@@ -24,7 +35,8 @@ afterEach(() => cleanupTempFiles())
 it('flags missing newline after if without braces', async () => {
   const content = `if (a) console.log(a)\n`
   const file = createTempFile(content)
-  const options: LintOptions = { reporter: 'json' }
+  const configPath = createConfigWithStyleRules()
+  const options: LintOptions = { reporter: 'json', config: configPath }
   const orig = console.log
   let out = ''
   console.log = (msg: string) => {
@@ -43,7 +55,8 @@ it('flags missing newline after if without braces', async () => {
 it('does not flag when consequent on next line', async () => {
   const content = `if (a)\n  console.log(a)\n`
   const file = createTempFile(content)
-  const options: LintOptions = { reporter: 'json' }
+  const configPath = createConfigWithStyleRules()
+  const options: LintOptions = { reporter: 'json', config: configPath }
   const orig = console.log
   let out = ''
   console.log = (msg: string) => {

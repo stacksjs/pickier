@@ -14,6 +14,18 @@ function createTempFile(content: string, suffix = '.ts'): string {
   return tempPath
 }
 
+function createConfigWithStyleRules(): string {
+  const configPath = resolve(__dirname, `temp-config-${Date.now()}.json`)
+  writeFileSync(configPath, JSON.stringify({
+    lint: { extensions: ['ts'], reporter: 'json', cache: false, maxWarnings: -1 },
+    format: { extensions: ['ts'], indent: 2, quotes: 'single', semi: false, trimTrailingWhitespace: true, maxConsecutiveBlankLines: 1, finalNewline: 'one' },
+    rules: { noDebugger: 'off', noConsole: 'off' },
+    pluginRules: { 'style/curly': 'warn', 'style/if-newline': 'warn' },
+  }))
+  tempFiles.push(configPath)
+  return configPath
+}
+
 function cleanupTempFiles(): void {
   for (const file of tempFiles) {
     if (existsSync(file)) {
@@ -40,7 +52,8 @@ if (condition1) {
 `
 
   const tempPath = createTempFile(content)
-  const options: LintOptions = { reporter: 'json' }
+  const configPath = createConfigWithStyleRules()
+  const options: LintOptions = { reporter: 'json', config: configPath }
 
   const originalLog = console.log
   let output = ''
@@ -70,7 +83,8 @@ if (outer) {
 `
 
   const tempPath = createTempFile(content)
-  const options: LintOptions = { reporter: 'json' }
+  const configPath = createConfigWithStyleRules()
+  const options: LintOptions = { reporter: 'json', config: configPath }
 
   const originalLog = console.log
   let output = ''
@@ -97,7 +111,8 @@ if (a && b || c && (d || e)) {
 `
 
   const tempPath = createTempFile(content)
-  const options: LintOptions = { reporter: 'json' }
+  const configPath = createConfigWithStyleRules()
+  const options: LintOptions = { reporter: 'json', config: configPath }
 
   const originalLog = console.log
   let output = ''
@@ -127,7 +142,8 @@ if (condition) {
 `
 
   const tempPath = createTempFile(content)
-  const options: LintOptions = { reporter: 'json' }
+  const configPath = createConfigWithStyleRules()
+  const options: LintOptions = { reporter: 'json', config: configPath }
 
   const originalLog = console.log
   let output = ''
@@ -153,7 +169,8 @@ if (condition) {
 `
 
   const tempPath = createTempFile(content)
-  const options: LintOptions = { reporter: 'json' }
+  const configPath = createConfigWithStyleRules()
+  const options: LintOptions = { reporter: 'json', config: configPath }
 
   const originalLog = console.log
   let output = ''
@@ -186,7 +203,8 @@ if (condition1) {
 `
 
   const tempPath = createTempFile(content)
-  const options: LintOptions = { reporter: 'json' }
+  const configPath = createConfigWithStyleRules()
+  const options: LintOptions = { reporter: 'json', config: configPath }
 
   const originalLog = console.log
   let output = ''
@@ -215,7 +233,8 @@ else {
 `
 
   const tempPath = createTempFile(content)
-  const options: LintOptions = { reporter: 'json' }
+  const configPath = createConfigWithStyleRules()
+  const options: LintOptions = { reporter: 'json', config: configPath }
 
   const originalLog = console.log
   let output = ''

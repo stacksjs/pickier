@@ -55,12 +55,12 @@ const config = {
 
   // Plugin rules (advanced linting)
   pluginRules: {
-    'style/curly': 'warn',
-    'style/if-newline': 'warn',
+    'style/curly': 'off', // disabled by default, can be enabled per project
+    'style/if-newline': 'off', // disabled by default, can be enabled per project
     'pickier/no-unused-vars': 'error', // catch unused imports/vars
-    'pickier/sort-imports': 'warn', // sort import statements
-    'pickier/sort-named-imports': 'warn', // sort named imports
-    'pickier/sort-objects': 'warn', // sort object keys
+    'pickier/sort-imports': 'off', // too noisy, especially in test files
+    'pickier/sort-named-imports': 'off', // too noisy, especially in test files
+    'pickier/sort-objects': 'off', // too noisy, especially in test files
     'pickier/sort-exports': 'warn', // sort exports
     'pickier/import-dedupe': 'warn', // dedupe imports
     'pickier/no-import-node-modules-by-path': 'error',

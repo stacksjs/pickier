@@ -43,8 +43,8 @@ export const defaultConfig: PickierConfig = {
     noConsole: 'warn',
   },
   pluginRules: {
-    'style/curly': 'warn',
-    'style/if-newline': 'warn',
+    'style/curly': 'off',
+    'style/if-newline': 'off',
     'pickier/import-dedupe': 'warn',
     'pickier/no-import-node-modules-by-path': 'error',
     'pickier/no-import-dist': 'error',
