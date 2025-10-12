@@ -468,28 +468,66 @@ export function scanContent(filePath: string, content: string, cfg: PickierConfi
   const wantNoCondAssign = sevMap((cfg.rules as any).noCondAssign)
   const consoleCall = /\bconsole\.(?:log|warn|error|info|debug|trace)\s*\(/
   const debuggerStmt = /^\s*debugger\b/
+
+  // Build a set of line numbers that are inside multi-line template literals
+  const linesInTemplate = new Set<number>()
+  let inTemplate = false
+  let escaped = false
+  let currentLine = 1
+  for (let i = 0; i < content.length; i++) {
+    const ch = content[i]
+
+    if (escaped) {
+      escaped = false
+      if (ch === '\n')
+        currentLine++
+      continue
+    }
+
+    if (ch === '\\') {
+      escaped = true
+      continue
+    }
+
+    if (ch === '\n') {
+      currentLine++
+      continue
+    }
+
+    if (ch === '`') {
+      inTemplate = !inTemplate
+      continue
+    }
+
+    if (inTemplate) {
+      linesInTemplate.add(currentLine)
+    }
+  }
+
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i]
-    const indices = detectQuoteIssues(line, preferredQuotes)
-    if (indices.length > 0 && !quotesReported) {
-      const lineNo = i + 1
-      if (!isSuppressed('quotes', lineNo, suppress)) {
-        issues.push({ filePath, line: lineNo, column: (indices[0] || 0) + 1, ruleId: 'quotes', message: 'Inconsistent quote style', severity: 'warning' })
+    const lineNo = i + 1
+
+    // Skip quote detection for lines inside multi-line template literals
+    if (!linesInTemplate.has(lineNo)) {
+      const indices = detectQuoteIssues(line, preferredQuotes)
+      if (indices.length > 0 && !quotesReported) {
+        if (!isSuppressed('quotes', lineNo, suppress)) {
+          issues.push({ filePath, line: lineNo, column: (indices[0] || 0) + 1, ruleId: 'quotes', message: 'Inconsistent quote style', severity: 'warning' })
+        }
+        quotesReported = true
       }
-      quotesReported = true
     }
     // indentation check: pass leading whitespace only
     const leadingMatch = line.match(/^[ \t]*/)
     const leading = leadingMatch ? leadingMatch[0] : ''
     if (leading.length > 0 && hasIndentIssue(leading, cfg.format.indent, cfg.format.indentStyle)) {
-      const lineNo = i + 1
       if (!isSuppressed('indent', lineNo, suppress))
         issues.push({ filePath, line: lineNo, column: 1, ruleId: 'indent', message: 'Incorrect indentation detected', severity: 'warning' })
     }
 
     // built-in lint rules
     if (wantDebugger && debuggerStmt.test(line)) {
-      const lineNo = i + 1
       if (!isSuppressed('noDebugger', lineNo, suppress))
         issues.push({ filePath, line: lineNo, column: 1, ruleId: 'noDebugger', message: 'Unexpected debugger statement', severity: wantDebugger })
     }
@@ -515,7 +553,6 @@ export function scanContent(filePath: string, content: string, cfg: PickierConfi
               inString = 'template'
             else if (line.slice(k).startsWith('console.')) {
               // Found console outside of string, this is a real console call
-              const lineNo = i + 1
               const col = k + 1
               if (!isSuppressed('no-console', lineNo, suppress))
                 issues.push({ filePath, line: lineNo, column: col, ruleId: 'no-console', message: 'Unexpected console call', severity: wantConsole })
@@ -566,7 +603,6 @@ export function scanContent(filePath: string, content: string, cfg: PickierConfi
               inStr = null
           }
           else if (ch === '$' && ln[k + 1] === '{' && prev !== '\\' && inStr !== 'template') {
-            const lineNo = i + 1
             if (!isSuppressed('noTemplateCurlyInString', lineNo, suppress)) {
               issues.push({ filePath, line: lineNo, column: k + 1, ruleId: 'noTemplateCurlyInString', message: 'Unexpected template string expression in normal string', severity: wantNoTemplateCurly })
             }
@@ -584,7 +620,6 @@ export function scanContent(filePath: string, content: string, cfg: PickierConfi
       if (m1) {
         const cond = m1[1]
         if (checkCond(cond)) {
-          const lineNo = i + 1
           if (!isSuppressed('noCondAssign', lineNo, suppress))
             issues.push({ filePath, line: lineNo, column: Math.max(1, line.indexOf('(') + 1), ruleId: 'noCondAssign', message: 'Unexpected assignment within a conditional expression', severity: wantNoCondAssign })
         }
@@ -596,7 +631,6 @@ export function scanContent(filePath: string, content: string, cfg: PickierConfi
         if (parts.length >= 2) {
           const cond = parts[1]
           if (checkCond(cond)) {
-            const lineNo = i + 1
             if (!isSuppressed('noCondAssign', lineNo, suppress))
               issues.push({ filePath, line: lineNo, column: Math.max(1, line.indexOf('(') + 1), ruleId: 'noCondAssign', message: 'Unexpected assignment within a conditional expression', severity: wantNoCondAssign })
           }

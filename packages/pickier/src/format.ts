@@ -219,16 +219,65 @@ export function detectQuoteIssues(line: string, preferred: 'single' | 'double'):
   }
 
   const indices: number[] = []
-  if (preferred === 'single') {
-    const re = /"(?:[^"\\]|\\.)*"/g
-    for (const match of line.matchAll(re))
-      indices.push(match.index || 0)
+
+  // Track if we're inside any type of string to avoid flagging quotes inside them
+  let inString: 'single' | 'double' | 'template' | null = null
+  let escaped = false
+
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i]
+
+    if (escaped) {
+      escaped = false
+      continue
+    }
+
+    if (ch === '\\') {
+      escaped = true
+      continue
+    }
+
+    // Check for string boundaries
+    if (!inString) {
+      // Not inside any string - check if we're entering one
+      if (ch === '\'') {
+        if (preferred === 'double') {
+          // Single quote when double is preferred
+          const beforeSlash = line.lastIndexOf('//', i)
+          if (beforeSlash === -1 || beforeSlash > i) {
+            indices.push(i)
+          }
+        }
+        inString = 'single'
+        continue
+      }
+      else if (ch === '"') {
+        if (preferred === 'single') {
+          // Double quote when single is preferred
+          const beforeSlash = line.lastIndexOf('//', i)
+          if (beforeSlash === -1 || beforeSlash > i) {
+            indices.push(i)
+          }
+        }
+        inString = 'double'
+        continue
+      }
+      else if (ch === '`') {
+        inString = 'template'
+        continue
+      }
+    }
+    else {
+      // Inside a string - check if we're exiting
+      if ((inString === 'single' && ch === '\'') ||
+          (inString === 'double' && ch === '"') ||
+          (inString === 'template' && ch === '`')) {
+        inString = null
+        continue
+      }
+    }
   }
-  else {
-    const re = /'(?:[^'\\]|\\.)*'/g
-    for (const match of line.matchAll(re))
-      indices.push(match.index || 0)
-  }
+
   return indices
 }
 

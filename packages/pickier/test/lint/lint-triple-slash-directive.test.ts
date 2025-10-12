@@ -18,7 +18,7 @@ describe('triple-slash directives', () => {
 /// <reference path="../types/global.d.ts" />
 /// <reference lib="es2015" />
 
-const x = 'hello'
+const _x = 'hello'
 `
     writeFileSync(file, src, 'utf8')
     const code = await runLint([dir], { reporter: 'json' })
@@ -31,7 +31,7 @@ const x = 'hello'
     const file = join(dir, 'quotes.ts')
     const src = `/// <reference types="vite/client" />
 
-const msg = "hello world"
+const _msg = "hello world"
 `
     writeFileSync(file, src, 'utf8')
     const code = await runLint([dir], { reporter: 'json', maxWarnings: 0 })
@@ -61,7 +61,7 @@ export const config = { name: 'test' }
     /// <reference path="../types.d.ts" />
 ///   <reference lib="dom" />
 
-const value = 'test'
+const _value = 'test'
 `
     writeFileSync(file, src, 'utf8')
     const code = await runLint([dir], { reporter: 'json' })
