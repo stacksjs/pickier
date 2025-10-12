@@ -137,6 +137,16 @@ export function shouldIgnorePath(absPath: string, ignoreGlobs: string[]): boolea
   for (const g of ignoreGlobs) {
     // normalize
     const gg = toPosixPath(g.trim())
+
+    // handle file extension patterns like **/*.test.ts or **/*.spec.ts
+    const filePattern = gg.match(/\*\*\/\*\.(.+)$/)
+    if (filePattern) {
+      const extension = filePattern[1]
+      if (rel.endsWith(`.${extension}`))
+        return true
+      continue
+    }
+
     // handle patterns like any-depth/name/any-depth (including dot-prefixed names)
     const m = gg.match(/\*\*\/(.+?)\/\*\*$/)
     if (m) {

@@ -452,6 +452,42 @@ function applyPluginFixes(filePath: string, content: string, cfg: PickierConfig)
   return out
 }
 
+// Helper function to remove regex literals from a line
+function stripRegexLiterals(line: string): string {
+  let result = ''
+  let i = 0
+  while (i < line.length) {
+    // Check if we're at the start of a regex literal
+    if (line[i] === '/' && i > 0) {
+      // Look back to see if this could be a regex (after =, (, [, {, :, etc.)
+      const before = line.slice(0, i).trimEnd()
+      if (/[=([{,:;!&|?]$/.test(before) || before.endsWith('return')) {
+        // This looks like a regex literal, skip to the closing /
+        i++ // skip opening /
+        while (i < line.length) {
+          if (line[i] === '\\') {
+            i += 2 // skip escape sequence
+            continue
+          }
+          if (line[i] === '/') {
+            i++ // skip closing /
+            // skip any regex flags (g, i, m, etc.)
+            while (i < line.length && /[gimsuvy]/.test(line[i])) {
+              i++
+            }
+            break
+          }
+          i++
+        }
+        continue
+      }
+    }
+    result += line[i]
+    i++
+  }
+  return result
+}
+
 export function scanContent(filePath: string, content: string, cfg: PickierConfig): LintIssue[] {
   const issues: LintIssue[] = []
 
@@ -508,9 +544,12 @@ export function scanContent(filePath: string, content: string, cfg: PickierConfi
     const line = lines[i]
     const lineNo = i + 1
 
-    // Skip quote detection for lines inside multi-line template literals
-    if (!linesInTemplate.has(lineNo)) {
-      const indices = detectQuoteIssues(line, preferredQuotes)
+    // Skip quote detection for lines inside multi-line template literals and JSDoc comments
+    const isJSDocComment = /^\s*\*/.test(line)
+    if (!linesInTemplate.has(lineNo) && !isJSDocComment) {
+      // Strip regex literals to avoid false positives from quotes in regex
+      const strippedLine = stripRegexLiterals(line)
+      const indices = detectQuoteIssues(strippedLine, preferredQuotes)
       if (indices.length > 0 && !quotesReported) {
         if (!isSuppressed('quotes', lineNo, suppress)) {
           issues.push({ filePath, line: lineNo, column: (indices[0] || 0) + 1, ruleId: 'quotes', message: 'Inconsistent quote style', severity: 'warning' })
@@ -519,11 +558,15 @@ export function scanContent(filePath: string, content: string, cfg: PickierConfi
       }
     }
     // indentation check: pass leading whitespace only
-    const leadingMatch = line.match(/^[ \t]*/)
-    const leading = leadingMatch ? leadingMatch[0] : ''
-    if (leading.length > 0 && hasIndentIssue(leading, cfg.format.indent, cfg.format.indentStyle)) {
-      if (!isSuppressed('indent', lineNo, suppress))
-        issues.push({ filePath, line: lineNo, column: 1, ruleId: 'indent', message: 'Incorrect indentation detected', severity: 'warning' })
+    // Skip indentation checks for JSDoc comment lines (e.g., " * comment" or " */")
+    const isJSDocLine = /^\s*\*/.test(line)
+    if (!isJSDocLine) {
+      const leadingMatch = line.match(/^[ \t]*/)
+      const leading = leadingMatch ? leadingMatch[0] : ''
+      if (leading.length > 0 && hasIndentIssue(leading, cfg.format.indent, cfg.format.indentStyle)) {
+        if (!isSuppressed('indent', lineNo, suppress))
+          issues.push({ filePath, line: lineNo, column: 1, ruleId: 'indent', message: 'Incorrect indentation detected', severity: 'warning' })
+      }
     }
 
     // built-in lint rules
@@ -531,7 +574,8 @@ export function scanContent(filePath: string, content: string, cfg: PickierConfi
       if (!isSuppressed('noDebugger', lineNo, suppress))
         issues.push({ filePath, line: lineNo, column: 1, ruleId: 'noDebugger', message: 'Unexpected debugger statement', severity: wantDebugger })
     }
-    if (wantConsole && consoleCall.test(line)) {
+    // Skip console detection for lines inside multi-line template literals
+    if (wantConsole && !linesInTemplate.has(lineNo) && consoleCall.test(line)) {
       // Skip if console appears in a comment
       const commentIdx = line.indexOf('//')
       const consoleIdx = line.indexOf('console.')
@@ -574,7 +618,8 @@ export function scanContent(filePath: string, content: string, cfg: PickierConfi
     }
 
     // no-template-curly-in-string: flag ${...} inside normal strings (" or '), not in template literals
-    if (wantNoTemplateCurly) {
+    // Skip this check for lines inside multi-line template literals (test content)
+    if (wantNoTemplateCurly && !linesInTemplate.has(lineNo)) {
       const ln = line
       let inStr: 'single' | 'double' | 'template' | null = null
       let prev = ''
@@ -614,9 +659,13 @@ export function scanContent(filePath: string, content: string, cfg: PickierConfi
     }
 
     // no-cond-assign: forbid assignments inside condition parentheses
-    if (wantNoCondAssign) {
-      const checkCond = (cond: string) => /[^=!<>]=(?![=])/.test(cond)
-      const m1 = line.match(/\b(?:if|while)\s*\(([^)]*)\)/)
+    // Skip this check for lines inside multi-line template literals (test content)
+    if (wantNoCondAssign && !linesInTemplate.has(lineNo)) {
+      // Strip regex literals to avoid false positives from = in regex patterns
+      const strippedLine = stripRegexLiterals(line)
+      // Check for assignment (single =) but exclude comparisons (==, ===) and arrow functions (=>)
+      const checkCond = (cond: string) => /[^=!<>]=(?![=>])/.test(cond)
+      const m1 = strippedLine.match(/\b(?:if|while)\s*\(([^)]*)\)/)
       if (m1) {
         const cond = m1[1]
         if (checkCond(cond)) {
@@ -624,7 +673,7 @@ export function scanContent(filePath: string, content: string, cfg: PickierConfi
             issues.push({ filePath, line: lineNo, column: Math.max(1, line.indexOf('(') + 1), ruleId: 'noCondAssign', message: 'Unexpected assignment within a conditional expression', severity: wantNoCondAssign })
         }
       }
-      const mFor = line.match(/\bfor\s*\(([^)]*)\)/)
+      const mFor = strippedLine.match(/\bfor\s*\(([^)]*)\)/)
       if (mFor) {
         const inside = mFor[1]
         const parts = inside.split(';')

@@ -21,6 +21,8 @@ export const defaultConfig: PickierConfig = {
     '**/.git/**',
     '**/.idea/**',
     '**/.vscode/**',
+    '**/*.test.ts',
+    '**/*.spec.ts',
   ],
   lint: {
     extensions: ['ts', 'js', 'html', 'css', 'json', 'jsonc', 'md', 'yaml', 'yml', 'stx'],

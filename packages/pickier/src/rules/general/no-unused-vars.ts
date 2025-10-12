@@ -108,16 +108,40 @@ export const noUnusedVarsRule: RuleModule = {
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i]
       // function declarations or expressions
-      let m = line.match(/\bfunction\b[^()]*\(([^)]*)\)/)
+      let m = line.match(/\bfunction\b/)
       if (m) {
-        const params = getParamNames(m[1])
+        // Find the opening ( for parameters
+        const funcIdx = m.index!
+        const openParenIdx = line.indexOf('(', funcIdx)
+        if (openParenIdx === -1)
+          continue
+
+        // Find matching closing ) by counting parentheses
+        let depth = 0
+        let closeParenIdx = -1
+        for (let k = openParenIdx; k < line.length; k++) {
+          if (line[k] === '(') depth++
+          else if (line[k] === ')') {
+            depth--
+            if (depth === 0) {
+              closeParenIdx = k
+              break
+            }
+          }
+        }
+        if (closeParenIdx === -1)
+          continue
+
+        // Extract parameters between the parentheses
+        const paramStr = line.slice(openParenIdx + 1, closeParenIdx)
+        const params = getParamNames(paramStr)
         const bodyRange = findBodyRange(i)
         const bodyText = bodyRange ? lines.slice(bodyRange.from, bodyRange.to + 1).join('\n') : ''
         for (const name of params) {
           if (!name || argIgnoreRe.test(name))
             continue
           const re = new RegExp(`\\b${name}\\b`, 'g')
-          const afterParamsIdx = line.indexOf(')') + 1
+          const afterParamsIdx = closeParenIdx + 1
           const localSlice = (`${line.slice(afterParamsIdx)}\n${bodyText}`)
           if (!re.test(localSlice)) {
             issues.push({ filePath: ctx.filePath, line: i + 1, column: Math.max(1, line.indexOf(name) + 1), ruleId: 'pickier/no-unused-vars', message: `'${name}' is defined but never used (function parameter). Allowed unused args must match pattern: ${argsIgnorePattern}`, severity: 'error' })

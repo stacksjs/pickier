@@ -13,6 +13,8 @@ const config = {
     '**/build/**',
     '**/test/fixtures/**',
     '**/test/output/**',
+    '**/*.test.ts', // Ignore test files - they contain intentional examples of problematic code
+    '**/*.spec.ts',
     'docs/**',
     'packages/vscode/examples/**',
   ],
