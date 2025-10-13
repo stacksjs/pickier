@@ -398,4 +398,48 @@ describe('pickier/no-unused-vars', () => {
     const code = await runLint([dir], { config: cfgPath, reporter: 'json' })
     expect(code).toBe(0)
   })
+
+  it('handles object shorthand properties', async () => {
+    const dir = tmp()
+    const file = 's.ts'
+    // Test case: object shorthand properties should correctly use the parameter
+    const src = 'export function test(filePath: string): any {\n  const issues: any[] = []\n  issues.push({ filePath, line: 1 })\n  return issues\n}\ntest("file.ts")\n'
+    writeFileSync(join(dir, file), src, 'utf8')
+
+    const cfgPath = join(dir, 'pickier.config.json')
+    writeFileSync(cfgPath, JSON.stringify({
+      verbose: false,
+      ignores: [],
+      lint: { extensions: ['ts'], reporter: 'json', cache: false, maxWarnings: -1 },
+      format: { extensions: ['ts'], trimTrailingWhitespace: true, maxConsecutiveBlankLines: 1, finalNewline: 'one', indent: 2, quotes: 'single', semi: false },
+      rules: { noDebugger: 'off', noConsole: 'off' },
+      plugins: [{ name: 'pickier', rules: {} }],
+      pluginRules: { 'pickier/no-unused-vars': 'error' },
+    }, null, 2), 'utf8')
+
+    const code = await runLint([dir], { config: cfgPath, reporter: 'json' })
+    expect(code).toBe(0)
+  })
+
+  it('does not flag type signature parameters in object type definitions', async () => {
+    const dir = tmp()
+    const file = 'u.ts'
+    // Test case: type signatures should not be checked as function parameters
+    const src = 'export const colors: {\n  green: (text: string) => string\n  red: (text: string) => string\n} = {\n  green: (t) => t,\n  red: (t) => t,\n}\ncolors.green("hi")\n'
+    writeFileSync(join(dir, file), src, 'utf8')
+
+    const cfgPath = join(dir, 'pickier.config.json')
+    writeFileSync(cfgPath, JSON.stringify({
+      verbose: false,
+      ignores: [],
+      lint: { extensions: ['ts'], reporter: 'json', cache: false, maxWarnings: -1 },
+      format: { extensions: ['ts'], trimTrailingWhitespace: true, maxConsecutiveBlankLines: 1, finalNewline: 'one', indent: 2, quotes: 'single', semi: false },
+      rules: { noDebugger: 'off', noConsole: 'off' },
+      plugins: [{ name: 'pickier', rules: {} }],
+      pluginRules: { 'pickier/no-unused-vars': 'error' },
+    }, null, 2), 'utf8')
+
+    const code = await runLint([dir], { config: cfgPath, reporter: 'json' })
+    expect(code).toBe(0)
+  })
 })
