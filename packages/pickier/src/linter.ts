@@ -571,8 +571,8 @@ export function scanContent(filePath: string, content: string, cfg: PickierConfi
 
     // built-in lint rules
     if (wantDebugger && debuggerStmt.test(line)) {
-      if (!isSuppressed('noDebugger', lineNo, suppress))
-        issues.push({ filePath, line: lineNo, column: 1, ruleId: 'noDebugger', message: 'Unexpected debugger statement', severity: wantDebugger })
+      if (!isSuppressed('no-debugger', lineNo, suppress))
+        issues.push({ filePath, line: lineNo, column: 1, ruleId: 'no-debugger', message: 'Unexpected debugger statement', severity: wantDebugger })
     }
     // Skip console detection for lines inside multi-line template literals
     if (wantConsole && !linesInTemplate.has(lineNo) && consoleCall.test(line)) {
@@ -648,8 +648,8 @@ export function scanContent(filePath: string, content: string, cfg: PickierConfi
               inStr = null
           }
           else if (ch === '$' && ln[k + 1] === '{' && prev !== '\\' && inStr !== 'template') {
-            if (!isSuppressed('noTemplateCurlyInString', lineNo, suppress)) {
-              issues.push({ filePath, line: lineNo, column: k + 1, ruleId: 'noTemplateCurlyInString', message: 'Unexpected template string expression in normal string', severity: wantNoTemplateCurly })
+            if (!isSuppressed('no-template-curly-in-string', lineNo, suppress)) {
+              issues.push({ filePath, line: lineNo, column: k + 1, ruleId: 'no-template-curly-in-string', message: 'Unexpected template string expression in normal string', severity: wantNoTemplateCurly })
             }
             break
           }
@@ -669,8 +669,8 @@ export function scanContent(filePath: string, content: string, cfg: PickierConfi
       if (m1) {
         const cond = m1[1]
         if (checkCond(cond)) {
-          if (!isSuppressed('noCondAssign', lineNo, suppress))
-            issues.push({ filePath, line: lineNo, column: Math.max(1, line.indexOf('(') + 1), ruleId: 'noCondAssign', message: 'Unexpected assignment within a conditional expression', severity: wantNoCondAssign })
+          if (!isSuppressed('no-cond-assign', lineNo, suppress))
+            issues.push({ filePath, line: lineNo, column: Math.max(1, line.indexOf('(') + 1), ruleId: 'no-cond-assign', message: 'Unexpected assignment within a conditional expression', severity: wantNoCondAssign })
         }
       }
       const mFor = strippedLine.match(/\bfor\s*\(([^)]*)\)/)
@@ -680,8 +680,8 @@ export function scanContent(filePath: string, content: string, cfg: PickierConfi
         if (parts.length >= 2) {
           const cond = parts[1]
           if (checkCond(cond)) {
-            if (!isSuppressed('noCondAssign', lineNo, suppress))
-              issues.push({ filePath, line: lineNo, column: Math.max(1, line.indexOf('(') + 1), ruleId: 'noCondAssign', message: 'Unexpected assignment within a conditional expression', severity: wantNoCondAssign })
+            if (!isSuppressed('no-cond-assign', lineNo, suppress))
+              issues.push({ filePath, line: lineNo, column: Math.max(1, line.indexOf('(') + 1), ruleId: 'no-cond-assign', message: 'Unexpected assignment within a conditional expression', severity: wantNoCondAssign })
           }
         }
       }
@@ -952,7 +952,7 @@ export async function runLint(globs: string[], options: LintOptions): Promise<nu
       const fixableRuleIds = new Set<string>()
 
       // Built-in fixable rules
-      fixableRuleIds.add('noDebugger')
+      fixableRuleIds.add('no-debugger')
 
       // Plugin rules with fix functions
       for (const plugin of pluginDefs) {

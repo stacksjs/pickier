@@ -28,7 +28,7 @@ describe('linter stylish reporter', () => {
 
     const output = logs.join('\n')
     expect(output.includes('test.ts')).toBe(true)
-    expect(output.includes('debugger') || output.includes('noDebugger')).toBe(true)
+    expect(output.includes('debugger') || output.includes('no-debugger')).toBe(true)
   })
 
   it('stylish reporter shows multiple files', async () => {

@@ -58,8 +58,8 @@ describe('programmatic runLintProgrammatic', () => {
       const opts: LintOptions = { reporter: 'json', maxWarnings: -1, fix: true }
       const res = await runLintProgrammatic([fp], opts)
 
-      // After fix, noDebugger should not appear
-      expect(res.issues.some(i => i.ruleId === 'noDebugger')).toBe(false)
+      // After fix, no-debugger should not appear
+      expect(res.issues.some(i => i.ruleId === 'no-debugger')).toBe(false)
     }
     finally {
       rmSync(dir, { recursive: true, force: true })
