@@ -502,7 +502,7 @@ export function scanContent(filePath: string, content: string, cfg: PickierConfi
   const wantConsole = sevMap(cfg.rules.noConsole)
   const wantNoTemplateCurly = sevMap((cfg.rules as any).noTemplateCurlyInString)
   const wantNoCondAssign = sevMap((cfg.rules as any).noCondAssign)
-  const consoleCall = /\bconsole\.(?:log|warn|error|info|debug|trace)\s*\(/
+  const consoleCall = /\bconsole\.log\s*\(/
   const debuggerStmt = /^\s*debugger\b/
 
   // Build a set of line numbers that are inside multi-line template literals
@@ -585,7 +585,6 @@ export function scanContent(filePath: string, content: string, cfg: PickierConfi
       else {
         // Check if console is inside a string literal
         let inString: 'single' | 'double' | 'template' | null = null
-        let isConsoleInString = false
         for (let k = 0; k < line.length; k++) {
           const ch = line[k]
           if (!inString) {
@@ -609,9 +608,7 @@ export function scanContent(filePath: string, content: string, cfg: PickierConfi
               if (k === 0 || line[k - 1] !== '\\')
                 inString = null
             }
-            else if (line.slice(k).startsWith('console.')) {
-              isConsoleInString = true
-            }
+            // If console.log is found inside a string, we just skip it (no action needed)
           }
         }
       }

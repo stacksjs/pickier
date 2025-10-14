@@ -224,7 +224,7 @@ export const noUnusedVarsRule: RuleModule = {
       }
 
       const cleaned = stripTypes(withoutDefaults)
-      return cleaned.split(/[^$\w]+/).filter(Boolean)
+      return cleaned.split(/[^$\w]+/).filter(name => name && name !== 'undefined')
     }
     const findBodyRange = (startLine: number, startColFrom?: number): { from: number, to: number } | null => {
       let openFound = false

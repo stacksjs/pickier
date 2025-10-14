@@ -44,8 +44,10 @@ console.error('error')
     console.log = originalLog
 
     const result = JSON.parse(output)
-    expect(result.issues.length).toBe(3)
-    expect(result.issues.every((i: any) => i.ruleId === 'no-console')).toBe(true)
+    // Only console.log should be flagged by default, not console.warn or console.error
+    expect(result.issues.length).toBe(1)
+    expect(result.issues[0].ruleId).toBe('no-console')
+    expect(result.issues[0].line).toBe(2) // console.log is on line 2
   }
   finally {
     console.log = originalLog
