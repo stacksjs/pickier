@@ -17,6 +17,7 @@
 - Zero-config defaults; simple, typed `pickier.config.ts` when you need it
 - Import organization: splits type/value imports, sorts modules/specifiers, removes unused named imports
 - JSON and config sorting for common files _(e.g. `package.json`, `tsconfig.json`)_
+- **Markdown linting with 53 rules** for documentation quality _(headings, lists, links, code blocks, tables, etc.)_
 - Flexible formatting: `indent`, `indentStyle` _(tabs or spaces)_, `quotes`, `semi`, `trimTrailingWhitespace`, `maxConsecutiveBlankLines`, `finalNewline`
 - Smart whitespace cleanup
 - ESLint-style plugin system for lint rules _(load plugins, enable/disable rules, WIP labeling)_
@@ -133,6 +134,16 @@ const config: PickierConfig = {
     // 'off' | 'warn' | 'error'
     noDebugger: 'error',
     noConsole: 'warn',
+  },
+
+  // Plugin rules for markdown, style, sorting, etc.
+  pluginRules: {
+    // Markdown linting (53 rules available)
+    // See https://pickier.dev/rules/markdown for full list
+    'markdown/heading-increment': 'error',
+    'markdown/no-trailing-spaces': 'error',
+    'markdown/fenced-code-language': 'error',
+    'markdown/no-duplicate-heading': 'warn',
   },
 }
 

@@ -41,6 +41,7 @@ Groups:
 - [`style`](/rules/style): stylistic constraints
 - [`regexp`](/rules/regexp): regex safety checks
 - [`ts`](/rules/ts): TypeScript-specific rules
+- [`markdown`](/rules/markdown): markdown documentation linting (53 rules)
 
 See Advanced » Plugin System for configuration details.
 
