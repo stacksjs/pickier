@@ -160,7 +160,7 @@ describe('configuration handling', () => {
     // Test double quotes
     const file1 = join(dir, 'double.ts')
     const config1 = join(dir, 'config-double.json')
-    writeFileSync(file1, "const x = 'test'\n", 'utf8')
+    writeFileSync(file1, 'const x = \'test\'\n', 'utf8')
     writeFileSync(config1, JSON.stringify({
       format: {
         extensions: ['ts'],

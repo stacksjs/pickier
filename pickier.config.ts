@@ -1,8 +1,10 @@
+import type { PickierOptions } from 'pickier'
+
 // Pickier configuration (local project)
 // You can customize lint/format behavior and rule severities here.
 // All fields are optional; defaults are shown below.
 
-const config = {
+const config: PickierOptions = {
   // Increase verbosity of CLI outputs
   verbose: false,
 
@@ -48,10 +50,10 @@ const config = {
 
   // Rule severities
   rules: {
-    noDebugger: 'error', // remove debugger statements
-    noConsole: 'warn', // warn on console usage
-    noTemplateCurlyInString: 'error', // catch ${} in regular strings
-    noCondAssign: 'error', // no assignments in conditionals
+    'noDebugger': 'error', // remove debugger statements
+    'noConsole': 'warn', // warn on console usage
+    'noTemplateCurlyInString': 'error', // catch ${} in regular strings
+    'noCondAssign': 'error', // no assignments in conditionals
     'prefer-const': 'warn', // prefer const over let
   },
 

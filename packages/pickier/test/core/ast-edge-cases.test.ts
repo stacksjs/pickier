@@ -2,7 +2,6 @@ import { describe, expect, it } from 'bun:test'
 import { mkdtempSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { runLint } from '../../src/linter'
 import { runFormat } from '../../src/formatter'
 
 function tmp(): string {

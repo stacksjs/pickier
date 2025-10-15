@@ -51,13 +51,27 @@ export const noUnusedVarsRule: RuleModule = {
 
         // Track string boundaries
         if (!inString) {
-          if (ch === '\'') inString = 'single'
-          else if (ch === '"') inString = 'double'
-          else if (ch === '`') inString = 'template'
-          else if (ch === '<') angleDepth++
-          else if (ch === '>') angleDepth--
-          else if (ch === '(' || ch === '[' || ch === '{') depth++
-          else if (ch === ')' || ch === ']' || ch === '}') depth--
+          if (ch === '\'') {
+            inString = 'single'
+          }
+          else if (ch === '"') {
+            inString = 'double'
+          }
+          else if (ch === '`') {
+            inString = 'template'
+          }
+          else if (ch === '<') {
+            angleDepth++
+          }
+          else if (ch === '>') {
+            angleDepth--
+          }
+          else if (ch === '(' || ch === '[' || ch === '{') {
+            depth++
+          }
+          else if (ch === ')' || ch === ']' || ch === '}') {
+            depth--
+          }
           else if (ch === ',' && depth === 0 && angleDepth === 0) {
             parts.push(current)
             current = ''
@@ -66,15 +80,16 @@ export const noUnusedVarsRule: RuleModule = {
         }
         else {
           // Inside string - check for end
-          if ((inString === 'single' && ch === '\'') ||
-              (inString === 'double' && ch === '"') ||
-              (inString === 'template' && ch === '`')) {
+          if ((inString === 'single' && ch === '\'')
+            || (inString === 'double' && ch === '"')
+            || (inString === 'template' && ch === '`')) {
             inString = null
           }
         }
         current += ch
       }
-      if (current) parts.push(current)
+      if (current)
+        parts.push(current)
 
       for (const partRaw of parts) {
         const part = partRaw.trim()
@@ -128,20 +143,30 @@ export const noUnusedVarsRule: RuleModule = {
           }
 
           if (!inStr) {
-            if (ch === '\'') inStr = 'single'
-            else if (ch === '"') inStr = 'double'
-            else if (ch === '`') inStr = 'template'
-            else if (ch === '(' || ch === '{' || ch === '[') depth++
-            else if (ch === ')' || ch === '}' || ch === ']') depth--
+            if (ch === '\'') {
+              inStr = 'single'
+            }
+            else if (ch === '"') {
+              inStr = 'double'
+            }
+            else if (ch === '`') {
+              inStr = 'template'
+            }
+            else if (ch === '(' || ch === '{' || ch === '[') {
+              depth++
+            }
+            else if (ch === ')' || ch === '}' || ch === ']') {
+              depth--
+            }
             else if (ch === '=' && depth === 0) {
               // Found assignment, strip everything from here
               return result
             }
           }
           else {
-            if ((inStr === 'single' && ch === '\'') ||
-                (inStr === 'double' && ch === '"') ||
-                (inStr === 'template' && ch === '`')) {
+            if ((inStr === 'single' && ch === '\'')
+              || (inStr === 'double' && ch === '"')
+              || (inStr === 'template' && ch === '`')) {
               inStr = null
             }
           }
@@ -189,14 +214,27 @@ export const noUnusedVarsRule: RuleModule = {
               }
 
               if (!inStr) {
-                if (c === '\'') inStr = 'single'
-                else if (c === '"') inStr = 'double'
-                else if (c === '`') inStr = 'template'
-                else if (c === '<') angleDepth++
-                else if (c === '>') angleDepth--
-                else if (c === '(' || c === '{' || c === '[') depth++
+                if (c === '\'') {
+                  inStr = 'single'
+                }
+                else if (c === '"') {
+                  inStr = 'double'
+                }
+                else if (c === '`') {
+                  inStr = 'template'
+                }
+                else if (c === '<') {
+                  angleDepth++
+                }
+                else if (c === '>') {
+                  angleDepth--
+                }
+                else if (c === '(' || c === '{' || c === '[') {
+                  depth++
+                }
                 else if (c === ')' || c === '}' || c === ']') {
-                  if (depth > 0) depth--
+                  if (depth > 0)
+                    depth--
                   else break // End of parameter list
                 }
                 else if (c === ',' && depth === 0 && angleDepth === 0) {
@@ -205,9 +243,9 @@ export const noUnusedVarsRule: RuleModule = {
                 }
               }
               else {
-                if ((inStr === 'single' && c === '\'') ||
-                    (inStr === 'double' && c === '"') ||
-                    (inStr === 'template' && c === '`')) {
+                if ((inStr === 'single' && c === '\'')
+                  || (inStr === 'double' && c === '"')
+                  || (inStr === 'template' && c === '`')) {
                   inStr = null
                 }
               }
@@ -250,18 +288,24 @@ export const noUnusedVarsRule: RuleModule = {
             continue
           }
           if (!inStr) {
-            if (c === '\'') inStr = 'single'
-            else if (c === '"') inStr = 'double'
-            else if (c === '`') inStr = 'template'
+            if (c === '\'') {
+              inStr = 'single'
+            }
+            else if (c === '"') {
+              inStr = 'double'
+            }
+            else if (c === '`') {
+              inStr = 'template'
+            }
             else if (c === '/' && next === '/') {
               commentIdx = i
               break
             }
           }
           else {
-            if ((inStr === 'single' && c === '\'') ||
-                (inStr === 'double' && c === '"') ||
-                (inStr === 'template' && c === '`')) {
+            if ((inStr === 'single' && c === '\'')
+              || (inStr === 'double' && c === '"')
+              || (inStr === 'template' && c === '`')) {
               inStr = null
             }
           }
@@ -291,9 +335,15 @@ export const noUnusedVarsRule: RuleModule = {
               continue
             }
             if (!inString) {
-              if (ch === '\'') inString = 'single'
-              else if (ch === '"') inString = 'double'
-              else if (ch === '`') inString = 'template'
+              if (ch === '\'') {
+                inString = 'single'
+              }
+              else if (ch === '"') {
+                inString = 'double'
+              }
+              else if (ch === '`') {
+                inString = 'template'
+              }
               else if (ch === '/' && i > 0) {
                 const before = str.slice(0, i).trimEnd()
                 if (/[=([{,:;!&|?]$/.test(before) || before.endsWith('return')) {
@@ -318,9 +368,9 @@ export const noUnusedVarsRule: RuleModule = {
               }
             }
             else {
-              if ((inString === 'single' && ch === '\'') ||
-                  (inString === 'double' && ch === '"') ||
-                  (inString === 'template' && ch === '`')) {
+              if ((inString === 'single' && ch === '\'')
+                || (inString === 'double' && ch === '"')
+                || (inString === 'template' && ch === '`')) {
                 inString = null
               }
             }
@@ -353,11 +403,21 @@ export const noUnusedVarsRule: RuleModule = {
               continue
             }
             if (!inStr) {
-              if (c === '\'') inStr = 'single'
-              else if (c === '"') inStr = 'double'
-              else if (c === '`') inStr = 'template'
-              else if (c === '<') angleDepth++
-              else if (c === '>') angleDepth = Math.max(0, angleDepth - 1)
+              if (c === '\'') {
+                inStr = 'single'
+              }
+              else if (c === '"') {
+                inStr = 'double'
+              }
+              else if (c === '`') {
+                inStr = 'template'
+              }
+              else if (c === '<') {
+                angleDepth++
+              }
+              else if (c === '>') {
+                angleDepth = Math.max(0, angleDepth - 1)
+              }
               else if (c === '{') {
                 // Track braces even inside angle brackets for return type annotations
                 if (braceDepth === 0) {
@@ -383,9 +443,9 @@ export const noUnusedVarsRule: RuleModule = {
               }
             }
             else {
-              if ((inStr === 'single' && c === '\'') ||
-                  (inStr === 'double' && c === '"') ||
-                  (inStr === 'template' && c === '`')) {
+              if ((inStr === 'single' && c === '\'')
+                || (inStr === 'double' && c === '"')
+                || (inStr === 'template' && c === '`')) {
                 inStr = null
               }
             }
@@ -425,12 +485,24 @@ export const noUnusedVarsRule: RuleModule = {
 
           // Track string boundaries
           if (!inString) {
-            if (ch === '\'') inString = 'single'
-            else if (ch === '"') inString = 'double'
-            else if (ch === '`') inString = 'template'
-            else if (ch === '<') angleDepth++
-            else if (ch === '>') angleDepth = Math.max(0, angleDepth - 1)
-            else if (ch === '{' && angleDepth === 0) depth++
+            if (ch === '\'') {
+              inString = 'single'
+            }
+            else if (ch === '"') {
+              inString = 'double'
+            }
+            else if (ch === '`') {
+              inString = 'template'
+            }
+            else if (ch === '<') {
+              angleDepth++
+            }
+            else if (ch === '>') {
+              angleDepth = Math.max(0, angleDepth - 1)
+            }
+            else if (ch === '{' && angleDepth === 0) {
+              depth++
+            }
             else if (ch === '}' && angleDepth === 0) {
               depth--
               if (depth === 0)
@@ -439,9 +511,9 @@ export const noUnusedVarsRule: RuleModule = {
           }
           else {
             // Check for string end
-            if ((inString === 'single' && ch === '\'') ||
-                (inString === 'double' && ch === '"') ||
-                (inString === 'template' && ch === '`')) {
+            if ((inString === 'single' && ch === '\'')
+              || (inString === 'double' && ch === '"')
+              || (inString === 'template' && ch === '`')) {
               inString = null
             }
           }
@@ -479,9 +551,15 @@ export const noUnusedVarsRule: RuleModule = {
         }
 
         if (!inStr && !inRegex) {
-          if (ch === '\'') inStr = 'single'
-          else if (ch === '"') inStr = 'double'
-          else if (ch === '`') inStr = 'template'
+          if (ch === '\'') {
+            inStr = 'single'
+          }
+          else if (ch === '"') {
+            inStr = 'double'
+          }
+          else if (ch === '`') {
+            inStr = 'template'
+          }
           else if (ch === '/') {
             // Check if this is a regex or a comment
             // Regex can appear after: = ( [ { , : ; ! & | ? or at start of line
@@ -497,9 +575,9 @@ export const noUnusedVarsRule: RuleModule = {
           }
         }
         else if (inStr) {
-          if ((inStr === 'single' && ch === '\'') ||
-              (inStr === 'double' && ch === '"') ||
-              (inStr === 'template' && ch === '`')) {
+          if ((inStr === 'single' && ch === '\'')
+            || (inStr === 'double' && ch === '"')
+            || (inStr === 'template' && ch === '`')) {
             inStr = null
           }
         }
@@ -543,7 +621,7 @@ export const noUnusedVarsRule: RuleModule = {
       const codeNoRegex = stripRegex(codeOnly)
 
       // function declarations or expressions
-      let m = codeNoRegex.match(/\bfunction\b/)
+      const m = codeNoRegex.match(/\bfunction\b/)
       if (m) {
         // Skip known complex functions with deep nesting that cause false positives
         if (line.includes('function scanContent') || line.includes('function findMatching')) {
@@ -567,7 +645,9 @@ export const noUnusedVarsRule: RuleModule = {
           const startIdx = ln === i ? openParenIdx : 0
 
           for (let k = startIdx; k < searchLine.length; k++) {
-            if (searchLine[k] === '(') depth++
+            if (searchLine[k] === '(') {
+              depth++
+            }
             else if (searchLine[k] === ')') {
               depth--
               if (depth === 0) {
@@ -577,19 +657,21 @@ export const noUnusedVarsRule: RuleModule = {
                 if (i === ln) {
                   // Single line function
                   paramStr = line.slice(openParenIdx + 1, closeParenIdx)
-                } else {
+                }
+                else {
                   // Multi-line function - collect all parameter text
                   paramStr = line.slice(openParenIdx + 1) // rest of first line
                   for (let j = i + 1; j < ln; j++) {
-                    paramStr += ' ' + lines[j] // middle lines
+                    paramStr += ` ${lines[j]}` // middle lines
                   }
-                  paramStr += ' ' + searchLine.slice(0, closeParenIdx) // last line up to )
+                  paramStr += ` ${searchLine.slice(0, closeParenIdx)}` // last line up to )
                 }
                 break
               }
             }
           }
-          if (closeParenIdx !== -1) break
+          if (closeParenIdx !== -1)
+            break
         }
 
         if (closeParenIdx === -1)
@@ -609,7 +691,7 @@ export const noUnusedVarsRule: RuleModule = {
             const braceIdx = bodyStartLine.lastIndexOf('{')
             const restOfFirstLine = braceIdx >= 0 ? bodyStartLine.slice(braceIdx + 1) : ''
             if (bodyRange.to > bodyRange.from) {
-              bodyText = restOfFirstLine + '\n' + lines.slice(bodyRange.from + 1, bodyRange.to + 1).join('\n')
+              bodyText = `${restOfFirstLine}\n${lines.slice(bodyRange.from + 1, bodyRange.to + 1).join('\n')}`
             }
             else {
               bodyText = restOfFirstLine
@@ -643,7 +725,7 @@ export const noUnusedVarsRule: RuleModule = {
             break
           }
           // Skip whitespace and type annotations (colon followed by type)
-          if (ch !== ' ' && ch !== '\t' && ch !== '\n' && ch !== ':' && ch !== '>' && !/[A-Za-z0-9_]/.test(ch)) {
+          if (ch !== ' ' && ch !== '\t' && ch !== '\n' && ch !== ':' && ch !== '>' && !/\w/.test(ch)) {
             break
           }
         }
@@ -655,7 +737,9 @@ export const noUnusedVarsRule: RuleModule = {
           let depth = 1
           for (let k = closeParenIdx - 1; k >= 0; k--) {
             const ch = line[k]
-            if (ch === ')') depth++
+            if (ch === ')') {
+              depth++
+            }
             else if (ch === '(') {
               depth--
               if (depth === 0) {
@@ -681,7 +765,7 @@ export const noUnusedVarsRule: RuleModule = {
                 break
               }
               // Skip whitespace and identifiers
-              if (ch !== ' ' && ch !== '\t' && !/[A-Za-z0-9_]/.test(ch)) {
+              if (ch !== ' ' && ch !== '\t' && !/\w/.test(ch)) {
                 break
               }
             }
@@ -711,7 +795,7 @@ export const noUnusedVarsRule: RuleModule = {
                       const braceIdx = bodyStartLine.indexOf('{', arrowIdx)
                       const restOfFirstLine = braceIdx >= 0 ? bodyStartLine.slice(braceIdx + 1) : ''
                       if (bodyRange.to > bodyRange.from) {
-                        bodyText = restOfFirstLine + '\n' + lines.slice(bodyRange.from + 1, bodyRange.to + 1).join('\n')
+                        bodyText = `${restOfFirstLine}\n${lines.slice(bodyRange.from + 1, bodyRange.to + 1).join('\n')}`
                       }
                       else {
                         bodyText = restOfFirstLine
@@ -733,26 +817,38 @@ export const noUnusedVarsRule: RuleModule = {
                   // Check if expression continues on next lines by tracking nesting
                   for (let k = arrowIdx + 2; k < line.length; k++) {
                     const ch = line[k]
-                    if (ch === '(') parenDepth++
-                    else if (ch === ')') parenDepth--
-                    else if (ch === '{') braceDepth++
-                    else if (ch === '}') braceDepth--
-                    else if (ch === '[') bracketDepth++
-                    else if (ch === ']') bracketDepth--
+                    if (ch === '(')
+                      parenDepth++
+                    else if (ch === ')')
+                      parenDepth--
+                    else if (ch === '{')
+                      braceDepth++
+                    else if (ch === '}')
+                      braceDepth--
+                    else if (ch === '[')
+                      bracketDepth++
+                    else if (ch === ']')
+                      bracketDepth--
                   }
 
                   // If there's unclosed nesting, continue to next lines
                   let nextLine = i + 1
                   while (nextLine < lines.length && (parenDepth > 0 || braceDepth > 0 || bracketDepth > 0)) {
-                    bodyText += '\n' + lines[nextLine]
+                    bodyText += `\n${lines[nextLine]}`
                     for (let k = 0; k < lines[nextLine].length; k++) {
                       const ch = lines[nextLine][k]
-                      if (ch === '(') parenDepth++
-                      else if (ch === ')') parenDepth--
-                      else if (ch === '{') braceDepth++
-                      else if (ch === '}') braceDepth--
-                      else if (ch === '[') bracketDepth++
-                      else if (ch === ']') bracketDepth--
+                      if (ch === '(')
+                        parenDepth++
+                      else if (ch === ')')
+                        parenDepth--
+                      else if (ch === '{')
+                        braceDepth++
+                      else if (ch === '}')
+                        braceDepth--
+                      else if (ch === '[')
+                        bracketDepth++
+                      else if (ch === ']')
+                        bracketDepth--
                     }
                     nextLine++
                   }
@@ -799,7 +895,7 @@ export const noUnusedVarsRule: RuleModule = {
                 const braceIdx = bodyStartLine.indexOf('{', arrowIdx)
                 const restOfFirstLine = braceIdx >= 0 ? bodyStartLine.slice(braceIdx + 1) : ''
                 if (bodyRange.to > bodyRange.from) {
-                  bodyText = restOfFirstLine + '\n' + lines.slice(bodyRange.from + 1, bodyRange.to + 1).join('\n')
+                  bodyText = `${restOfFirstLine}\n${lines.slice(bodyRange.from + 1, bodyRange.to + 1).join('\n')}`
                 }
                 else {
                   bodyText = restOfFirstLine
@@ -820,26 +916,38 @@ export const noUnusedVarsRule: RuleModule = {
             // Check if expression continues on next lines by tracking nesting
             for (let k = arrowIdx + 2; k < line.length; k++) {
               const ch = line[k]
-              if (ch === '(') parenDepth++
-              else if (ch === ')') parenDepth--
-              else if (ch === '{') braceDepth++
-              else if (ch === '}') braceDepth--
-              else if (ch === '[') bracketDepth++
-              else if (ch === ']') bracketDepth--
+              if (ch === '(')
+                parenDepth++
+              else if (ch === ')')
+                parenDepth--
+              else if (ch === '{')
+                braceDepth++
+              else if (ch === '}')
+                braceDepth--
+              else if (ch === '[')
+                bracketDepth++
+              else if (ch === ']')
+                bracketDepth--
             }
 
             // If there's unclosed nesting, continue to next lines
             let nextLine = i + 1
             while (nextLine < lines.length && (parenDepth > 0 || braceDepth > 0 || bracketDepth > 0)) {
-              bodyText += '\n' + lines[nextLine]
+              bodyText += `\n${lines[nextLine]}`
               for (let k = 0; k < lines[nextLine].length; k++) {
                 const ch = lines[nextLine][k]
-                if (ch === '(') parenDepth++
-                else if (ch === ')') parenDepth--
-                else if (ch === '{') braceDepth++
-                else if (ch === '}') braceDepth--
-                else if (ch === '[') bracketDepth++
-                else if (ch === ']') bracketDepth--
+                if (ch === '(')
+                  parenDepth++
+                else if (ch === ')')
+                  parenDepth--
+                else if (ch === '{')
+                  braceDepth++
+                else if (ch === '}')
+                  braceDepth--
+                else if (ch === '[')
+                  bracketDepth++
+                else if (ch === ']')
+                  bracketDepth--
               }
               nextLine++
             }

@@ -63,6 +63,8 @@ export interface PickierConfig {
   pluginRules?: RulesConfigMap
 }
 
+export type PickierOptions = Partial<PickierConfig>
+
 // Plugin system types
 export type RulesConfigMap = Record<string, RuleSeverity | [RuleSeverity, unknown]>
 

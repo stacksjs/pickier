@@ -1,4 +1,4 @@
-/* eslint-disable no-console */
+/* pickier-disable no-console */
 // Helper to create consistent pickier mocks across all tests
 // Since bunfig is always available, pickier should have all these methods
 

@@ -106,7 +106,7 @@ export function formatStylish(issues: LintIssue[]): string {
   let out = ''
   for (const [filePath, fileIssues] of byFile) {
     // Use full absolute path and underline it (ESLint style)
-    out += `\n${colors.bold('\x1B[4m' + filePath + '\x1B[24m')}\n`
+    out += `\n${colors.bold(`\x1B[4m${filePath}\x1B[24m`)}\n`
 
     for (const issue of fileIssues) {
       const sev = issue.severity === 'error' ? colors.red('error') : colors.yellow('warn ')

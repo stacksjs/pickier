@@ -36,7 +36,7 @@ export async function lintText(
     throw new Error('AbortError')
   try {
     const pluginIssues = await applyPlugins(filePath, text, cfg)
-    const suppress = parseDisableNextLine(text)
+    const suppress = parseDisableDirectives(text)
     for (const i of pluginIssues) {
       if (signal?.aborted)
         throw new Error('AbortError')
@@ -172,7 +172,7 @@ export async function runLintProgrammatic(
     let issues = scanContent(file, src, cfg)
     try {
       const pluginIssues = await applyPlugins(file, src, cfg)
-      const suppress = parseDisableNextLine(src)
+      const suppress = parseDisableDirectives(src)
       for (const i of pluginIssues) {
         if (signal?.aborted)
           throw new Error('AbortError')
@@ -226,40 +226,197 @@ function kebabToCamel(s: string): string {
   return s.replace(/-([a-z])/g, (_, c) => c.toUpperCase())
 }
 type SuppressMap = Map<number, Set<string>>
-function parseDisableNextLine(content: string): SuppressMap {
-  const map: SuppressMap = new Map()
+interface DisableDirectives {
+  nextLine: SuppressMap // Map of line number -> disabled rules
+  fileLevel: Set<string> // Rules disabled for entire file
+  rangeDisable: Map<number, Set<string>> // Line where rules are disabled
+  rangeEnable: Map<number, Set<string>> // Line where rules are re-enabled
+}
+
+function parseDisableDirectives(content: string): DisableDirectives {
+  const nextLine: SuppressMap = new Map()
+  const fileLevel = new Set<string>()
+  const rangeDisable = new Map<number, Set<string>>()
+  const rangeEnable = new Map<number, Set<string>>()
   const lines = content.split(/\r?\n/)
+
+  // Track which rules are currently disabled (for range-based disable/enable)
+  const currentlyDisabled = new Set<string>()
+
   for (let i = 0; i < lines.length; i++) {
     const t = lines[i].trim()
-    // support eslint- and pickier- prefixes
-    const m = t.match(/^\/\/\s*(?:eslint|pickier)-disable-next-line\s+(\S.*)$/)
-    if (!m)
+    const lineNo = i + 1
+
+    // Match disable-next-line comments
+    const nextLineMatch = t.match(/^\/\/\s*(?:eslint|pickier)-disable-next-line\s+(\S.*)$/)
+    if (nextLineMatch) {
+      const list = nextLineMatch[1].split(',').map(s => s.trim()).filter(Boolean)
+      if (list.length > 0) {
+        const target = lineNo + 1 // next line (1-indexed)
+        const set = nextLine.get(target) || new Set<string>()
+        for (const item of list) set.add(item)
+        nextLine.set(target, set)
+      }
       continue
-    const list = m[1].split(',').map(s => s.trim()).filter(Boolean)
-    if (!list.length)
+    }
+
+    // Match block comment disable directives (/* eslint-disable */ or /* pickier-disable */)
+    const blockDisableMatch = t.match(/^\/\*\s*(?:eslint|pickier)-disable(?:\s+([^*]*))?.*\*\//)
+    if (blockDisableMatch) {
+      const ruleList = blockDisableMatch[1]?.trim()
+      if (!ruleList || ruleList === '') {
+        // Disable all rules for the entire file from this line onwards
+        rangeDisable.set(lineNo, new Set(['*']))
+        currentlyDisabled.add('*')
+      }
+      else {
+        // Disable specific rules
+        const list = ruleList.split(',').map(s => s.trim()).filter(Boolean)
+        const set = rangeDisable.get(lineNo) || new Set<string>()
+        for (const item of list) {
+          set.add(item)
+          currentlyDisabled.add(item)
+        }
+        rangeDisable.set(lineNo, set)
+      }
+      // If this is on line 1, also treat it as file-level
+      if (i === 0) {
+        if (!ruleList || ruleList === '') {
+          fileLevel.add('*')
+        }
+        else {
+          const list = ruleList.split(',').map(s => s.trim()).filter(Boolean)
+          for (const item of list) fileLevel.add(item)
+        }
+      }
       continue
-    const target = i + 2 // next line (1-indexed)
-    const set = map.get(target) || new Set<string>()
-    for (const item of list) set.add(item)
-    map.set(target, set)
+    }
+
+    // Match block comment enable directives (/* eslint-enable */ or /* pickier-enable */)
+    const blockEnableMatch = t.match(/^\/\*\s*(?:eslint|pickier)-enable(?:\s+([^*]*))?.*\*\//)
+    if (blockEnableMatch) {
+      const ruleList = blockEnableMatch[1]?.trim()
+      if (!ruleList || ruleList === '') {
+        // Re-enable all rules
+        rangeEnable.set(lineNo, new Set(['*']))
+        currentlyDisabled.clear()
+      }
+      else {
+        // Re-enable specific rules
+        const list = ruleList.split(',').map(s => s.trim()).filter(Boolean)
+        const set = rangeEnable.get(lineNo) || new Set<string>()
+        for (const item of list) {
+          set.add(item)
+          currentlyDisabled.delete(item)
+        }
+        rangeEnable.set(lineNo, set)
+      }
+      continue
+    }
+
+    // Match inline comment disable directives (// eslint-disable or // pickier-disable)
+    const inlineDisableMatch = t.match(/^\/\/\s*(?:eslint|pickier)-disable(?:\s+(\S.*))?$/)
+    if (inlineDisableMatch) {
+      const ruleList = inlineDisableMatch[1]?.trim()
+      if (!ruleList || ruleList === '') {
+        rangeDisable.set(lineNo, new Set(['*']))
+        currentlyDisabled.add('*')
+      }
+      else {
+        const list = ruleList.split(',').map(s => s.trim()).filter(Boolean)
+        const set = rangeDisable.get(lineNo) || new Set<string>()
+        for (const item of list) {
+          set.add(item)
+          currentlyDisabled.add(item)
+        }
+        rangeDisable.set(lineNo, set)
+      }
+      continue
+    }
+
+    // Match inline comment enable directives (// eslint-enable or // pickier-enable)
+    const inlineEnableMatch = t.match(/^\/\/\s*(?:eslint|pickier)-enable(?:\s+(\S.*))?$/)
+    if (inlineEnableMatch) {
+      const ruleList = inlineEnableMatch[1]?.trim()
+      if (!ruleList || ruleList === '') {
+        rangeEnable.set(lineNo, new Set(['*']))
+        currentlyDisabled.clear()
+      }
+      else {
+        const list = ruleList.split(',').map(s => s.trim()).filter(Boolean)
+        const set = rangeEnable.get(lineNo) || new Set<string>()
+        for (const item of list) {
+          set.add(item)
+          currentlyDisabled.delete(item)
+        }
+        rangeEnable.set(lineNo, set)
+      }
+    }
   }
-  return map
+
+  return { nextLine, fileLevel, rangeDisable, rangeEnable }
 }
-function isSuppressed(ruleId: string, line: number, sup: SuppressMap): boolean {
-  const set = sup.get(line)
-  if (!set || set.size === 0)
+
+// Legacy function for backwards compatibility - now calls parseDisableDirectives
+function parseDisableNextLine(content: string): SuppressMap {
+  return parseDisableDirectives(content).nextLine
+}
+
+function isSuppressed(ruleId: string, line: number, directives: SuppressMap | DisableDirectives): boolean {
+  // Handle legacy SuppressMap format
+  if (directives instanceof Map) {
+    const set = directives.get(line)
+    if (!set || set.size === 0)
+      return false
+    return matchesRule(ruleId, set)
+  }
+
+  // Check file-level disables first
+  if (directives.fileLevel.size > 0) {
+    if (matchesRule(ruleId, directives.fileLevel))
+      return true
+  }
+
+  // Check disable-next-line
+  const nextLineSet = directives.nextLine.get(line)
+  if (nextLineSet && matchesRule(ruleId, nextLineSet))
+    return true
+
+  // Check range-based disable/enable
+  // Find the most recent disable directive before this line (not including the directive line itself)
+  const disableLines = Array.from(directives.rangeDisable.keys()).filter(l => l < line).sort((a, b) => b - a)
+  const enableLines = Array.from(directives.rangeEnable.keys()).filter(l => l < line).sort((a, b) => b - a)
+
+  // If there's a disable directive and no more recent enable, check if the rule is disabled
+  if (disableLines.length > 0) {
+    const lastDisableLine = disableLines[0]
+    const lastEnableLine = enableLines.length > 0 ? enableLines[0] : 0
+
+    // Only apply disable if there's no more recent enable
+    if (lastDisableLine > lastEnableLine) {
+      const disabledRules = directives.rangeDisable.get(lastDisableLine)!
+      if (matchesRule(ruleId, disabledRules))
+        return true
+    }
+  }
+
+  return false
+}
+
+function matchesRule(ruleId: string, ruleSet: Set<string>): boolean {
+  if (ruleSet.size === 0)
     return false
-  if (set.has('*'))
+  if (ruleSet.has('*'))
     return true
   // exact match
-  if (set.has(ruleId))
+  if (ruleSet.has(ruleId))
     return true
   // core kebab/camel equivalence
   const keb = camelToKebab(ruleId)
-  if (set.has(keb) || set.has(kebabToCamel(ruleId)))
+  if (ruleSet.has(keb) || ruleSet.has(kebabToCamel(ruleId)))
     return true
   // bare plugin id: allow matching suffix after '/'
-  for (const pat of set) {
+  for (const pat of ruleSet) {
     if (!pat.includes('/')) {
       if (ruleId.endsWith(`/${pat}`))
         return true
@@ -493,7 +650,7 @@ export function scanContent(filePath: string, content: string, cfg: PickierConfi
 
   // Base formatting-related checks (lightweight heuristics)
   const lines = content.split(/\r?\n/)
-  const suppress = parseDisableNextLine(content)
+  const suppress = parseDisableDirectives(content)
   const preferredQuotes = cfg.format.quotes
   let quotesReported = false
   const sevMap = (s: 'warn' | 'error' | 'off' | undefined): 'warning' | 'error' | undefined =>
@@ -588,12 +745,15 @@ export function scanContent(filePath: string, content: string, cfg: PickierConfi
         for (let k = 0; k < line.length; k++) {
           const ch = line[k]
           if (!inString) {
-            if (ch === '"')
+            if (ch === '"') {
               inString = 'double'
-            else if (ch === '\'')
+            }
+            else if (ch === '\'') {
               inString = 'single'
-            else if (ch === '`')
+            }
+            else if (ch === '`') {
               inString = 'template'
+            }
             else if (line.slice(k).startsWith('console.')) {
               // Found console outside of string, this is a real console call
               const col = k + 1
@@ -868,7 +1028,7 @@ export async function runLint(globs: string[], options: LintOptions): Promise<nu
       // Run plugin rules (async with timeouts) and merge
       try {
         const pluginIssues = await applyPlugins(file, src, cfg)
-        const suppress = parseDisableNextLine(src)
+        const suppress = parseDisableDirectives(src)
         for (const i of pluginIssues) {
           if (isSuppressed(i.ruleId as string, i.line, suppress))
             continue

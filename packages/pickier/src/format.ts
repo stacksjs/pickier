@@ -269,9 +269,9 @@ export function detectQuoteIssues(line: string, preferred: 'single' | 'double'):
     }
     else {
       // Inside a string - check if we're exiting
-      if ((inString === 'single' && ch === '\'') ||
-          (inString === 'double' && ch === '"') ||
-          (inString === 'template' && ch === '`')) {
+      if ((inString === 'single' && ch === '\'')
+        || (inString === 'double' && ch === '"')
+        || (inString === 'template' && ch === '`')) {
         inString = null
         continue
       }
