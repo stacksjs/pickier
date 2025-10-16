@@ -80,4 +80,35 @@ export const strongStyleRule: RuleModule = {
 
     return issues
   },
+  fix: (text, ctx) => {
+    const options = (ctx.options as { style?: 'asterisk' | 'underscore' | 'consistent' }) || {}
+    const style = options.style || 'consistent'
+
+    // Determine target style
+    let targetStyle: 'asterisk' | 'underscore' = 'asterisk'
+    if (style === 'asterisk') targetStyle = 'asterisk'
+    else if (style === 'underscore') targetStyle = 'underscore'
+    else if (style === 'consistent') {
+      // Find first strong marker
+      const asteriskMatch = text.match(/\*\*([^*]+?)\*\*/)
+      const underscoreMatch = text.match(/__([^_]+?)__/)
+
+      if (asteriskMatch && (!underscoreMatch || asteriskMatch.index! < underscoreMatch.index!)) {
+        targetStyle = 'asterisk'
+      } else if (underscoreMatch) {
+        targetStyle = 'underscore'
+      }
+    }
+
+    let fixed = text
+    if (targetStyle === 'asterisk') {
+      // Convert underscores to asterisks
+      fixed = fixed.replace(/__([^_]+?)__/g, '**$1**')
+    } else {
+      // Convert asterisks to underscores
+      fixed = fixed.replace(/\*\*([^*]+?)\*\*/g, '__$1__')
+    }
+
+    return fixed
+  },
 }

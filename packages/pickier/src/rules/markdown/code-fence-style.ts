@@ -78,4 +78,42 @@ export const codeFenceStyleRule: RuleModule = {
 
     return issues
   },
+  fix: (text, ctx) => {
+    const options = (ctx.options as { style?: 'backtick' | 'tilde' | 'consistent' }) || {}
+    const style = options.style || 'consistent'
+
+    const lines = text.split(/\r?\n/)
+
+    // Determine target fence style
+    let targetStyle: 'backtick' | 'tilde' = 'backtick'
+    if (style === 'backtick') targetStyle = 'backtick'
+    else if (style === 'tilde') targetStyle = 'tilde'
+    else if (style === 'consistent') {
+      // Find first fence
+      for (const line of lines) {
+        if (/^`{3,}/.test(line)) {
+          targetStyle = 'backtick'
+          break
+        } else if (/^~{3,}/.test(line)) {
+          targetStyle = 'tilde'
+          break
+        }
+      }
+    }
+
+    const fixedLines = lines.map((line) => {
+      if (targetStyle === 'backtick') {
+        // Convert tildes to backticks
+        return line.replace(/^(~{3,})(.*)$/, (match, tildes, rest) => {
+          return '```' + rest
+        })
+      } else {
+        // Convert backticks to tildes
+        return line.replace(/^(`{3,})(.*)$/, (match, backticks, rest) => {
+          return '~~~' + rest
+        })
+      }
+    })
+    return fixedLines.join('\n')
+  },
 }

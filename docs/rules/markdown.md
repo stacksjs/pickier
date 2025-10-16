@@ -4,6 +4,7 @@ The `markdown` plugin provides comprehensive linting rules for Markdown files, h
 
 - Category: Plugin
 - Rules: 53 total
+- Auto-fixable: 27 rules
 - Default: All rules off (opt-in)
 
 ## Overview
@@ -37,6 +38,47 @@ export default {
   }
 }
 ```
+
+## Auto-Fix Support
+
+Many markdown rules support automatic fixes with the `--fix` flag:
+
+```bash
+pickier lint docs --fix
+```
+
+The following rules can be auto-fixed:
+
+**Whitespace (5 rules):**
+- `no-trailing-spaces` - Remove trailing spaces
+- `no-hard-tabs` - Convert tabs to spaces
+- `no-multiple-blanks` - Reduce consecutive blank lines
+- `single-trailing-newline` - Ensure single trailing newline
+
+**Headings (6 rules):**
+- `no-missing-space-atx` - Add space after hash
+- `no-multiple-space-atx` - Reduce to single space
+- `no-trailing-punctuation` - Remove punctuation
+- `blanks-around-headings` - Add blank lines around headings
+- `heading-start-left` - Remove leading whitespace
+- `no-multiple-space-blockquote` - Fix blockquote spacing
+
+**Lists (3 rules):**
+- `list-marker-space` - Fix list marker spacing
+- `ul-style` - Convert to consistent marker style
+- `ol-prefix` - Fix ordered list numbering
+
+**Code & Emphasis (5 rules):**
+- `code-fence-style` - Convert fence style (backtick/tilde)
+- `emphasis-style` - Convert emphasis markers
+- `strong-style` - Convert strong markers
+- `no-space-in-emphasis` - Remove spaces in emphasis
+- `no-space-in-code` - Remove spaces in code spans
+
+**Links & Other (4 rules):**
+- `no-bare-urls` - Wrap URLs in angle brackets
+- `blanks-around-fences` - Add blank lines around code blocks
+- `blanks-around-lists` - Add blank lines around lists
 
 ## Quick Start Preset
 
@@ -84,6 +126,8 @@ Heading levels should only increment by one level at a time.
 'markdown/heading-increment': 'error'
 ```
 
+**Auto-fixable:** No
+
 **Invalid:**
 ```markdown
 # H1
@@ -118,6 +162,8 @@ ATX style headings must have a space after the hash.
 
 **Invalid:** `#Heading`
 **Valid:** `# Heading`
+
+**Auto-fixable:** Yes
 
 ### no-duplicate-heading (MD024)
 Multiple headings should not have the same content.
@@ -205,6 +251,8 @@ Lines should not end with trailing spaces.
 
 Options:
 - `br_spaces` - Number of spaces allowed for hard line breaks (default: 2)
+
+**Auto-fixable:** Yes
 
 ### no-hard-tabs (MD010)
 Spaces should be used instead of hard tabs.

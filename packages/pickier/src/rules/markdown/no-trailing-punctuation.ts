@@ -57,4 +57,31 @@ export const noTrailingPunctuationRule: RuleModule = {
 
     return issues
   },
+  fix: (text, ctx) => {
+    const options = (ctx.options as { punctuation?: string }) || {}
+    const punctuation = options.punctuation || '.,;:!?'
+    const punctRegex = new RegExp(`[${punctuation.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}]+$`)
+
+    const lines = text.split(/\r?\n/)
+    const fixedLines = lines.map((line, i) => {
+      // Check for ATX style headings
+      const atxMatch = line.match(/^(#{1,6}\s+)(.+?)(\s*#+\s*)?$/)
+      if (atxMatch) {
+        const prefix = atxMatch[1]
+        const content = atxMatch[2]
+        const suffix = atxMatch[3] || ''
+        const fixedContent = content.replace(punctRegex, '')
+        return `${prefix}${fixedContent}${suffix}`
+      }
+
+      // Check for Setext style headings
+      const nextLine = i + 1 < lines.length ? lines[i + 1] : ''
+      if (/^(=+|-+)\s*$/.test(nextLine) && line.trim().length > 0) {
+        return line.replace(punctRegex, '')
+      }
+
+      return line
+    })
+    return fixedLines.join('\n')
+  },
 }

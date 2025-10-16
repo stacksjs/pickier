@@ -39,4 +39,26 @@ export const noMultipleBlanksRule: RuleModule = {
 
     return issues
   },
+  fix: (text, ctx) => {
+    const options = (ctx.options as { maximum?: number }) || {}
+    const maximum = options.maximum !== undefined ? options.maximum : 1
+
+    const lines = text.split(/\r?\n/)
+    const result: string[] = []
+    let consecutiveBlanks = 0
+
+    for (const line of lines) {
+      if (line.trim().length === 0) {
+        consecutiveBlanks++
+        if (consecutiveBlanks <= maximum) {
+          result.push(line)
+        }
+      } else {
+        consecutiveBlanks = 0
+        result.push(line)
+      }
+    }
+
+    return result.join('\n')
+  },
 }

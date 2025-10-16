@@ -31,4 +31,8 @@ export const noHardTabsRule: RuleModule = {
 
     return issues
   },
+  fix: (text) => {
+    // Replace tabs with 4 spaces (standard tab width)
+    return text.replace(/\t/g, '    ')
+  },
 }

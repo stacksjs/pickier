@@ -37,4 +37,23 @@ export const noTrailingSpacesRule: RuleModule = {
 
     return issues
   },
+  fix: (text, ctx) => {
+    const lines = text.split(/\r?\n/)
+    const options = (ctx.options as { br_spaces?: number }) || {}
+    const brSpaces = options.br_spaces !== undefined ? options.br_spaces : 2
+
+    const fixedLines = lines.map((line) => {
+      const match = line.match(/\s+$/)
+      if (match) {
+        // Keep exactly brSpaces if configured, otherwise remove all
+        if (brSpaces > 0 && match[0].length === brSpaces) {
+          return line
+        }
+        return line.replace(/\s+$/, '')
+      }
+      return line
+    })
+
+    return fixedLines.join('\n')
+  },
 }

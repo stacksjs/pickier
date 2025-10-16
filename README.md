@@ -18,6 +18,7 @@
 - Import organization: splits type/value imports, sorts modules/specifiers, removes unused named imports
 - JSON and config sorting for common files _(e.g. `package.json`, `tsconfig.json`)_
 - **Markdown linting with 53 rules** for documentation quality _(headings, lists, links, code blocks, tables, etc.)_
+  - 27 rules support auto-fix for common formatting issues
 - Flexible formatting: `indent`, `indentStyle` _(tabs or spaces)_, `quotes`, `semi`, `trimTrailingWhitespace`, `maxConsecutiveBlankLines`, `finalNewline`
 - Smart whitespace cleanup
 - ESLint-style plugin system for lint rules _(load plugins, enable/disable rules, WIP labeling)_

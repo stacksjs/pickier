@@ -31,4 +31,12 @@ export const headingStartLeftRule: RuleModule = {
 
     return issues
   },
+  fix: (text) => {
+    const lines = text.split(/\r?\n/)
+    const fixedLines = lines.map((line) => {
+      // Remove leading whitespace from headings
+      return line.replace(/^(\s+)(#{1,6}\s)/, '$2')
+    })
+    return fixedLines.join('\n')
+  },
 }

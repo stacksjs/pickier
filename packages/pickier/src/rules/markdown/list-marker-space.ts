@@ -55,4 +55,25 @@ export const listMarkerSpaceRule: RuleModule = {
 
     return issues
   },
+  fix: (text, ctx) => {
+    const options = (ctx.options as { ul_single?: number, ul_multi?: number, ol_single?: number, ol_multi?: number }) || {}
+    const ulSingle = options.ul_single || 1
+    const olSingle = options.ol_single || 1
+
+    const lines = text.split(/\r?\n/)
+    const fixedLines = lines.map((line) => {
+      // Fix unordered list marker spacing
+      line = line.replace(/^(\s*)([*\-+])\s+/, (match, indent, marker) => {
+        return `${indent}${marker}${' '.repeat(ulSingle)}`
+      })
+
+      // Fix ordered list marker spacing
+      line = line.replace(/^(\s*)(\d+\.)\s+/, (match, indent, marker) => {
+        return `${indent}${marker}${' '.repeat(olSingle)}`
+      })
+
+      return line
+    })
+    return fixedLines.join('\n')
+  },
 }

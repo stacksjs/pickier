@@ -31,4 +31,12 @@ export const noMultipleSpaceAtxRule: RuleModule = {
 
     return issues
   },
+  fix: (text) => {
+    const lines = text.split(/\r?\n/)
+    const fixedLines = lines.map((line) => {
+      // Replace multiple spaces after hash with single space
+      return line.replace(/^(#{1,6})\s{2,}/, '$1 ')
+    })
+    return fixedLines.join('\n')
+  },
 }

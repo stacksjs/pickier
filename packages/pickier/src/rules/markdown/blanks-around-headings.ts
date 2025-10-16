@@ -78,4 +78,43 @@ export const blanksAroundHeadingsRule: RuleModule = {
 
     return issues
   },
+  fix: (text) => {
+    const lines = text.split(/\r?\n/)
+    const result: string[] = []
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i]
+      const prevLine = i > 0 ? lines[i - 1] : ''
+      const nextLine = i + 1 < lines.length ? lines[i + 1] : ''
+
+      const isAtxHeading = /^#{1,6}\s/.test(line)
+      const isSetextHeading = i + 1 < lines.length && /^(=+|-+)\s*$/.test(nextLine) && line.trim().length > 0
+
+      // Add blank line before heading if needed
+      if (isAtxHeading || isSetextHeading) {
+        if (i > 0 && prevLine.trim().length > 0 && result.length > 0) {
+          result.push('')
+        }
+      }
+
+      result.push(line)
+
+      // Add blank line after ATX heading if needed
+      if (isAtxHeading) {
+        if (i + 1 < lines.length && nextLine.trim().length > 0 && !/^#{1,6}\s/.test(nextLine)) {
+          result.push('')
+        }
+      }
+
+      // Add blank line after Setext heading underline if needed
+      if (i > 0 && /^(=+|-+)\s*$/.test(line) && lines[i - 1].trim().length > 0) {
+        const lineAfterUnderline = i + 1 < lines.length ? lines[i + 1] : ''
+        if (lineAfterUnderline.trim().length > 0) {
+          result.push('')
+        }
+      }
+    }
+
+    return result.join('\n')
+  },
 }

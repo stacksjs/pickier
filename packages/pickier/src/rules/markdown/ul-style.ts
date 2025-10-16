@@ -71,4 +71,31 @@ export const ulStyleRule: RuleModule = {
 
     return issues
   },
+  fix: (text, ctx) => {
+    const options = (ctx.options as { style?: 'asterisk' | 'dash' | 'plus' | 'consistent' }) || {}
+    const style = options.style || 'consistent'
+
+    const lines = text.split(/\r?\n/)
+
+    // Determine target marker
+    let targetMarker: '*' | '-' | '+' = '*'
+    if (style === 'asterisk') targetMarker = '*'
+    else if (style === 'dash') targetMarker = '-'
+    else if (style === 'plus') targetMarker = '+'
+    else if (style === 'consistent') {
+      // Find first list marker
+      for (const line of lines) {
+        const match = line.match(/^(\s*)([*\-+])\s+/)
+        if (match) {
+          targetMarker = match[2] as '*' | '-' | '+'
+          break
+        }
+      }
+    }
+
+    const fixedLines = lines.map((line) => {
+      return line.replace(/^(\s*)([*\-+])(\s+)/, `$1${targetMarker}$3`)
+    })
+    return fixedLines.join('\n')
+  },
 }

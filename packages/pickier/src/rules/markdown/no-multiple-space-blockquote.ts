@@ -32,4 +32,12 @@ export const noMultipleSpaceBlockquoteRule: RuleModule = {
 
     return issues
   },
+  fix: (text) => {
+    const lines = text.split(/\r?\n/)
+    const fixedLines = lines.map((line) => {
+      // Replace multiple spaces after blockquote symbol with single space
+      return line.replace(/^(\s*>+)\s{2,}/, '$1 ')
+    })
+    return fixedLines.join('\n')
+  },
 }

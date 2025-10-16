@@ -38,4 +38,17 @@ export const noBareUrlsRule: RuleModule = {
 
     return issues
   },
+  fix: (text) => {
+    const lines = text.split(/\r?\n/)
+    const fixedLines = lines.map((line) => {
+      // Skip code blocks
+      if (line.trim().startsWith('```') || line.trim().startsWith('~~~')) {
+        return line
+      }
+
+      // Wrap bare URLs in angle brackets
+      return line.replace(/(?<!<|`|\()https?:\/\/[^\s<>`)\]]+(?![>\])`])/g, '<$&>')
+    })
+    return fixedLines.join('\n')
+  },
 }

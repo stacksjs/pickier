@@ -39,4 +39,11 @@ export const noSpaceInEmphasisRule: RuleModule = {
 
     return issues
   },
+  fix: (text) => {
+    // Remove spaces after opening markers
+    let fixed = text.replace(/(\*\*|\*|__?)\s+/g, '$1')
+    // Remove spaces before closing markers
+    fixed = fixed.replace(/\s+(\*\*|\*|__?)/g, '$1')
+    return fixed
+  },
 }

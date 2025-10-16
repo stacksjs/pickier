@@ -31,4 +31,12 @@ export const noMissingSpaceAtxRule: RuleModule = {
 
     return issues
   },
+  fix: (text) => {
+    const lines = text.split(/\r?\n/)
+    const fixedLines = lines.map((line) => {
+      // Add space after hash if missing
+      return line.replace(/^(#{1,6})([^\s#])/, '$1 $2')
+    })
+    return fixedLines.join('\n')
+  },
 }
