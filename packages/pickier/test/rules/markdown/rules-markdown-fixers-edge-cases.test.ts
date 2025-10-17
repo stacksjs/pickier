@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import type { LintOptions } from '../../../src/types'
 import { afterEach, describe, expect, it } from 'bun:test'
 import { readFileSync, writeFileSync } from 'node:fs'

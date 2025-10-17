@@ -1,5 +1,74 @@
 import type { LintIssue, PickierPlugin, RuleContext, RuleModule } from '../types'
 
+import { blanksAroundFencesRule } from '../rules/markdown/blanks-around-fences'
+import { blanksAroundHeadingsRule } from '../rules/markdown/blanks-around-headings'
+import { blanksAroundListsRule } from '../rules/markdown/blanks-around-lists'
+import { blanksAroundTablesRule } from '../rules/markdown/blanks-around-tables'
+import { codeBlockStyleRule } from '../rules/markdown/code-block-style'
+import { codeFenceStyleRule } from '../rules/markdown/code-fence-style'
+import { commandsShowOutputRule } from '../rules/markdown/commands-show-output'
+import { descriptiveLinkTextRule } from '../rules/markdown/descriptive-link-text'
+import { emphasisStyleRule } from '../rules/markdown/emphasis-style'
+import { fencedCodeLanguageRule } from '../rules/markdown/fenced-code-language'
+import { firstLineHeadingRule } from '../rules/markdown/first-line-heading'
+
+// Heading rules
+import { headingIncrementRule } from '../rules/markdown/heading-increment'
+import { headingStartLeftRule } from '../rules/markdown/heading-start-left'
+import { headingStyleRule } from '../rules/markdown/heading-style'
+import { hrStyleRule } from '../rules/markdown/hr-style'
+// Code rules
+import { lineLengthRule } from '../rules/markdown/line-length'
+import { linkFragmentsRule } from '../rules/markdown/link-fragments'
+
+import { linkImageReferenceDefinitionsRule } from '../rules/markdown/link-image-reference-definitions'
+import { linkImageStyleRule } from '../rules/markdown/link-image-style'
+import { listIndentRule } from '../rules/markdown/list-indent'
+import { listMarkerSpaceRule } from '../rules/markdown/list-marker-space'
+import { noAltTextRule } from '../rules/markdown/no-alt-text'
+import { noBareUrlsRule } from '../rules/markdown/no-bare-urls'
+import { noBlanksBlockquoteRule } from '../rules/markdown/no-blanks-blockquote'
+import { noDuplicateHeadingRule } from '../rules/markdown/no-duplicate-heading'
+
+// Emphasis/Strong rules
+import { noEmphasisAsHeadingRule } from '../rules/markdown/no-emphasis-as-heading'
+import { noEmptyLinksRule } from '../rules/markdown/no-empty-links'
+import { noHardTabsRule } from '../rules/markdown/no-hard-tabs'
+// HTML and other rules
+import { noInlineHtmlRule } from '../rules/markdown/no-inline-html'
+import { noMissingSpaceAtxRule } from '../rules/markdown/no-missing-space-atx'
+import { noMissingSpaceClosedAtxRule } from '../rules/markdown/no-missing-space-closed-atx'
+import { noMultipleBlanksRule } from '../rules/markdown/no-multiple-blanks'
+import { noMultipleSpaceAtxRule } from '../rules/markdown/no-multiple-space-atx'
+import { noMultipleSpaceBlockquoteRule } from '../rules/markdown/no-multiple-space-blockquote'
+
+import { noMultipleSpaceClosedAtxRule } from '../rules/markdown/no-multiple-space-closed-atx'
+// Link rules
+import { noReversedLinksRule } from '../rules/markdown/no-reversed-links'
+import { noSpaceInCodeRule } from '../rules/markdown/no-space-in-code'
+import { noSpaceInEmphasisRule } from '../rules/markdown/no-space-in-emphasis'
+import { noSpaceInLinksRule } from '../rules/markdown/no-space-in-links'
+
+import { noTrailingPunctuationRule } from '../rules/markdown/no-trailing-punctuation'
+// Whitespace rules
+import { noTrailingSpacesRule } from '../rules/markdown/no-trailing-spaces'
+import { olPrefixRule } from '../rules/markdown/ol-prefix'
+import { properNamesRule } from '../rules/markdown/proper-names'
+import { referenceLinksImagesRule } from '../rules/markdown/reference-links-images'
+
+import { requiredHeadingsRule } from '../rules/markdown/required-headings'
+import { singleTitleRule } from '../rules/markdown/single-title'
+import { singleTrailingNewlineRule } from '../rules/markdown/single-trailing-newline'
+import { strongStyleRule } from '../rules/markdown/strong-style'
+import { tableColumnCountRule } from '../rules/markdown/table-column-count'
+import { tableColumnStyleRule } from '../rules/markdown/table-column-style'
+
+// Table rules
+import { tablePipeStyleRule } from '../rules/markdown/table-pipe-style'
+import { ulIndentRule } from '../rules/markdown/ul-indent'
+// List rules
+import { ulStyleRule } from '../rules/markdown/ul-style'
+
 // Helper function to wrap markdown rules so they only run on .md files
 function markdownOnly(rule: RuleModule): RuleModule {
   return {
@@ -20,75 +89,6 @@ function markdownOnly(rule: RuleModule): RuleModule {
       : undefined,
   }
 }
-
-// Heading rules
-import { headingIncrementRule } from '../rules/markdown/heading-increment'
-import { headingStyleRule } from '../rules/markdown/heading-style'
-import { noMissingSpaceAtxRule } from '../rules/markdown/no-missing-space-atx'
-import { noMultipleSpaceAtxRule } from '../rules/markdown/no-multiple-space-atx'
-import { noMissingSpaceClosedAtxRule } from '../rules/markdown/no-missing-space-closed-atx'
-import { noMultipleSpaceClosedAtxRule } from '../rules/markdown/no-multiple-space-closed-atx'
-import { blanksAroundHeadingsRule } from '../rules/markdown/blanks-around-headings'
-import { headingStartLeftRule } from '../rules/markdown/heading-start-left'
-import { noDuplicateHeadingRule } from '../rules/markdown/no-duplicate-heading'
-import { singleTitleRule } from '../rules/markdown/single-title'
-import { noTrailingPunctuationRule } from '../rules/markdown/no-trailing-punctuation'
-
-// List rules
-import { ulStyleRule } from '../rules/markdown/ul-style'
-import { listIndentRule } from '../rules/markdown/list-indent'
-import { ulIndentRule } from '../rules/markdown/ul-indent'
-import { olPrefixRule } from '../rules/markdown/ol-prefix'
-import { listMarkerSpaceRule } from '../rules/markdown/list-marker-space'
-import { blanksAroundListsRule } from '../rules/markdown/blanks-around-lists'
-
-// Whitespace rules
-import { noTrailingSpacesRule } from '../rules/markdown/no-trailing-spaces'
-import { noHardTabsRule } from '../rules/markdown/no-hard-tabs'
-import { noMultipleBlanksRule } from '../rules/markdown/no-multiple-blanks'
-import { noMultipleSpaceBlockquoteRule } from '../rules/markdown/no-multiple-space-blockquote'
-import { noBlanksBlockquoteRule } from '../rules/markdown/no-blanks-blockquote'
-import { blanksAroundFencesRule } from '../rules/markdown/blanks-around-fences'
-import { singleTrailingNewlineRule } from '../rules/markdown/single-trailing-newline'
-import { blanksAroundTablesRule } from '../rules/markdown/blanks-around-tables'
-
-// Link rules
-import { noReversedLinksRule } from '../rules/markdown/no-reversed-links'
-import { noBareUrlsRule } from '../rules/markdown/no-bare-urls'
-import { noSpaceInLinksRule } from '../rules/markdown/no-space-in-links'
-import { noEmptyLinksRule } from '../rules/markdown/no-empty-links'
-import { linkFragmentsRule } from '../rules/markdown/link-fragments'
-import { referenceLinksImagesRule } from '../rules/markdown/reference-links-images'
-import { linkImageReferenceDefinitionsRule } from '../rules/markdown/link-image-reference-definitions'
-import { linkImageStyleRule } from '../rules/markdown/link-image-style'
-import { descriptiveLinkTextRule } from '../rules/markdown/descriptive-link-text'
-
-// Code rules
-import { lineLengthRule } from '../rules/markdown/line-length'
-import { commandsShowOutputRule } from '../rules/markdown/commands-show-output'
-import { fencedCodeLanguageRule } from '../rules/markdown/fenced-code-language'
-import { codeBlockStyleRule } from '../rules/markdown/code-block-style'
-import { codeFenceStyleRule } from '../rules/markdown/code-fence-style'
-
-// Emphasis/Strong rules
-import { noEmphasisAsHeadingRule } from '../rules/markdown/no-emphasis-as-heading'
-import { noSpaceInEmphasisRule } from '../rules/markdown/no-space-in-emphasis'
-import { noSpaceInCodeRule } from '../rules/markdown/no-space-in-code'
-import { emphasisStyleRule } from '../rules/markdown/emphasis-style'
-import { strongStyleRule } from '../rules/markdown/strong-style'
-
-// HTML and other rules
-import { noInlineHtmlRule } from '../rules/markdown/no-inline-html'
-import { hrStyleRule } from '../rules/markdown/hr-style'
-import { firstLineHeadingRule } from '../rules/markdown/first-line-heading'
-import { requiredHeadingsRule } from '../rules/markdown/required-headings'
-import { properNamesRule } from '../rules/markdown/proper-names'
-import { noAltTextRule } from '../rules/markdown/no-alt-text'
-
-// Table rules
-import { tablePipeStyleRule } from '../rules/markdown/table-pipe-style'
-import { tableColumnCountRule } from '../rules/markdown/table-column-count'
-import { tableColumnStyleRule } from '../rules/markdown/table-column-style'
 
 export const markdownPlugin: PickierPlugin = {
   name: 'markdown',
