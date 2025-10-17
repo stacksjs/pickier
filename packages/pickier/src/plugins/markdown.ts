@@ -1,4 +1,25 @@
-import type { PickierPlugin } from '../types'
+import type { LintIssue, PickierPlugin, RuleContext, RuleModule } from '../types'
+
+// Helper function to wrap markdown rules so they only run on .md files
+function markdownOnly(rule: RuleModule): RuleModule {
+  return {
+    meta: rule.meta,
+    check: (content: string, context: RuleContext): LintIssue[] => {
+      // Only run on .md files
+      if (!context.filePath.endsWith('.md'))
+        return []
+      return rule.check(content, context)
+    },
+    fix: rule.fix
+      ? (content: string, context: RuleContext): string => {
+          // Only run on .md files
+          if (!context.filePath.endsWith('.md'))
+            return content
+          return rule.fix!(content, context)
+        }
+      : undefined,
+  }
+}
 
 // Heading rules
 import { headingIncrementRule } from '../rules/markdown/heading-increment'
@@ -73,72 +94,72 @@ export const markdownPlugin: PickierPlugin = {
   name: 'markdown',
   rules: {
     // Heading rules (MD001, MD003, MD018-MD026)
-    'heading-increment': headingIncrementRule,
-    'heading-style': headingStyleRule,
-    'no-missing-space-atx': noMissingSpaceAtxRule,
-    'no-multiple-space-atx': noMultipleSpaceAtxRule,
-    'no-missing-space-closed-atx': noMissingSpaceClosedAtxRule,
-    'no-multiple-space-closed-atx': noMultipleSpaceClosedAtxRule,
-    'blanks-around-headings': blanksAroundHeadingsRule,
-    'heading-start-left': headingStartLeftRule,
-    'no-duplicate-heading': noDuplicateHeadingRule,
-    'single-title': singleTitleRule,
-    'no-trailing-punctuation': noTrailingPunctuationRule,
+    'heading-increment': markdownOnly(headingIncrementRule),
+    'heading-style': markdownOnly(headingStyleRule),
+    'no-missing-space-atx': markdownOnly(noMissingSpaceAtxRule),
+    'no-multiple-space-atx': markdownOnly(noMultipleSpaceAtxRule),
+    'no-missing-space-closed-atx': markdownOnly(noMissingSpaceClosedAtxRule),
+    'no-multiple-space-closed-atx': markdownOnly(noMultipleSpaceClosedAtxRule),
+    'blanks-around-headings': markdownOnly(blanksAroundHeadingsRule),
+    'heading-start-left': markdownOnly(headingStartLeftRule),
+    'no-duplicate-heading': markdownOnly(noDuplicateHeadingRule),
+    'single-title': markdownOnly(singleTitleRule),
+    'no-trailing-punctuation': markdownOnly(noTrailingPunctuationRule),
 
     // List rules (MD004, MD005, MD007, MD029, MD030, MD032)
-    'ul-style': ulStyleRule,
-    'list-indent': listIndentRule,
-    'ul-indent': ulIndentRule,
-    'ol-prefix': olPrefixRule,
-    'list-marker-space': listMarkerSpaceRule,
-    'blanks-around-lists': blanksAroundListsRule,
+    'ul-style': markdownOnly(ulStyleRule),
+    'list-indent': markdownOnly(listIndentRule),
+    'ul-indent': markdownOnly(ulIndentRule),
+    'ol-prefix': markdownOnly(olPrefixRule),
+    'list-marker-space': markdownOnly(listMarkerSpaceRule),
+    'blanks-around-lists': markdownOnly(blanksAroundListsRule),
 
     // Whitespace rules (MD009, MD010, MD012, MD022, MD027, MD028, MD031, MD047, MD058)
-    'no-trailing-spaces': noTrailingSpacesRule,
-    'no-hard-tabs': noHardTabsRule,
-    'no-multiple-blanks': noMultipleBlanksRule,
-    'no-multiple-space-blockquote': noMultipleSpaceBlockquoteRule,
-    'no-blanks-blockquote': noBlanksBlockquoteRule,
-    'blanks-around-fences': blanksAroundFencesRule,
-    'single-trailing-newline': singleTrailingNewlineRule,
-    'blanks-around-tables': blanksAroundTablesRule,
+    'no-trailing-spaces': markdownOnly(noTrailingSpacesRule),
+    'no-hard-tabs': markdownOnly(noHardTabsRule),
+    'no-multiple-blanks': markdownOnly(noMultipleBlanksRule),
+    'no-multiple-space-blockquote': markdownOnly(noMultipleSpaceBlockquoteRule),
+    'no-blanks-blockquote': markdownOnly(noBlanksBlockquoteRule),
+    'blanks-around-fences': markdownOnly(blanksAroundFencesRule),
+    'single-trailing-newline': markdownOnly(singleTrailingNewlineRule),
+    'blanks-around-tables': markdownOnly(blanksAroundTablesRule),
 
     // Link rules (MD011, MD034, MD039, MD042, MD051-MD054, MD059)
-    'no-reversed-links': noReversedLinksRule,
-    'no-bare-urls': noBareUrlsRule,
-    'no-space-in-links': noSpaceInLinksRule,
-    'no-empty-links': noEmptyLinksRule,
-    'link-fragments': linkFragmentsRule,
-    'reference-links-images': referenceLinksImagesRule,
-    'link-image-reference-definitions': linkImageReferenceDefinitionsRule,
-    'link-image-style': linkImageStyleRule,
-    'descriptive-link-text': descriptiveLinkTextRule,
+    'no-reversed-links': markdownOnly(noReversedLinksRule),
+    'no-bare-urls': markdownOnly(noBareUrlsRule),
+    'no-space-in-links': markdownOnly(noSpaceInLinksRule),
+    'no-empty-links': markdownOnly(noEmptyLinksRule),
+    'link-fragments': markdownOnly(linkFragmentsRule),
+    'reference-links-images': markdownOnly(referenceLinksImagesRule),
+    'link-image-reference-definitions': markdownOnly(linkImageReferenceDefinitionsRule),
+    'link-image-style': markdownOnly(linkImageStyleRule),
+    'descriptive-link-text': markdownOnly(descriptiveLinkTextRule),
 
     // Code rules (MD013, MD014, MD040, MD046, MD048)
-    'line-length': lineLengthRule,
-    'commands-show-output': commandsShowOutputRule,
-    'fenced-code-language': fencedCodeLanguageRule,
-    'code-block-style': codeBlockStyleRule,
-    'code-fence-style': codeFenceStyleRule,
+    'line-length': markdownOnly(lineLengthRule),
+    'commands-show-output': markdownOnly(commandsShowOutputRule),
+    'fenced-code-language': markdownOnly(fencedCodeLanguageRule),
+    'code-block-style': markdownOnly(codeBlockStyleRule),
+    'code-fence-style': markdownOnly(codeFenceStyleRule),
 
     // Emphasis/Strong rules (MD036, MD037, MD038, MD049, MD050)
-    'no-emphasis-as-heading': noEmphasisAsHeadingRule,
-    'no-space-in-emphasis': noSpaceInEmphasisRule,
-    'no-space-in-code': noSpaceInCodeRule,
-    'emphasis-style': emphasisStyleRule,
-    'strong-style': strongStyleRule,
+    'no-emphasis-as-heading': markdownOnly(noEmphasisAsHeadingRule),
+    'no-space-in-emphasis': markdownOnly(noSpaceInEmphasisRule),
+    'no-space-in-code': markdownOnly(noSpaceInCodeRule),
+    'emphasis-style': markdownOnly(emphasisStyleRule),
+    'strong-style': markdownOnly(strongStyleRule),
 
     // HTML and other rules (MD033, MD035, MD041, MD043-MD045)
-    'no-inline-html': noInlineHtmlRule,
-    'hr-style': hrStyleRule,
-    'first-line-heading': firstLineHeadingRule,
-    'required-headings': requiredHeadingsRule,
-    'proper-names': properNamesRule,
-    'no-alt-text': noAltTextRule,
+    'no-inline-html': markdownOnly(noInlineHtmlRule),
+    'hr-style': markdownOnly(hrStyleRule),
+    'first-line-heading': markdownOnly(firstLineHeadingRule),
+    'required-headings': markdownOnly(requiredHeadingsRule),
+    'proper-names': markdownOnly(properNamesRule),
+    'no-alt-text': markdownOnly(noAltTextRule),
 
     // Table rules (MD055, MD056, MD060)
-    'table-pipe-style': tablePipeStyleRule,
-    'table-column-count': tableColumnCountRule,
-    'table-column-style': tableColumnStyleRule,
+    'table-pipe-style': markdownOnly(tablePipeStyleRule),
+    'table-column-count': markdownOnly(tableColumnCountRule),
+    'table-column-style': markdownOnly(tableColumnStyleRule),
   },
 }

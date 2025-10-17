@@ -1,35 +1,9 @@
 /* eslint-disable no-console */
 import type { LintOptions } from '../../../src/types'
 import { afterEach, describe, expect, it } from 'bun:test'
-import { existsSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs'
-import { resolve } from 'node:path'
+import { readFileSync, writeFileSync } from 'node:fs'
 import { runLint } from '../../../src/linter'
-
-const tempFiles: string[] = []
-
-function createTempFile(content: string): string {
-  const tempPath = resolve(__dirname, `temp-md-${Date.now()}-${Math.random().toString(36).substring(7)}.md`)
-  writeFileSync(tempPath, content)
-  tempFiles.push(tempPath)
-  return tempPath
-}
-
-function createConfigWithMarkdownRules(rules: Record<string, string | [string, any]>): string {
-  const configPath = resolve(__dirname, `temp-config-${Date.now()}.json`)
-  writeFileSync(configPath, JSON.stringify({
-    lint: { extensions: ['md'], reporter: 'json', cache: false, maxWarnings: -1 },
-    pluginRules: rules,
-  }))
-  tempFiles.push(configPath)
-  return configPath
-}
-
-function cleanupTempFiles(): void {
-  for (const file of tempFiles) {
-    if (existsSync(file)) unlinkSync(file)
-  }
-  tempFiles.length = 0
-}
+import { cleanupTempFiles, createConfigWithMarkdownRules, createTempFile } from './test-helpers'
 
 afterEach(() => cleanupTempFiles())
 
