@@ -1,4 +1,5 @@
 import type { PickierPlugin } from '../types'
+import { braceStyle } from '../rules/style/brace-style'
 import { consistentChainingRule } from '../rules/style/consistent-chaining'
 import { consistentListNewlineRule } from '../rules/style/consistent-list-newline'
 import { curlyRule } from '../rules/style/curly'
@@ -9,6 +10,7 @@ import { maxStatementsPerLineRule } from '../rules/style/max-statements-per-line
 export const stylePlugin: PickierPlugin = {
   name: 'style',
   rules: {
+    'brace-style': braceStyle,
     'curly': curlyRule,
     'max-statements-per-line': maxStatementsPerLineRule,
     'if-newline': ifNewlineRule,

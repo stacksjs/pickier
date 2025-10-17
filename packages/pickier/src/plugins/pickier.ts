@@ -1,6 +1,7 @@
 import type { PickierPlugin } from '../types'
 import { noUnusedVarsRule } from '../rules/general/no-unused-vars'
 import { preferConstRule } from '../rules/general/prefer-const'
+import { preferTemplate } from '../rules/general/prefer-template'
 import { importDedupeRule } from '../rules/imports/import-dedupe'
 import { noImportDistRule } from '../rules/imports/no-import-dist'
 import { noImportNodeModulesByPathRule } from '../rules/imports/no-import-node-modules-by-path'
@@ -22,6 +23,7 @@ export const pickierPlugin: PickierPlugin = {
     'sort-heritage-clauses': sortHeritageClausesRule,
     'sort-keys': sortKeysRule,
     'prefer-const': preferConstRule,
+    'prefer-template': preferTemplate,
     'no-unused-vars': noUnusedVarsRule,
     'import-dedupe': importDedupeRule,
     'no-import-dist': noImportDistRule,
