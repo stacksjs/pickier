@@ -1,6 +1,6 @@
 {
   "publisher": "pickier",
-  "name": "pickier-vscode",
+  "name": "@pickier/vscode",
   "displayName": "Pickier",
   "type": "module",
   "version": "0.1.7",
@@ -29,7 +29,7 @@
   ],
   "main": "./dist/index.js",
   "engines": {
-    "vscode": "^1.103.0"
+    "vscode": "^1.74.0"
   },
   "activationEvents": [
     "onLanguage:typescript",
@@ -196,16 +196,16 @@
     "pretest": "bun run compile && bun run lint",
     "lint": "eslint src --ext ts",
     "test": "bun test",
-    "package": "vsce package --no-dependencies",
-    "publish": "vsce publish --no-dependencies"
+    "package": "vsce package",
+    "publish": "vsce publish"
   },
   "dependencies": {
     "pickier": "workspace:*"
   },
   "devDependencies": {
     "@types/bun": "1.2.20",
-    "@types/vscode": "^1.103.0",
+    "@types/vscode": "^1.105.0",
     "@vscode/test-electron": "^2.5.2",
-    "@vscode/vsce": "^3.6.0"
+    "@vscode/vsce": "^3.6.2"
   }
 }
