@@ -30,8 +30,10 @@ export const preferTemplate: RuleModule = {
 
       // Simple heuristic: look for + operator between strings or identifiers
       // This is a lightweight check that catches common cases
-      const concatenationPattern = /(['"`][^'"`]*['"`])\s*\+\s*([a-z_$][\w$]*|['"`][^'"`]*['"`])/i
-      const match = trimmed.match(concatenationPattern)
+      // Pattern: string + identifier OR identifier + string
+      const stringPlusIdentifier = /(['"`][^'"`]*['"`])\s*\+\s*([a-z_$][\w$]*)/i
+      const identifierPlusString = /([a-z_$][\w$]*)\s*\+\s*(['"`][^'"`]*['"`])/i
+      const match = trimmed.match(stringPlusIdentifier) || trimmed.match(identifierPlusString)
 
       if (match) {
         // Additional check: make sure we're not in a comment
