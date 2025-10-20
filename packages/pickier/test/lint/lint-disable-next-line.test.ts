@@ -42,7 +42,7 @@ describe('disable-next-line directives', () => {
     const file = 'c.ts'
     const src = [
       '// pickier-disable-next-line sort-objects',
-      'const obj = { b: 1, a: 2 }',
+      'const _obj = { b: 1, a: 2 }',
       '',
     ].join('\n')
     writeFileSync(join(dir, file), src, 'utf8')
@@ -54,7 +54,7 @@ describe('disable-next-line directives', () => {
       lint: { extensions: ['ts'], reporter: 'json', cache: false, maxWarnings: -1 },
       format: { extensions: ['ts'], trimTrailingWhitespace: true, maxConsecutiveBlankLines: 1, finalNewline: 'one', indent: 2, quotes: 'single', semi: false },
       rules: { noDebugger: 'off', noConsole: 'off' },
-      pluginRules: { 'sort-objects': 'warn' },
+      pluginRules: { 'sort-objects': 'warn', 'pickier/no-unused-vars': 'off' },
     }, null, 2), 'utf8')
 
     const code = await runLint([dir], { config: cfgPath, reporter: 'json' })
@@ -66,7 +66,7 @@ describe('disable-next-line directives', () => {
     const file = 'd.ts'
     const src = [
       '// eslint-disable-next-line pickier/sort-objects',
-      'const obj = { b: 1, a: 2 }',
+      'const _obj = { b: 1, a: 2 }',
       '',
     ].join('\n')
     writeFileSync(join(dir, file), src, 'utf8')
@@ -78,7 +78,7 @@ describe('disable-next-line directives', () => {
       lint: { extensions: ['ts'], reporter: 'json', cache: false, maxWarnings: -1 },
       format: { extensions: ['ts'], trimTrailingWhitespace: true, maxConsecutiveBlankLines: 1, finalNewline: 'one', indent: 2, quotes: 'single', semi: false },
       rules: { noDebugger: 'off', noConsole: 'off' },
-      pluginRules: { 'pickier/sort-objects': 'warn' },
+      pluginRules: { 'pickier/sort-objects': 'warn', 'pickier/no-unused-vars': 'off' },
     }, null, 2), 'utf8')
 
     const code = await runLint([dir], { config: cfgPath, reporter: 'json' })
@@ -90,7 +90,7 @@ describe('disable-next-line directives', () => {
     const file = 'e.ts'
     const src = [
       '// pickier-disable-next-line ts/no-require-imports',
-      'const fs = require(\'fs\')',
+      'const _fs = require(\'fs\')',
       '',
     ].join('\n')
     writeFileSync(join(dir, file), src, 'utf8')
@@ -102,7 +102,7 @@ describe('disable-next-line directives', () => {
       lint: { extensions: ['ts'], reporter: 'json', cache: false, maxWarnings: -1 },
       format: { extensions: ['ts'], trimTrailingWhitespace: true, maxConsecutiveBlankLines: 1, finalNewline: 'one', indent: 2, quotes: 'single', semi: false },
       rules: { noDebugger: 'off', noConsole: 'off' },
-      pluginRules: { 'ts/no-require-imports': 'error' },
+      pluginRules: { 'ts/no-require-imports': 'error', 'pickier/no-unused-vars': 'off' },
     }, null, 2), 'utf8')
 
     const code = await runLint([dir], { config: cfgPath, reporter: 'json' })

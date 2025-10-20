@@ -151,7 +151,7 @@ describe('ts/no-require-imports edge cases', () => {
       lint: { extensions: ['ts', 'js'], reporter: 'json', cache: false, maxWarnings: -1 },
       format: { extensions: ['ts', 'js'], trimTrailingWhitespace: true, maxConsecutiveBlankLines: 1, finalNewline: 'one', indent: 2, quotes: 'single', semi: false },
       rules: { noDebugger: 'off', noConsole: 'off' },
-      pluginRules: { 'ts/no-require-imports': 'error' },
+      pluginRules: { 'ts/no-require-imports': 'error', 'pickier/no-unused-vars': 'off' },
     }, null, 2), 'utf8')
 
     const code = await runLint([dir], { config: cfgPath, reporter: 'json' })

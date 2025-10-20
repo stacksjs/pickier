@@ -11,7 +11,7 @@ function tmp(): string {
 describe('runLint', () => {
   it('returns 0 when no issues', async () => {
     const dir = tmp()
-    writeFileSync(join(dir, 'a.ts'), 'const a = 1\n', 'utf8')
+    writeFileSync(join(dir, 'a.ts'), 'const _a = 1\n', 'utf8')
     const code = await runLint([dir], { reporter: 'json' })
     expect(code).toBe(0)
   })
@@ -47,7 +47,7 @@ describe('runLint', () => {
   it('does not remove "debugger" inside strings (lint --fix does not format/quote-convert)', async () => {
     const dir = tmp()
     const file = join(dir, 'a.ts')
-    const src = 'const s = "debugger"\n'
+    const src = 'const _s = "debugger"\n'
     writeFileSync(file, src, 'utf8')
     const code = await runLint([dir], { fix: true })
     expect(code).toBe(0)
@@ -58,7 +58,7 @@ describe('runLint', () => {
   it('does not remove "debugger" in comments', async () => {
     const dir = tmp()
     const file = join(dir, 'a.ts')
-    const src = '// debugger\n/* debugger */\nconst x = 1\n'
+    const src = '// debugger\n/* debugger */\nconst _x = 1\n'
     writeFileSync(file, src, 'utf8')
     const code = await runLint([dir], { fix: true })
     expect(code).toBe(0)

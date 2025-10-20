@@ -127,7 +127,7 @@ describe('configuration handling', () => {
     const file = join(dir, 'test.ts')
     const configFile = join(dir, 'pickier.config.json')
 
-    writeFileSync(file, 'const obj = {c: 3, b: 2, a: 1}\n', 'utf8')
+    writeFileSync(file, 'const _obj = {c: 3, b: 2, a: 1}\n', 'utf8')
     writeFileSync(configFile, JSON.stringify({
       lint: {
         extensions: ['ts'],
@@ -232,7 +232,7 @@ describe('configuration handling', () => {
     const file = join(dir, 'test.ts')
     const configFile = join(dir, 'pickier.config.json')
 
-    writeFileSync(file, 'const x = 1\n', 'utf8')
+    writeFileSync(file, 'const _x = 1\n', 'utf8')
     writeFileSync(configFile, JSON.stringify({
       lint: {
         extensions: ['ts'],

@@ -29,7 +29,7 @@ describe('pickier/sort-objects', () => {
       format: { extensions: ['ts'], trimTrailingWhitespace: true, maxConsecutiveBlankLines: 1, finalNewline: 'one', indent: 2, quotes: 'single', semi: false },
       rules: { noDebugger: 'off', noConsole: 'off' },
       plugins: [{ name: 'pickier', rules: {} }],
-      pluginRules: { 'pickier/sort-objects': ['warn', { type: 'alphabetical', order: 'asc', partitionByNewLine: false }] },
+      pluginRules: { 'pickier/sort-objects': ['warn', { type: 'alphabetical', order: 'asc', partitionByNewLine: false }], 'pickier/no-unused-vars': 'off' },
     }, null, 2), 'utf8')
 
     const code = await runLint([dir], { config: cfgPath, reporter: 'json' })
@@ -59,7 +59,7 @@ describe('pickier/sort-objects', () => {
       format: { extensions: ['ts'], trimTrailingWhitespace: true, maxConsecutiveBlankLines: 1, finalNewline: 'one', indent: 2, quotes: 'single', semi: false },
       rules: { noDebugger: 'off', noConsole: 'off' },
       plugins: [{ name: 'pickier', rules: {} }],
-      pluginRules: { 'pickier/sort-objects': ['warn', { partitionByNewLine: true }] },
+      pluginRules: { 'pickier/sort-objects': ['warn', { partitionByNewLine: true }], 'pickier/no-unused-vars': 'off' },
     }, null, 2), 'utf8')
 
     const code = await runLint([dir], { config: cfgPath, reporter: 'json' })

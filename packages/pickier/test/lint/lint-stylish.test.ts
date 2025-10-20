@@ -57,7 +57,7 @@ describe('linter stylish reporter', () => {
   it('stylish reporter shows line and column numbers', async () => {
     const dir = tmp()
     const file = join(dir, 'test.ts')
-    writeFileSync(file, 'const a = 1\ndebugger\n', 'utf8')
+    writeFileSync(file, 'const _a = 1\ndebugger\n', 'utf8')
 
     const logs: string[] = []
     const originalLog = console.log
@@ -126,7 +126,7 @@ describe('linter stylish reporter', () => {
   it('handles empty results gracefully', async () => {
     const dir = tmp()
     const file = join(dir, 'test.ts')
-    writeFileSync(file, 'const a = 1\n', 'utf8')
+    writeFileSync(file, 'const _a = 1\n', 'utf8')
 
     const code = await runLint([dir], { reporter: 'stylish' })
     expect(code).toBe(0)

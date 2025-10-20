@@ -26,7 +26,7 @@ describe('pickier/prefer-const', () => {
       lint: { extensions: ['ts'], reporter: 'json', cache: false, maxWarnings: -1 },
       format: { extensions: ['ts'], trimTrailingWhitespace: true, maxConsecutiveBlankLines: 1, finalNewline: 'one', indent: 2, quotes: 'single', semi: false },
       rules: { noDebugger: 'off', noConsole: 'off' },
-      pluginRules: { 'prefer-const': 'warn' },
+      pluginRules: { 'prefer-const': 'warn', 'pickier/no-unused-vars': 'off' },
     }, null, 2), 'utf8')
 
     const code = await runLint([dir], { config: cfgPath, reporter: 'json' })
@@ -50,7 +50,7 @@ describe('pickier/prefer-const', () => {
       lint: { extensions: ['ts'], reporter: 'json', cache: false, maxWarnings: -1 },
       format: { extensions: ['ts'], trimTrailingWhitespace: true, maxConsecutiveBlankLines: 1, finalNewline: 'one', indent: 2, quotes: 'single', semi: false },
       rules: { noDebugger: 'off', noConsole: 'off' },
-      pluginRules: { 'prefer-const': 'warn' },
+      pluginRules: { 'prefer-const': 'warn', 'pickier/no-unused-vars': 'off' },
     }, null, 2), 'utf8')
 
     const code = await runLint([dir], { config: cfgPath, reporter: 'json' })
@@ -75,7 +75,7 @@ describe('pickier/prefer-const', () => {
       lint: { extensions: ['ts'], reporter: 'json', cache: false, maxWarnings: -1 },
       format: { extensions: ['ts'], trimTrailingWhitespace: true, maxConsecutiveBlankLines: 1, finalNewline: 'one', indent: 2, quotes: 'single', semi: false },
       rules: { noDebugger: 'off', noConsole: 'off' },
-      pluginRules: { 'prefer-const': 'warn' },
+      pluginRules: { 'prefer-const': 'warn', 'pickier/no-unused-vars': 'off' },
     }, null, 2), 'utf8')
 
     const code = await runLint([dir], { config: cfgPath, reporter: 'json' })
@@ -100,7 +100,7 @@ describe('pickier/prefer-const', () => {
       lint: { extensions: ['ts'], reporter: 'json', cache: false, maxWarnings: -1 },
       format: { extensions: ['ts'], trimTrailingWhitespace: true, maxConsecutiveBlankLines: 1, finalNewline: 'one', indent: 2, quotes: 'single', semi: false },
       rules: { noDebugger: 'off', noConsole: 'off' },
-      pluginRules: { 'prefer-const': 'warn' },
+      pluginRules: { 'prefer-const': 'warn', 'pickier/no-unused-vars': 'off' },
     }, null, 2), 'utf8')
 
     const code = await runLint([dir], { config: cfgPath, reporter: 'json' })
@@ -127,7 +127,7 @@ describe('pickier/prefer-const', () => {
       lint: { extensions: ['ts'], reporter: 'json', cache: false, maxWarnings: -1 },
       format: { extensions: ['ts'], trimTrailingWhitespace: true, maxConsecutiveBlankLines: 1, finalNewline: 'one', indent: 2, quotes: 'single', semi: false },
       rules: { noDebugger: 'off', noConsole: 'off' },
-      pluginRules: { 'prefer-const': 'warn' },
+      pluginRules: { 'prefer-const': 'warn', 'pickier/no-unused-vars': 'off' },
     }, null, 2), 'utf8')
 
     const code = await runLint([dir], { config: cfgPath, reporter: 'json' })
@@ -152,7 +152,7 @@ describe('pickier/prefer-const', () => {
       lint: { extensions: ['ts'], reporter: 'json', cache: false, maxWarnings: -1 },
       format: { extensions: ['ts'], trimTrailingWhitespace: true, maxConsecutiveBlankLines: 1, finalNewline: 'one', indent: 2, quotes: 'single', semi: false },
       rules: { noDebugger: 'off', noConsole: 'off' },
-      pluginRules: { 'prefer-const': 'warn' },
+      pluginRules: { 'prefer-const': 'warn', 'pickier/no-unused-vars': 'off' },
     }, null, 2), 'utf8')
 
     const code = await runLint([dir], { config: cfgPath, reporter: 'json' })
@@ -176,7 +176,7 @@ describe('pickier/prefer-const', () => {
       lint: { extensions: ['ts'], reporter: 'json', cache: false, maxWarnings: -1 },
       format: { extensions: ['ts'], trimTrailingWhitespace: true, maxConsecutiveBlankLines: 1, finalNewline: 'one', indent: 2, quotes: 'single', semi: false },
       rules: { noDebugger: 'off', noConsole: 'off' },
-      pluginRules: { 'prefer-const': 'warn' },
+      pluginRules: { 'prefer-const': 'warn', 'pickier/no-unused-vars': 'off' },
     }, null, 2), 'utf8')
 
     const code = await runLint([dir], { config: cfgPath, reporter: 'json' })

@@ -9,8 +9,8 @@ function tmp(): string {
   return mkdtempSync(join(tmpdir(), 'pickier-quotes-indent-'))
 }
 
-const badCode = `const x = "hi"\n\n\tif (true) {\n   console.log("a")\n}\n`
-const fixedCode = `const x = 'hi'\n\nif (true) {\n  console.log('a')\n}\n`
+const badCode = `const _x = "hi"\n\n\tif (true) {\n   console.log("a")\n}\n`
+const fixedCode = `const _x = 'hi'\n\nif (true) {\n  console.log('a')\n}\n`
 
 describe('quotes and indent rules', () => {
   it('lint flags incorrect quotes/indent (as warnings) and formatter fixes them', async () => {

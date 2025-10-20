@@ -23,7 +23,7 @@ describe('regexp/no-super-linear-backtracking', () => {
       format: { extensions: ['ts'], trimTrailingWhitespace: true, maxConsecutiveBlankLines: 1, finalNewline: 'one', indent: 2, quotes: 'single', semi: false },
       rules: { noDebugger: 'off', noConsole: 'off' },
       plugins: [{ name: 'regexp', rules: {} }],
-      pluginRules: { 'regexp/no-super-linear-backtracking': 'error' },
+      pluginRules: { 'regexp/no-super-linear-backtracking': 'error', 'pickier/no-unused-vars': 'off' },
     }, null, 2), 'utf8')
 
     const code = await runLint([dir], { config: cfgPath, reporter: 'json' })
@@ -44,7 +44,7 @@ describe('regexp/no-super-linear-backtracking', () => {
       format: { extensions: ['ts'], trimTrailingWhitespace: true, maxConsecutiveBlankLines: 1, finalNewline: 'one', indent: 2, quotes: 'single', semi: false },
       rules: { noDebugger: 'off', noConsole: 'off' },
       plugins: [{ name: 'regexp', rules: {} }],
-      pluginRules: { 'regexp/no-super-linear-backtracking': 'error' },
+      pluginRules: { 'regexp/no-super-linear-backtracking': 'error', 'pickier/no-unused-vars': 'off' },
     }, null, 2), 'utf8')
 
     const code = await runLint([dir], { config: cfgPath, reporter: 'json' })

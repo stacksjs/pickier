@@ -27,6 +27,7 @@ describe('no-template-curly-in-string', () => {
       lint: { extensions: ['ts'], reporter: 'json', cache: false, maxWarnings: -1 },
       format: { extensions: ['ts'], trimTrailingWhitespace: true, maxConsecutiveBlankLines: 1, finalNewline: 'one', indent: 2, quotes: 'single', semi: false },
       rules: { noDebugger: 'off', noConsole: 'off', noTemplateCurlyInString: 'error' },
+      pluginRules: { 'pickier/no-unused-vars': 'off' },
     }, null, 2), 'utf8')
 
     const code = await runLint([dir], { config: cfgPath, reporter: 'json' })
@@ -50,6 +51,7 @@ describe('no-template-curly-in-string', () => {
       lint: { extensions: ['ts'], reporter: 'json', cache: false, maxWarnings: -1 },
       format: { extensions: ['ts'], trimTrailingWhitespace: true, maxConsecutiveBlankLines: 1, finalNewline: 'one', indent: 2, quotes: 'single', semi: false },
       rules: { noDebugger: 'off', noConsole: 'off', noTemplateCurlyInString: 'error' },
+      pluginRules: { 'pickier/no-unused-vars': 'off' },
     }, null, 2), 'utf8')
 
     const code = await runLint([dir], { config: cfgPath, reporter: 'json' })
@@ -73,6 +75,7 @@ describe('no-template-curly-in-string', () => {
       lint: { extensions: ['ts'], reporter: 'json', cache: false, maxWarnings: -1 },
       format: { extensions: ['ts'], trimTrailingWhitespace: true, maxConsecutiveBlankLines: 1, finalNewline: 'one', indent: 2, quotes: 'single', semi: false },
       rules: { noDebugger: 'off', noConsole: 'off', noTemplateCurlyInString: 'error' },
+      pluginRules: { 'pickier/no-unused-vars': 'off' },
     }, null, 2), 'utf8')
 
     const code = await runLint([dir], { config: cfgPath, reporter: 'json' })
@@ -96,6 +99,7 @@ describe('no-template-curly-in-string', () => {
       lint: { extensions: ['ts'], reporter: 'json', cache: false, maxWarnings: -1 },
       format: { extensions: ['ts'], trimTrailingWhitespace: true, maxConsecutiveBlankLines: 1, finalNewline: 'one', indent: 2, quotes: 'single', semi: false },
       rules: { noDebugger: 'off', noConsole: 'off', noTemplateCurlyInString: 'error' },
+      pluginRules: { 'pickier/no-unused-vars': 'off' },
     }, null, 2), 'utf8')
 
     const code = await runLint([dir], { config: cfgPath, reporter: 'json' })
@@ -118,6 +122,7 @@ describe('no-template-curly-in-string', () => {
       lint: { extensions: ['ts'], reporter: 'json', cache: false, maxWarnings: -1 },
       format: { extensions: ['ts'], trimTrailingWhitespace: true, maxConsecutiveBlankLines: 1, finalNewline: 'one', indent: 2, quotes: 'single', semi: false },
       rules: { noDebugger: 'off', noConsole: 'off', noTemplateCurlyInString: 'error' },
+      pluginRules: { 'pickier/no-unused-vars': 'off' },
     }, null, 2), 'utf8')
 
     const code = await runLint([dir], { config: cfgPath, reporter: 'json' })
@@ -140,6 +145,7 @@ describe('no-template-curly-in-string', () => {
       lint: { extensions: ['ts'], reporter: 'json', cache: false, maxWarnings: -1 },
       format: { extensions: ['ts'], trimTrailingWhitespace: true, maxConsecutiveBlankLines: 1, finalNewline: 'one', indent: 2, quotes: 'single', semi: false },
       rules: { noDebugger: 'off', noConsole: 'off', noTemplateCurlyInString: 'error' },
+      pluginRules: { 'pickier/no-unused-vars': 'off' },
     }, null, 2), 'utf8')
 
     const code = await runLint([dir], { config: cfgPath, reporter: 'json' })
@@ -162,6 +168,7 @@ describe('no-template-curly-in-string', () => {
       lint: { extensions: ['ts'], reporter: 'json', cache: false, maxWarnings: -1 },
       format: { extensions: ['ts'], trimTrailingWhitespace: true, maxConsecutiveBlankLines: 1, finalNewline: 'one', indent: 2, quotes: 'single', semi: false },
       rules: { noDebugger: 'off', noConsole: 'off', noTemplateCurlyInString: 'warn' },
+      pluginRules: { 'pickier/no-unused-vars': 'off' },
     }, null, 2), 'utf8')
 
     const code = await runLint([dir], { config: cfgPath, reporter: 'json' })
@@ -184,6 +191,7 @@ describe('no-template-curly-in-string', () => {
       lint: { extensions: ['ts'], reporter: 'json', cache: false, maxWarnings: -1 },
       format: { extensions: ['ts'], trimTrailingWhitespace: true, maxConsecutiveBlankLines: 1, finalNewline: 'one', indent: 2, quotes: 'single', semi: false },
       rules: { noDebugger: 'off', noConsole: 'off', noTemplateCurlyInString: 'off' },
+      pluginRules: { 'pickier/no-unused-vars': 'off' },
     }, null, 2), 'utf8')
 
     const code = await runLint([dir], { config: cfgPath, reporter: 'json' })

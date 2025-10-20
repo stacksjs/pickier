@@ -26,7 +26,7 @@ describe('sort-keys (ESLint-like)', () => {
       format: { extensions: ['ts'], trimTrailingWhitespace: true, maxConsecutiveBlankLines: 1, finalNewline: 'one', indent: 2, quotes: 'single', semi: false },
       rules: { noDebugger: 'off', noConsole: 'off' },
       plugins: [{ name: 'pickier', rules: {} }],
-      pluginRules: { 'sort-keys': ['warn', 'asc', { caseSensitive: true, natural: false, minKeys: 2 }] },
+      pluginRules: { 'sort-keys': ['warn', 'asc', { caseSensitive: true, natural: false, minKeys: 2 }], 'pickier/no-unused-vars': 'off' },
     }, null, 2), 'utf8')
 
     const code = await runLint([dir], { config: cfgPath, reporter: 'json' })
@@ -58,7 +58,7 @@ describe('sort-keys (ESLint-like)', () => {
       format: { extensions: ['ts'], trimTrailingWhitespace: true, maxConsecutiveBlankLines: 1, finalNewline: 'one', indent: 2, quotes: 'single', semi: false },
       rules: { noDebugger: 'off', noConsole: 'off' },
       plugins: [{ name: 'pickier', rules: {} }],
-      pluginRules: { 'sort-keys': ['warn', 'asc', { allowLineSeparatedGroups: true, ignoreComputedKeys: true }] },
+      pluginRules: { 'sort-keys': ['warn', 'asc', { allowLineSeparatedGroups: true, ignoreComputedKeys: true }], 'pickier/no-unused-vars': 'off' },
     }, null, 2), 'utf8')
 
     const code = await runLint([dir], { config: cfgPath, reporter: 'json' })

@@ -26,7 +26,7 @@ describe('pickier/sort-array-includes', () => {
       lint: { extensions: ['ts'], reporter: 'json', cache: false, maxWarnings: -1 },
       format: { extensions: ['ts'], trimTrailingWhitespace: true, maxConsecutiveBlankLines: 1, finalNewline: 'one', indent: 2, quotes: 'single', semi: false },
       rules: { noDebugger: 'off', noConsole: 'off' },
-      pluginRules: { 'sort-array-includes': 'warn' },
+      pluginRules: { 'sort-array-includes': 'warn', 'pickier/no-unused-vars': 'off' },
     }, null, 2), 'utf8')
 
     const code = await runLint([dir], { config: cfgPath, reporter: 'json' })
@@ -50,7 +50,7 @@ describe('pickier/sort-array-includes', () => {
       lint: { extensions: ['ts'], reporter: 'json', cache: false, maxWarnings: -1 },
       format: { extensions: ['ts'], trimTrailingWhitespace: true, maxConsecutiveBlankLines: 1, finalNewline: 'one', indent: 2, quotes: 'single', semi: false },
       rules: { noDebugger: 'off', noConsole: 'off' },
-      pluginRules: { 'sort-array-includes': 'warn' },
+      pluginRules: { 'sort-array-includes': 'warn', 'pickier/no-unused-vars': 'off' },
     }, null, 2), 'utf8')
 
     const code = await runLint([dir], { config: cfgPath, reporter: 'json' })
@@ -74,7 +74,7 @@ describe('pickier/sort-array-includes', () => {
       lint: { extensions: ['ts'], reporter: 'json', cache: false, maxWarnings: -1 },
       format: { extensions: ['ts'], trimTrailingWhitespace: true, maxConsecutiveBlankLines: 1, finalNewline: 'one', indent: 2, quotes: 'single', semi: false },
       rules: { noDebugger: 'off', noConsole: 'off' },
-      pluginRules: { 'sort-array-includes': ['warn', { partitionByNewLine: true }] },
+      pluginRules: { 'sort-array-includes': ['warn', { partitionByNewLine: true }], 'pickier/no-unused-vars': 'off' },
     }, null, 2), 'utf8')
 
     const code = await runLint([dir], { config: cfgPath, reporter: 'json' })
@@ -98,7 +98,7 @@ describe('pickier/sort-array-includes', () => {
       lint: { extensions: ['ts'], reporter: 'json', cache: false, maxWarnings: -1 },
       format: { extensions: ['ts'], trimTrailingWhitespace: true, maxConsecutiveBlankLines: 1, finalNewline: 'one', indent: 2, quotes: 'single', semi: false },
       rules: { noDebugger: 'off', noConsole: 'off' },
-      pluginRules: { 'sort-array-includes': ['warn', { type: 'natural' }] },
+      pluginRules: { 'sort-array-includes': ['warn', { type: 'natural' }], 'pickier/no-unused-vars': 'off' },
     }, null, 2), 'utf8')
 
     const code = await runLint([dir], { config: cfgPath, reporter: 'json' })

@@ -33,7 +33,7 @@ describe('disable-next-line fixtures', () => {
       lint: { extensions: ['ts', 'js'], reporter: 'json', cache: false, maxWarnings: -1 },
       format: { extensions: ['ts', 'js'], trimTrailingWhitespace: true, maxConsecutiveBlankLines: 1, finalNewline: 'one', indent: 2, quotes: 'single', semi: false },
       rules: { noDebugger: 'error', noConsole: 'warn' },
-      pluginRules: { 'sort-objects': 'warn', 'ts/no-require-imports': 'error' },
+      pluginRules: { 'sort-objects': 'warn', 'ts/no-require-imports': 'error', 'pickier/no-unused-vars': 'off' },
     }, null, 2), 'utf8')
 
     const fmtCode = await runFormat([dir], { write: true, config: cfgPath })
