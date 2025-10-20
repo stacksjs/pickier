@@ -14,7 +14,7 @@ export const noSparseArraysRule: RuleModule = {
 
       // Match array literals with consecutive commas (sparse arrays)
       // Examples: [1,,3] or [,,] or [1,,,4]
-      const sparsePattern = /\[([^\]]*,,+[^\]]*)\]/g
+      const sparsePattern = /\[((?:[^,\]]*,[^,\]])*[^,\]]*,{2}[^\]]*)\]/g
       let match
 
       while ((match = sparsePattern.exec(line)) !== null) {
@@ -47,9 +47,9 @@ export const noSparseArraysRule: RuleModule = {
         if (/,,/.test(content)) {
           modified = true
           // Replace ,, with , undefined,
-          const fixedContent = content.replace(/,,+/g, (commas) => {
+          const fixedContent = content.replace(/,{2,}/g, (commas: string) => {
             const count = commas.length - 1
-            return ', ' + Array(count).fill('undefined').join(', ') + ','
+            return `, ${new Array(count).fill('undefined').join(', ')},`
           })
           return `[${fixedContent}]`
         }

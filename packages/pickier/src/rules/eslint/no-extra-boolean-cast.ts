@@ -17,7 +17,7 @@ export const noExtraBooleanCastRule: RuleModule = {
       const patterns = [
         /\bif\s*\(\s*Boolean\s*\(/g,
         /\bwhile\s*\(\s*Boolean\s*\(/g,
-        /\!\s*Boolean\s*\(/g,
+        /!\s*Boolean\s*\(/g,
         /\?\s*Boolean\s*\(/g,
         /&&\s*Boolean\s*\(/g,
         /\|\|\s*Boolean\s*\(/g,

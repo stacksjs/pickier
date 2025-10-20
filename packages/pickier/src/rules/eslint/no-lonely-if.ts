@@ -14,7 +14,7 @@ export const noLonelyIfRule: RuleModule = {
       const trimmed = line.trim()
 
       // Check for else followed by { on same or next line
-      if (/^\s*else\s*\{?\s*$/.test(line)) {
+      if (/^\s*else\s*(?:\{\s*)?$/.test(line)) {
         // Look for the opening brace and what's inside
         let braceIdx = i
         let foundBrace = line.includes('{')

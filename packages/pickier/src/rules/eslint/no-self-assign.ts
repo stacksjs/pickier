@@ -13,7 +13,7 @@ export const noSelfAssignRule: RuleModule = {
       const line = lines[i]
 
       // Match simple assignments: identifier = identifier
-      const simpleMatch = line.match(/\b(\w+)\s*=\s*(\w+)\s*;?\s*(?:\/\/.*)?$/)
+      const simpleMatch = line.match(/\b(\w+)\s*=\s*(\w+)\s*(?:;\s*)?(?:\/\/.*)?$/)
       if (simpleMatch && simpleMatch[1] === simpleMatch[2]) {
         issues.push({
           filePath: ctx.filePath,
