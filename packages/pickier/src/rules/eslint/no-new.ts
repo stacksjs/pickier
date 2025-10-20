@@ -14,7 +14,7 @@ export const noNewRule: RuleModule = {
 
       // Match 'new' statements that are not assigned
       // Looking for: new Constructor() as a statement (not assigned)
-      if (/^\s*new\s+\w+\s*\(/. test(line)) {
+      if (/^\s*new\s+\w+\s*\(/.test(line)) {
         // Check if it's on a line by itself (not assigned or passed)
         if (!/[=:]/.test(line.substring(0, line.indexOf('new')))) {
           issues.push({

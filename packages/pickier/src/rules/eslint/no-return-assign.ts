@@ -13,7 +13,7 @@ export const noReturnAssignRule: RuleModule = {
       const line = lines[i]
 
       // Match return with assignment
-      const pattern = /\breturn\s+[^;]*\b\w+\s*=\s*(?!=)/g
+      const pattern = /\breturn\s[^;]*\b\w+\s*=\s*(?!=)/g
       let match
 
       while ((match = pattern.exec(line)) !== null) {

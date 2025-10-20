@@ -1,9 +1,27 @@
 import type { RuleModule } from '../../types'
 
 const nativeObjects = [
-  'Object', 'Array', 'String', 'Number', 'Boolean', 'Date', 'RegExp',
-  'Function', 'Math', 'JSON', 'Promise', 'Map', 'Set', 'WeakMap', 'WeakSet',
-  'Symbol', 'Proxy', 'Reflect', 'Error', 'TypeError', 'RangeError',
+  'Object',
+  'Array',
+  'String',
+  'Number',
+  'Boolean',
+  'Date',
+  'RegExp',
+  'Function',
+  'Math',
+  'JSON',
+  'Promise',
+  'Map',
+  'Set',
+  'WeakMap',
+  'WeakSet',
+  'Symbol',
+  'Proxy',
+  'Reflect',
+  'Error',
+  'TypeError',
+  'RangeError',
 ]
 
 export const noExtendNativeRule: RuleModule = {
