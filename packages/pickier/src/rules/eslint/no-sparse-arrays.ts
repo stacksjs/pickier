@@ -14,13 +14,13 @@ export const noSparseArraysRule: RuleModule = {
 
       // Match array literals with consecutive commas (sparse arrays)
       // Examples: [1,,3] or [,,] or [1,,,4]
-      const sparsePattern = /\[((?:[^,\]]*,[^,\]])*[^,\]]*,{2}[^\]]*)\]/g
+      const sparsePattern = /\[([^\]]*)\]/g
       let match
 
       while ((match = sparsePattern.exec(line)) !== null) {
         // Check if it's really sparse (not just trailing comma)
         const content = match[1]
-        if (/,,/.test(content)) {
+        if (/,\s*,/.test(content)) {
           issues.push({
             filePath: ctx.filePath,
             line: i + 1,
@@ -44,13 +44,10 @@ export const noSparseArraysRule: RuleModule = {
 
       // Replace sparse arrays with explicit undefined
       newLine = newLine.replace(/\[([^\]]*)\]/g, (fullMatch, content) => {
-        if (/,,/.test(content)) {
+        if (/,\s*,/.test(content)) {
           modified = true
-          // Replace ,, with , undefined,
-          const fixedContent = content.replace(/,{2,}/g, (commas: string) => {
-            const count = commas.length - 1
-            return `, ${new Array(count).fill('undefined').join(', ')},`
-          })
+          // Replace , , or ,, with , undefined,
+          const fixedContent = content.replace(/,(\s*),/g, ', undefined,')
           return `[${fixedContent}]`
         }
         return fullMatch
