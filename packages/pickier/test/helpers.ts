@@ -15,26 +15,26 @@ export function createTempDir(prefix = 'pickier-test-'): string {
  * Common test helpers for format tests
  */
 export const formatHelpers = {
-  createTempDir: (prefix = 'pickier-format-') => createTempDir(prefix),
+  createTempDir: (prefix = 'pickier-format-'): string => createTempDir(prefix),
 }
 
 /**
  * Common test helpers for lint tests
  */
 export const lintHelpers = {
-  createTempDir: (prefix = 'pickier-lint-') => createTempDir(prefix),
+  createTempDir: (prefix = 'pickier-lint-'): string => createTempDir(prefix),
 }
 
 /**
  * Common test helpers for rule tests
  */
 export const ruleHelpers = {
-  createTempDir: (prefix = 'pickier-rule-') => createTempDir(prefix),
+  createTempDir: (prefix = 'pickier-rule-'): string => createTempDir(prefix),
 }
 
 /**
  * Common test helpers for plugin tests
  */
 export const pluginHelpers = {
-  createTempDir: (prefix = 'pickier-plugin-') => createTempDir(prefix),
+  createTempDir: (prefix = 'pickier-plugin-'): string => createTempDir(prefix),
 }

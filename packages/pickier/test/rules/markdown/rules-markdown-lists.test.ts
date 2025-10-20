@@ -81,7 +81,7 @@ describe('MD007 - ul-indent', () => {
 
       const result = JSON.parse(output)
       expect(result.issues.length).toBeGreaterThan(0)
-      expect(result.issues.some(issue => issue.ruleId === 'markdown/ul-indent')).toBe(true)
+      expect(result.issues.some((issue: any) => issue.ruleId === 'markdown/ul-indent')).toBe(true)
     }
     finally {
       console.log = originalLog
