@@ -48,44 +48,93 @@ function fixQuotes(content: string, preferred: 'single' | 'double', filePath: st
   if (!isCodeFileExt(filePath))
     return content
 
-  // Mask all strings to avoid converting quotes inside other quote types
+  // OPTIMIZATION: Single-pass quote conversion with position tracking
   const lines = content.split('\n')
   const result: string[] = []
 
   for (const line of lines) {
-    let output = line
+    let output = ''
+    let i = 0
+    let inString: 'single' | 'double' | 'template' | null = null
+    let escaped = false
+    let stringStart = 0
 
-    if (preferred === 'single') {
-      // Only convert double-quoted strings (not quotes inside single/template strings)
-      // Match standalone double-quoted strings
-      output = output.replace(/"([^"\\]|\\.)*"/g, (match) => {
-        // Check if this quote is inside a single-quoted or template string
-        // Simple heuristic: count quotes before this position
-        const pos = output.indexOf(match)
-        const before = output.slice(0, pos)
-        const singleCount = (before.match(/'/g) || []).length
-        const templateCount = (before.match(/`/g) || []).length
+    while (i < line.length) {
+      const ch = line[i]
 
-        // If odd number of single quotes or backticks before, we're inside one
-        if (singleCount % 2 === 1 || templateCount % 2 === 1)
-          return match
+      if (escaped) {
+        output += ch
+        escaped = false
+        i++
+        continue
+      }
 
-        return convertDoubleToSingle(match)
-      })
+      if (ch === '\\' && inString) {
+        escaped = true
+        output += ch
+        i++
+        continue
+      }
+
+      // Check for string boundaries
+      if (!inString) {
+        if (ch === '"') {
+          inString = 'double'
+          stringStart = i
+          i++
+          continue
+        }
+        if (ch === '\'') {
+          inString = 'single'
+          stringStart = i
+          i++
+          continue
+        }
+        if (ch === '`') {
+          inString = 'template'
+          output += ch
+          i++
+          continue
+        }
+        output += ch
+        i++
+      }
+      else {
+        // Inside a string - check if we're exiting
+        if ((inString === 'double' && ch === '"') || (inString === 'single' && ch === '\'')) {
+          // Found closing quote - convert if needed
+          const stringContent = line.slice(stringStart + 1, i)
+          if (inString === 'double' && preferred === 'single') {
+            // Convert double to single
+            output += convertDoubleToSingle(`"${stringContent}"`)
+          }
+          else if (inString === 'single' && preferred === 'double') {
+            // Convert single to double
+            output += convertSingleToDouble(`'${stringContent}'`)
+          }
+          else {
+            // Keep as is
+            output += line[stringStart] + stringContent + ch
+          }
+          inString = null
+          i++
+          continue
+        }
+        if (inString === 'template' && ch === '`') {
+          // Template literal end
+          output += ch
+          inString = null
+          i++
+          continue
+        }
+        // Still inside string, buffer it
+        i++
+      }
     }
-    else {
-      // Only convert single-quoted strings
-      output = output.replace(/'([^'\\]|\\.)*'/g, (match) => {
-        const pos = output.indexOf(match)
-        const before = output.slice(0, pos)
-        const doubleCount = (before.match(/"/g) || []).length
-        const templateCount = (before.match(/`/g) || []).length
 
-        if (doubleCount % 2 === 1 || templateCount % 2 === 1)
-          return match
-
-        return convertSingleToDouble(match)
-      })
+    // Handle unclosed strings (keep as is)
+    if (inString && inString !== 'template') {
+      output += line.slice(stringStart)
     }
 
     result.push(output)
@@ -147,15 +196,35 @@ export function formatCode(src: string, cfg: PickierConfig, filePath: string): s
   // Check for imports BEFORE any processing to ensure consistent final newline policy
   const _hadImports = /^\s*import\b/m.test(src)
 
-  // normalize newlines and trim trailing whitespace per line if enabled
+  // OPTIMIZATION: Normalize newlines and trim trailing whitespace in one pass
   const rawLines = src.replace(/\r\n/g, '\n').split('\n')
-  const trimmed = cfg.format.trimTrailingWhitespace
-    ? rawLines.map(l => l.replace(/[ \t]+$/g, ''))
-    : rawLines.slice()
+  let lines: string[]
 
-  // collapse blank lines
-  const collapsed = collapseBlankLines(trimmed, Math.max(0, cfg.format.maxConsecutiveBlankLines))
-  let joined = collapsed.join('\n')
+  if (cfg.format.trimTrailingWhitespace) {
+    // Combine trimming and blank line collapsing in one pass
+    lines = []
+    let blank = 0
+    const maxConsecutive = Math.max(0, cfg.format.maxConsecutiveBlankLines)
+
+    for (const l of rawLines) {
+      const trimmed = l.replace(/[ \t]+$/g, '')
+      if (trimmed === '') {
+        blank++
+        if (blank <= maxConsecutive)
+          lines.push('')
+      }
+      else {
+        blank = 0
+        lines.push(trimmed)
+      }
+    }
+  }
+  else {
+    // Just collapse blank lines
+    lines = collapseBlankLines(rawLines, Math.max(0, cfg.format.maxConsecutiveBlankLines))
+  }
+
+  let joined = lines.join('\n')
   // Remove any leading blank lines at the top of the file
   joined = joined.replace(/^(?:[ \t]*\n)+/, '')
 
@@ -170,14 +239,17 @@ export function formatCode(src: string, cfg: PickierConfig, filePath: string): s
       joined = sorted
   }
 
-  // quotes first (independent of indentation)
-  joined = fixQuotes(joined, cfg.format.quotes, filePath)
-  // indentation only for code files (ts/js)
+  // OPTIMIZATION: Combine quote fixing, indentation, spacing, and semicolon removal for code files
   if (isCodeFileExt(filePath)) {
+    joined = fixQuotes(joined, cfg.format.quotes, filePath)
     joined = fixIndentation(joined, cfg.format.indent, cfg)
     joined = normalizeCodeSpacing(joined)
     if (cfg.format.semi === true)
       joined = removeStylisticSemicolons(joined)
+  }
+  else {
+    // For non-code files, just do quotes
+    joined = fixQuotes(joined, cfg.format.quotes, filePath)
   }
 
   // ensure final newline policy

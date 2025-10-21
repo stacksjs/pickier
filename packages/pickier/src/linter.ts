@@ -4,6 +4,7 @@ import { isAbsolute, relative, resolve } from 'node:path'
 import process from 'node:process'
 import { Logger } from '@stacksjs/clarity'
 import { glob as tinyGlob } from 'tinyglobby'
+import pLimit from 'p-limit'
 import { detectQuoteIssues, hasIndentIssue } from './format'
 import { formatStylish, formatVerbose } from './formatter'
 import { getAllPlugins } from './plugins'
@@ -181,17 +182,25 @@ export async function runLintProgrammatic(
   }
   trace('filter:programmatic', { total: cntTotal, included: cntIncluded, node_modules: cntNodeModules, ignored: cntIgnored, wrongExt: cntWrongExt })
 
-  let allIssues: LintIssue[] = []
-  for (const file of files) {
+  // OPTIMIZATION: Parallel file processing with concurrency limit
+  const concurrency = Number(process.env.PICKIER_CONCURRENCY) || 8
+  const limit = pLimit(concurrency)
+
+  const processFile = async (file: string): Promise<LintIssue[]> => {
     if (signal?.aborted)
       throw new Error('AbortError')
     const src = readFileSync(file, 'utf8')
+
+    // OPTIMIZATION: Parse directives and comment lines ONCE upfront
+    const suppress = parseDisableDirectives(src)
+    const commentLines = getCommentLines(src)
+
     ;(cfg as any)._internalSkipPluginRulesInScan = true
-    let issues = scanContent(file, src, cfg)
+    // Pass pre-computed data to avoid re-parsing
+    let issues = scanContentOptimized(file, src, cfg, suppress, commentLines)
+
     try {
       const pluginIssues = await applyPlugins(file, src, cfg)
-      const suppress = parseDisableDirectives(src)
-      const commentLines = getCommentLines(src)
       for (const i of pluginIssues) {
         if (signal?.aborted)
           throw new Error('AbortError')
@@ -228,13 +237,20 @@ export async function runLintProgrammatic(
         fixed = next.join('\n')
       }
       fixed = applyPluginFixes(file, fixed, cfg)
-      if (!options.dryRun && fixed !== src)
+      if (!options.dryRun && fixed !== src) {
         writeFileSync(file, fixed, 'utf8')
-      issues = scanContent(file, fixed, cfg)
+        // OPTIMIZATION: Only re-scan if content actually changed
+        const newSuppress = parseDisableDirectives(fixed)
+        const newCommentLines = getCommentLines(fixed)
+        issues = scanContentOptimized(file, fixed, cfg, newSuppress, newCommentLines)
+      }
     }
 
-    allIssues = allIssues.concat(issues)
+    return issues
   }
+
+  const issueArrays = await Promise.all(files.map(file => limit(() => processFile(file))))
+  const allIssues = issueArrays.flat()
 
   const errors = allIssues.filter(i => i.severity === 'error').length
   const warnings = allIssues.filter(i => i.severity === 'warning').length
@@ -254,6 +270,9 @@ interface DisableDirectives {
   fileLevel: Set<string> // Rules disabled for entire file
   rangeDisable: Map<number, Set<string>> // Line where rules are disabled
   rangeEnable: Map<number, Set<string>> // Line where rules are re-enabled
+  // OPTIMIZATION: Pre-sorted arrays for binary search
+  sortedDisableLines: number[]
+  sortedEnableLines: number[]
 }
 
 function parseDisableDirectives(content: string): DisableDirectives {
@@ -377,12 +396,39 @@ function parseDisableDirectives(content: string): DisableDirectives {
     }
   }
 
-  return { nextLine, fileLevel, rangeDisable, rangeEnable }
+  // OPTIMIZATION: Pre-sort directive line numbers for binary search
+  const sortedDisableLines = Array.from(rangeDisable.keys()).sort((a, b) => a - b)
+  const sortedEnableLines = Array.from(rangeEnable.keys()).sort((a, b) => a - b)
+
+  return { nextLine, fileLevel, rangeDisable, rangeEnable, sortedDisableLines, sortedEnableLines }
 }
 
 // Legacy function for backwards compatibility - now calls parseDisableDirectives
 function parseDisableNextLine(content: string): SuppressMap {
   return parseDisableDirectives(content).nextLine
+}
+
+// OPTIMIZATION: Binary search helper to find largest value < target
+function binarySearchLargestLessThan(arr: number[], target: number): number {
+  if (arr.length === 0 || arr[0] >= target)
+    return -1
+
+  let left = 0
+  let right = arr.length - 1
+  let result = -1
+
+  while (left <= right) {
+    const mid = Math.floor((left + right) / 2)
+    if (arr[mid] < target) {
+      result = arr[mid]
+      left = mid + 1
+    }
+    else {
+      right = mid - 1
+    }
+  }
+
+  return result
 }
 
 function isSuppressed(ruleId: string, line: number, directives: SuppressMap | DisableDirectives): boolean {
@@ -405,22 +451,15 @@ function isSuppressed(ruleId: string, line: number, directives: SuppressMap | Di
   if (nextLineSet && matchesRule(ruleId, nextLineSet))
     return true
 
-  // Check range-based disable/enable
-  // Find the most recent disable directive before this line (not including the directive line itself)
-  const disableLines = Array.from(directives.rangeDisable.keys()).filter(l => l < line).sort((a, b) => b - a)
-  const enableLines = Array.from(directives.rangeEnable.keys()).filter(l => l < line).sort((a, b) => b - a)
+  // OPTIMIZATION: Use binary search on pre-sorted arrays
+  const lastDisableLine = binarySearchLargestLessThan(directives.sortedDisableLines, line)
+  const lastEnableLine = binarySearchLargestLessThan(directives.sortedEnableLines, line)
 
   // If there's a disable directive and no more recent enable, check if the rule is disabled
-  if (disableLines.length > 0) {
-    const lastDisableLine = disableLines[0]
-    const lastEnableLine = enableLines.length > 0 ? enableLines[0] : 0
-
-    // Only apply disable if there's no more recent enable
-    if (lastDisableLine > lastEnableLine) {
-      const disabledRules = directives.rangeDisable.get(lastDisableLine)!
-      if (matchesRule(ruleId, disabledRules))
-        return true
-    }
+  if (lastDisableLine !== -1 && lastDisableLine > lastEnableLine) {
+    const disabledRules = directives.rangeDisable.get(lastDisableLine)!
+    if (matchesRule(ruleId, disabledRules))
+      return true
   }
 
   return false
@@ -854,12 +893,18 @@ function getCommentLines(content: string): Set<number> {
   return commentLines
 }
 
-export function scanContent(filePath: string, content: string, cfg: PickierConfig): LintIssue[] {
+// Optimized version that accepts pre-computed directive and comment data
+export function scanContentOptimized(
+  filePath: string,
+  content: string,
+  cfg: PickierConfig,
+  suppress: DisableDirectives,
+  commentLines: Set<number>,
+): LintIssue[] {
   const issues: LintIssue[] = []
 
   // Base formatting-related checks (lightweight heuristics)
   const lines = content.split(/\r?\n/)
-  const suppress = parseDisableDirectives(content)
   const preferredQuotes = cfg.format.quotes
   let quotesReported = false
   const sevMap = (s: 'warn' | 'error' | 'off' | undefined): 'warning' | 'error' | undefined =>
@@ -870,9 +915,6 @@ export function scanContent(filePath: string, content: string, cfg: PickierConfi
   const wantNoCondAssign = sevMap((cfg.rules as any).noCondAssign)
   const consoleCall = /\bconsole\.log\s*\(/
   const debuggerStmt = /^\s*debugger\b/
-
-  // Build a set of line numbers that are entirely inside comments
-  const commentLines = getCommentLines(content)
 
   // Build a set of line numbers that are inside multi-line template literals
   const linesInTemplate = new Set<number>()
@@ -1056,6 +1098,17 @@ export function scanContent(filePath: string, content: string, cfg: PickierConfi
       }
     }
   }
+
+  return issues
+}
+
+export function scanContent(filePath: string, content: string, cfg: PickierConfig): LintIssue[] {
+  // Parse directives and comment lines ONCE
+  const suppress = parseDisableDirectives(content)
+  const commentLines = getCommentLines(content)
+
+  // Use optimized version for base scanning
+  const issues = scanContentOptimized(filePath, content, cfg, suppress, commentLines)
 
   // Synchronous plugin rule checks for callers that directly use scanContent (e.g. unit tests).
   // When runLint orchestrates, it sets an internal flag to skip this to avoid duplication.
@@ -1246,18 +1299,25 @@ export async function runLint(globs: string[], options: LintOptions): Promise<nu
     trace('filter:cli', { total: cntTotal, included: cntIncluded, node_modules: cntNodeModules, ignored: cntIgnored, wrongExt: cntWrongExt })
     trace('filtered files', files.length)
 
-    let allIssues: LintIssue[] = []
-    for (const file of files) {
+    // OPTIMIZATION: Parallel file processing with concurrency limit
+    const concurrency = Number(process.env.PICKIER_CONCURRENCY) || 8
+    const limit = pLimit(concurrency)
+
+    const processFile = async (file: string): Promise<LintIssue[]> => {
       trace('scan start', relative(process.cwd(), file))
       const src = readFileSync(file, 'utf8')
+
+      // OPTIMIZATION: Parse directives and comment lines ONCE upfront
+      const suppress = parseDisableDirectives(src)
+      const commentLines = getCommentLines(src)
+
       // Set internal flag to avoid duplicate plugin execution inside scanContent
       ;(cfg as any)._internalSkipPluginRulesInScan = true
-      let issues = scanContent(file, src, cfg)
+      let issues = scanContentOptimized(file, src, cfg, suppress, commentLines)
+
       // Run plugin rules (async with timeouts) and merge
       try {
         const pluginIssues = await applyPlugins(file, src, cfg)
-        const suppress = parseDisableDirectives(src)
-        const commentLines = getCommentLines(src)
         for (const i of pluginIssues) {
           if (isSuppressed(i.ruleId as string, i.line, suppress))
             continue
@@ -1296,19 +1356,25 @@ export async function runLint(globs: string[], options: LintOptions): Promise<nu
         }
         // Apply plugin rule fixers only (no global formatting in lint --fix)
         fixed = applyPluginFixes(file, fixed, cfg)
-        if (!options.dryRun && fixed !== src)
+        if (!options.dryRun && fixed !== src) {
           writeFileSync(file, fixed, 'utf8')
-        // recompute issues after simulated or real fix
-        issues = scanContent(file, fixed, cfg)
+          // OPTIMIZATION: Only re-scan if content actually changed
+          const newSuppress = parseDisableDirectives(fixed)
+          const newCommentLines = getCommentLines(fixed)
+          issues = scanContentOptimized(file, fixed, cfg, newSuppress, newCommentLines)
+        }
 
         if (options.dryRun && src !== fixed && (options.verbose !== undefined ? options.verbose : cfg.verbose)) {
           logger.debug(colors.gray(`dry-run: would apply fixes in ${relative(process.cwd(), file)}`))
         }
       }
 
-      allIssues = allIssues.concat(issues)
       trace('scan done', relative(process.cwd(), file), issues.length)
+      return issues
     }
+
+    const issueArrays = await Promise.all(files.map(file => limit(() => processFile(file))))
+    const allIssues = issueArrays.flat()
 
     const errors = allIssues.filter(i => i.severity === 'error').length
     const warnings = allIssues.filter(i => i.severity === 'warning').length
