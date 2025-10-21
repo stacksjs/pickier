@@ -5,7 +5,7 @@ import process from 'node:process'
 import { Logger } from '@stacksjs/clarity'
 import { glob as tinyGlob } from 'tinyglobby'
 import { detectQuoteIssues, hasIndentIssue } from './format'
-import { formatStylish } from './formatter'
+import { formatStylish, formatVerbose } from './formatter'
 import { getAllPlugins } from './plugins'
 import { colors, expandPatterns, isCodeFile, loadConfigFromPath, shouldIgnorePath } from './utils'
 
@@ -49,6 +49,7 @@ export async function lintText(
         ruleId: i.ruleId,
         message: i.message,
         severity: i.severity,
+        ...(i.help && { help: i.help }),
       })
     }
   }
@@ -185,6 +186,7 @@ export async function runLintProgrammatic(
           ruleId: i.ruleId,
           message: i.message,
           severity: i.severity,
+          ...(i.help && { help: i.help }),
         })
       }
     }
@@ -1039,6 +1041,7 @@ export async function runLint(globs: string[], options: LintOptions): Promise<nu
             ruleId: i.ruleId,
             message: i.message,
             severity: i.severity,
+            ...(i.help && { help: i.help }),
           })
         }
       }
@@ -1093,8 +1096,10 @@ export async function runLint(globs: string[], options: LintOptions): Promise<nu
       }
     }
     else if (allIssues.length > 0) {
+      // Use verbose formatter if --verbose flag is set, otherwise use stylish
+      const isVerbose = options.verbose || cfg.verbose
       // eslint-disable-next-line no-console
-      console.log(formatStylish(allIssues))
+      console.log(isVerbose ? formatVerbose(allIssues) : formatStylish(allIssues))
     }
 
     // Print summary (similar to ESLint)

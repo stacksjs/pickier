@@ -91,6 +91,93 @@ export function applyFixes(filePath: string, content: string, cfg: PickierConfig
   return current
 }
 
+export function formatVerbose(issues: LintIssue[]): string {
+  if (issues.length === 0)
+    return ''
+
+  // Group issues by file
+  const byFile = new Map<string, LintIssue[]>()
+  for (const issue of issues) {
+    const list = byFile.get(issue.filePath) || []
+    list.push(issue)
+    byFile.set(issue.filePath, list)
+  }
+
+  let out = ''
+  for (const [filePath, fileIssues] of byFile) {
+    // Read the file to get source code for snippets
+    let fileContent: string
+    try {
+      fileContent = readFileSync(filePath, 'utf8')
+    }
+    catch {
+      // If we can't read the file, fall back to basic formatting
+      out += `\n${colors.bold(`\x1B[4m${filePath}\x1B[24m`)}\n`
+      for (const issue of fileIssues) {
+        const sev = issue.severity === 'error' ? colors.red('error') : colors.yellow('warn ')
+        out += `  ${issue.line}:${issue.column}  ${sev}  ${issue.message}  ${colors.blue(issue.ruleId)}\n`
+      }
+      continue
+    }
+
+    const lines = fileContent.split(/\r?\n/)
+
+    for (const issue of fileIssues) {
+      const icon = issue.severity === 'error' ? colors.red('!') : colors.yellow('!')
+      const ruleText = colors.blue(issue.ruleId)
+
+      // Header: "  ! rule-id: message"
+      out += `\n  ${icon} ${ruleText}: ${issue.message}\n`
+
+      // Show context: 2 lines before and after the error line
+      const contextBefore = 2
+      const contextAfter = 2
+      const startLine = Math.max(1, issue.line - contextBefore)
+      const endLine = Math.min(lines.length, issue.line + contextAfter)
+
+      // Calculate padding for line numbers
+      const maxLineNum = endLine
+      const lineNumWidth = String(maxLineNum).length
+
+      // Location indicator: "    ,-[:line:col]"
+      out += `  ${colors.gray('  ,-')}${colors.gray(`[:${issue.line}:${issue.column}]`)}\n`
+
+      // Show code snippet with line numbers
+      for (let i = startLine; i <= endLine; i++) {
+        const lineNum = String(i).padStart(lineNumWidth)
+        const lineContent = lines[i - 1] || ''
+
+        if (i === issue.line) {
+          // Highlight the error line
+          out += ` ${colors.gray(lineNum)} ${colors.gray('|')} ${colors.red(',->     ')}${lineContent}\n`
+        }
+        else if (i === issue.line + 1 && contextAfter > 0) {
+          // Show continuation marker on next line if needed
+          out += ` ${colors.gray(lineNum)} ${colors.gray('|')} ${colors.red('|         ')}${lineContent}\n`
+        }
+        else if (i === issue.line + contextAfter && contextAfter > 1) {
+          // Last line with end marker
+          out += ` ${colors.gray(lineNum)} ${colors.gray('|')} ${colors.red('`->     ')}${lineContent}\n`
+        }
+        else {
+          // Regular context line
+          out += ` ${colors.gray(lineNum)} ${colors.gray('|       ')}${lineContent}\n`
+        }
+      }
+
+      // End marker
+      out += `  ${colors.gray('  `----')}\n`
+
+      // Help text if available
+      if (issue.help) {
+        out += `  ${colors.blue('help')}: ${issue.help}\n`
+      }
+    }
+  }
+
+  return out
+}
+
 export function formatStylish(issues: LintIssue[]): string {
   if (issues.length === 0)
     return ''

@@ -21,6 +21,7 @@ export interface LintIssue {
   ruleId: string
   message: string
   severity: 'warning' | 'error'
+  help?: string
 }
 
 export type Extension = 'ts' | 'js' | 'html' | 'css' | 'json' | 'jsonc' | 'md' | 'yaml' | 'yml' | 'stx'
