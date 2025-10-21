@@ -105,14 +105,16 @@ export function formatVerbose(issues: LintIssue[]): string {
 
   let out = ''
   for (const [filePath, fileIssues] of byFile) {
+    // Print filename header
+    out += `\n${colors.bold(`\x1B[4m${filePath}\x1B[24m`)}\n`
+
     // Read the file to get source code for snippets
     let fileContent: string
     try {
       fileContent = readFileSync(filePath, 'utf8')
     }
     catch {
-      // If we can't read the file, fall back to basic formatting
-      out += `\n${colors.bold(`\x1B[4m${filePath}\x1B[24m`)}\n`
+      // If we can't read the file, fall back to basic formatting without snippets
       for (const issue of fileIssues) {
         const sev = issue.severity === 'error' ? colors.red('error') : colors.yellow('warn ')
         out += `  ${issue.line}:${issue.column}  ${sev}  ${issue.message}  ${colors.blue(issue.ruleId)}\n`

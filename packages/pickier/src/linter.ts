@@ -83,6 +83,19 @@ export async function runLintProgrammatic(
   }))
 
   const timeoutMs = Number(process.env.PICKIER_TIMEOUT_MS || '8000')
+
+  // Filter ignore patterns based on whether we're globbing inside or outside the project
+  const isGlobbingOutsideProject = patterns.some((p) => {
+    const base = p.replace(/\/?\*\*\/*\*\*?$/, '')
+    const absBase = isAbsolute(base) ? base : resolve(process.cwd(), base)
+    return !absBase.startsWith(process.cwd())
+  })
+
+  const universalIgnores = ['**/node_modules/**', '**/dist/**', '**/build/**', '**/.git/**']
+  const globIgnores = isGlobbingOutsideProject
+    ? cfg.ignores.filter(pattern => universalIgnores.includes(pattern))
+    : cfg.ignores
+
   let entries: string[] = []
   const nonGlobSingle = patterns.length === 1 && !/[*?[\]{}()!]/.test(patterns[0])
   if (nonGlobSingle) {
@@ -124,7 +137,7 @@ export async function runLintProgrammatic(
     catch {
       entries = await withTimeout(tinyGlob(patterns, {
         dot: false,
-        ignore: cfg.ignores,
+        ignore: globIgnores,
         onlyFiles: true,
         absolute: true,
       }), timeoutMs, 'tinyGlob')
@@ -133,7 +146,7 @@ export async function runLintProgrammatic(
   else if (!entries.length) {
     entries = await withTimeout(tinyGlob(patterns, {
       dot: false,
-      ignore: cfg.ignores,
+      ignore: globIgnores,
       onlyFiles: true,
       absolute: true,
     }), timeoutMs, 'tinyGlob')
@@ -922,7 +935,7 @@ export function scanContent(filePath: string, content: string, cfg: PickierConfi
     const leading = leadingMatch ? leadingMatch[0] : ''
     if (leading.length > 0 && hasIndentIssue(leading, cfg.format.indent, cfg.format.indentStyle)) {
       if (!isSuppressed('indent', lineNo, suppress))
-        issues.push({ filePath, line: lineNo, column: 1, ruleId: 'indent', message: 'Incorrect indentation detected', severity: 'warning', help: `Use ${cfg.format.indentStyle === 'spaces' ? cfg.format.indent + ' spaces' : 'tabs'} for indentation. Configure with format.indent and format.indentStyle in your config` })
+        issues.push({ filePath, line: lineNo, column: 1, ruleId: 'indent', message: 'Incorrect indentation detected', severity: 'warning', help: `Use ${cfg.format.indentStyle === 'spaces' ? `${cfg.format.indent} spaces` : 'tabs'} for indentation. Configure with format.indent and format.indentStyle in your config` })
     }
 
     // built-in lint rules
@@ -1128,6 +1141,22 @@ export async function runLint(globs: string[], options: LintOptions): Promise<nu
     }))
 
     const timeoutMs = Number(process.env.PICKIER_TIMEOUT_MS || '8000')
+
+    // Filter ignore patterns based on whether we're globbing inside or outside the project
+    // Universal ignores (like **/node_modules/**, **/dist/**) always apply
+    // Project-specific ignores (like **/*.test.ts, docs/**) only apply within the project
+    const isGlobbingOutsideProject = patterns.some((p) => {
+      const base = p.replace(/\/?\*\*\/*\*\*?$/, '')
+      const absBase = isAbsolute(base) ? base : resolve(process.cwd(), base)
+      return !absBase.startsWith(process.cwd())
+    })
+
+    // Universal ignore patterns that should apply everywhere
+    const universalIgnores = ['**/node_modules/**', '**/dist/**', '**/build/**', '**/.git/**']
+    const globIgnores = isGlobbingOutsideProject
+      ? cfg.ignores.filter(pattern => universalIgnores.includes(pattern))
+      : cfg.ignores
+
     // Fallbacks to avoid globby hangs: handle explicit file paths and simple directory scans
     let entries: string[] = []
     // Fast path: if a single concrete file (no glob magic) is provided, just use it directly
@@ -1173,7 +1202,7 @@ export async function runLint(globs: string[], options: LintOptions): Promise<nu
         // If fallback fails, use tinyglobby with timeout
         entries = await withTimeout(tinyGlob(patterns, {
           dot: false,
-          ignore: cfg.ignores,
+          ignore: globIgnores,
           onlyFiles: true,
           absolute: true,
         }), timeoutMs, 'tinyGlob')
@@ -1182,7 +1211,7 @@ export async function runLint(globs: string[], options: LintOptions): Promise<nu
     else if (!entries.length) {
       entries = await withTimeout(tinyGlob(patterns, {
         dot: false,
-        ignore: cfg.ignores,
+        ignore: globIgnores,
         onlyFiles: true,
         absolute: true,
       }), timeoutMs, 'tinyGlob')
@@ -1357,7 +1386,8 @@ export async function runLint(globs: string[], options: LintOptions): Promise<nu
       }
     }
 
-    if (isVerbose) {
+    // Don't print summary for JSON reporter (would invalidate JSON output)
+    if (isVerbose && reporter !== 'json') {
       // eslint-disable-next-line no-console
       console.log(colors.gray(`Scanned ${files.length} files, found ${errors} errors and ${warnings} warnings.`))
     }

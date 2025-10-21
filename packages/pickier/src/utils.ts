@@ -130,11 +130,17 @@ function toPosixPath(p: string): string {
  * Not a full glob engine; optimized for directory skip checks in manual traversal.
  */
 export function shouldIgnorePath(absPath: string, ignoreGlobs: string[]): boolean {
-  const rel = toPosixPath(absPath.startsWith(process.cwd())
-    ? absPath.slice(process.cwd().length)
-    : absPath)
+  // For files outside the project, only apply universal ignore patterns
+  const isOutsideProject = !absPath.startsWith(process.cwd())
+  const universalIgnores = ['**/node_modules/**', '**/dist/**', '**/build/**', '**/.git/**']
+
+  const effectiveIgnores = isOutsideProject
+    ? ignoreGlobs.filter(pattern => universalIgnores.includes(pattern))
+    : ignoreGlobs
+
+  const rel = toPosixPath(isOutsideProject ? absPath : absPath.slice(process.cwd().length))
   // quick checks for typical patterns **/name/**
-  for (const g of ignoreGlobs) {
+  for (const g of effectiveIgnores) {
     // normalize
     const gg = toPosixPath(g.trim())
 
