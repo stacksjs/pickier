@@ -50,15 +50,15 @@ const config: PickierOptions = {
 
   // Rule severities
   rules: {
-    'noDebugger': 'error', // remove debugger statements
-    'noConsole': 'warn', // warn on console usage
-    'noTemplateCurlyInString': 'error', // catch ${} in regular strings
-    'noCondAssign': 'error', // no assignments in conditionals
-    'prefer-const': 'warn', // prefer const over let
+    noDebugger: 'error', // remove debugger statements
+    noConsole: 'warn', // warn on console usage
+    noTemplateCurlyInString: 'error', // catch ${} in regular strings
+    noCondAssign: 'error', // no assignments in conditionals
   },
 
   // Plugin rules (advanced linting)
   pluginRules: {
+    'ts/prefer-const': 'warn', // prefer const over let
     'style/curly': 'off', // disabled by default, can be enabled per project
     'style/if-newline': 'off', // disabled by default, can be enabled per project
     'pickier/no-unused-vars': 'error', // catch unused imports/vars
