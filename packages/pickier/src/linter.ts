@@ -427,6 +427,48 @@ function matchesRule(ruleId: string, ruleSet: Set<string>): boolean {
   return false
 }
 
+/**
+ * Generate default help text for a lint issue if it doesn't already have help.
+ * Creates actionable guidance based on the rule ID and message.
+ */
+function ensureHelpText(issue: LintIssue, ruleId: string): LintIssue {
+  if (issue.help) {
+    return issue
+  }
+
+  // Extract rule name from full rule ID (e.g., "pickier/no-unused-vars" -> "no-unused-vars")
+  const ruleName = ruleId.includes('/') ? ruleId.split('/')[1] : ruleId
+
+  // Generate context-aware help based on common rule patterns
+  let help: string
+
+  // Pattern matching for common rule types
+  if (ruleName.startsWith('no-')) {
+    // "no-X" rules - suggest removing the problematic pattern
+    const what = ruleName.replace('no-', '').replace(/-/g, ' ')
+    help = `Remove or refactor this ${what}. Check the rule documentation for more details or disable with: // eslint-disable-next-line ${ruleId}`
+  }
+  else if (ruleName.startsWith('prefer-')) {
+    // "prefer-X" rules - suggest using the preferred pattern
+    const what = ruleName.replace('prefer-', '').replace(/-/g, ' ')
+    help = `Consider using ${what} instead. This is a best practice recommendation. Disable with: // eslint-disable-next-line ${ruleId} if needed`
+  }
+  else if (ruleName.includes('sort') || ruleName.includes('order')) {
+    // Sorting/ordering rules
+    help = `Reorder these items according to the rule requirements, or use --fix to auto-sort. Disable with: // eslint-disable-next-line ${ruleId}`
+  }
+  else if (ruleName.includes('indent') || ruleName.includes('spacing') || ruleName.includes('newline')) {
+    // Formatting rules
+    help = `Fix the formatting issue. Run with --fix to automatically format. Disable with: // eslint-disable-next-line ${ruleId}`
+  }
+  else {
+    // Generic help for other rules
+    help = `Fix this issue or disable the rule with: // eslint-disable-next-line ${ruleId}. Check the rule documentation for more details`
+  }
+
+  return { ...issue, help }
+}
+
 async function withTimeout<T>(p: Promise<T>, ms: number, label: string): Promise<T> {
   let to: any
   const timeout = new Promise<never>((_, reject) => {
@@ -529,10 +571,12 @@ export async function applyPlugins(filePath: string, content: string, cfg: Picki
         const out = await withTimeout(Promise.resolve().then(() => (rule as any).check(content, ctx)), ruleTimeoutMs, `rule:${fullRuleId}`)
         trace('rule:end', fullRuleId, Array.isArray(out) ? out.length : 0)
         for (const i of out) {
+          // Ensure all issues have help text
+          const issueWithHelp = ensureHelpText(i, fullRuleId)
           if (overrideSeverity)
-            issues.push({ ...i, severity: overrideSeverity })
+            issues.push({ ...issueWithHelp, severity: overrideSeverity })
           else
-            issues.push(i)
+            issues.push(issueWithHelp)
         }
       }
       catch (e: any) {
@@ -711,7 +755,7 @@ export function scanContent(filePath: string, content: string, cfg: PickierConfi
       const indices = detectQuoteIssues(strippedLine, preferredQuotes)
       if (indices.length > 0 && !quotesReported) {
         if (!isSuppressed('quotes', lineNo, suppress)) {
-          issues.push({ filePath, line: lineNo, column: (indices[0] || 0) + 1, ruleId: 'quotes', message: 'Inconsistent quote style', severity: 'warning' })
+          issues.push({ filePath, line: lineNo, column: (indices[0] || 0) + 1, ruleId: 'quotes', message: 'Inconsistent quote style', severity: 'warning', help: `Use ${preferredQuotes} quotes consistently throughout your code. You can change the preferred quote style in your config with format.quotes: '${preferredQuotes === 'single' ? 'double' : 'single'}'` })
         }
         quotesReported = true
       }
@@ -724,14 +768,14 @@ export function scanContent(filePath: string, content: string, cfg: PickierConfi
       const leading = leadingMatch ? leadingMatch[0] : ''
       if (leading.length > 0 && hasIndentIssue(leading, cfg.format.indent, cfg.format.indentStyle)) {
         if (!isSuppressed('indent', lineNo, suppress))
-          issues.push({ filePath, line: lineNo, column: 1, ruleId: 'indent', message: 'Incorrect indentation detected', severity: 'warning' })
+          issues.push({ filePath, line: lineNo, column: 1, ruleId: 'indent', message: 'Incorrect indentation detected', severity: 'warning', help: `Use ${cfg.format.indentStyle === 'spaces' ? cfg.format.indent + ' spaces' : 'tabs'} for indentation. Configure with format.indent and format.indentStyle in your config` })
       }
     }
 
     // built-in lint rules
     if (wantDebugger && debuggerStmt.test(line)) {
       if (!isSuppressed('no-debugger', lineNo, suppress))
-        issues.push({ filePath, line: lineNo, column: 1, ruleId: 'no-debugger', message: 'Unexpected debugger statement', severity: wantDebugger })
+        issues.push({ filePath, line: lineNo, column: 1, ruleId: 'no-debugger', message: 'Unexpected debugger statement', severity: wantDebugger, help: 'Remove debugger statements before committing code. Use breakpoints in your IDE instead, or run with --fix to auto-remove' })
     }
     // Skip console detection for lines inside multi-line template literals
     if (wantConsole && !linesInTemplate.has(lineNo) && consoleCall.test(line)) {
@@ -760,7 +804,7 @@ export function scanContent(filePath: string, content: string, cfg: PickierConfi
               // Found console outside of string, this is a real console call
               const col = k + 1
               if (!isSuppressed('no-console', lineNo, suppress))
-                issues.push({ filePath, line: lineNo, column: col, ruleId: 'no-console', message: 'Unexpected console call', severity: wantConsole })
+                issues.push({ filePath, line: lineNo, column: col, ruleId: 'no-console', message: 'Unexpected console call', severity: wantConsole, help: 'Remove console statements before committing. Use a proper logging library or disable this rule if console output is intentional' })
               break
             }
           }
@@ -808,7 +852,7 @@ export function scanContent(filePath: string, content: string, cfg: PickierConfi
           }
           else if (ch === '$' && ln[k + 1] === '{' && prev !== '\\' && inStr !== 'template') {
             if (!isSuppressed('no-template-curly-in-string', lineNo, suppress)) {
-              issues.push({ filePath, line: lineNo, column: k + 1, ruleId: 'no-template-curly-in-string', message: 'Unexpected template string expression in normal string', severity: wantNoTemplateCurly })
+              issues.push({ filePath, line: lineNo, column: k + 1, ruleId: 'no-template-curly-in-string', message: 'Unexpected template string expression in normal string', severity: wantNoTemplateCurly, help: 'Change the string quotes from \' or " to backticks (`) to use template literal interpolation, or escape the $ if you meant to use it literally' })
             }
             break
           }
@@ -829,7 +873,7 @@ export function scanContent(filePath: string, content: string, cfg: PickierConfi
         const cond = m1[1]
         if (checkCond(cond)) {
           if (!isSuppressed('no-cond-assign', lineNo, suppress))
-            issues.push({ filePath, line: lineNo, column: Math.max(1, line.indexOf('(') + 1), ruleId: 'no-cond-assign', message: 'Unexpected assignment within a conditional expression', severity: wantNoCondAssign })
+            issues.push({ filePath, line: lineNo, column: Math.max(1, line.indexOf('(') + 1), ruleId: 'no-cond-assign', message: 'Unexpected assignment within a conditional expression', severity: wantNoCondAssign, help: 'Use === or == for comparison instead of = (assignment). If assignment was intentional, wrap it in parentheses: if ((x = value))' })
         }
       }
       const mFor = strippedLine.match(/\bfor\s*\(([^)]*)\)/)
@@ -840,7 +884,7 @@ export function scanContent(filePath: string, content: string, cfg: PickierConfi
           const cond = parts[1]
           if (checkCond(cond)) {
             if (!isSuppressed('no-cond-assign', lineNo, suppress))
-              issues.push({ filePath, line: lineNo, column: Math.max(1, line.indexOf('(') + 1), ruleId: 'no-cond-assign', message: 'Unexpected assignment within a conditional expression', severity: wantNoCondAssign })
+              issues.push({ filePath, line: lineNo, column: Math.max(1, line.indexOf('(') + 1), ruleId: 'no-cond-assign', message: 'Unexpected assignment within a conditional expression', severity: wantNoCondAssign, help: 'Use === or == for comparison instead of = (assignment). If assignment was intentional, wrap it in parentheses: for (let i = 0; (x = arr[i]); i++)' })
           }
         }
       }
@@ -1071,7 +1115,7 @@ export async function runLint(globs: string[], options: LintOptions): Promise<nu
         // recompute issues after simulated or real fix
         issues = scanContent(file, fixed, cfg)
 
-        if (options.dryRun && src !== fixed && (options.verbose || cfg.verbose)) {
+        if (options.dryRun && src !== fixed && (options.verbose !== undefined ? options.verbose : cfg.verbose)) {
           logger.debug(colors.gray(`dry-run: would apply fixes in ${relative(process.cwd(), file)}`))
         }
       }
@@ -1085,6 +1129,9 @@ export async function runLint(globs: string[], options: LintOptions): Promise<nu
     trace('issues:summary', { errors, warnings })
 
     const reporter = options.reporter || cfg.lint.reporter
+    // Determine verbose mode with proper precedence: CLI option > config > default
+    const isVerbose = options.verbose !== undefined ? options.verbose : cfg.verbose
+
     if (reporter === 'json') {
       // eslint-disable-next-line no-console
       console.log(JSON.stringify({ errors, warnings, issues: allIssues }, null, 2))
@@ -1096,8 +1143,6 @@ export async function runLint(globs: string[], options: LintOptions): Promise<nu
       }
     }
     else if (allIssues.length > 0) {
-      // Use verbose formatter if --verbose flag is set, otherwise use stylish
-      const isVerbose = options.verbose || cfg.verbose
       // eslint-disable-next-line no-console
       console.log(isVerbose ? formatVerbose(allIssues) : formatStylish(allIssues))
     }
@@ -1155,7 +1200,7 @@ export async function runLint(globs: string[], options: LintOptions): Promise<nu
       }
     }
 
-    if (options.verbose || cfg.verbose) {
+    if (isVerbose) {
       // eslint-disable-next-line no-console
       console.log(colors.gray(`Scanned ${files.length} files, found ${errors} errors and ${warnings} warnings.`))
     }

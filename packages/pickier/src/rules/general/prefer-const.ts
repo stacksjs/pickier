@@ -39,7 +39,7 @@ export const preferConstRule: RuleModule = {
         const incDecChanged = new RegExp(`(?:^|[^$\w])(?:\\+\\+|--)\\s*${name}\\b|\\b${name}\\s*(?:\\+\\+|--)`).test(rest)
         const changed = directAssign || incDecChanged
         if (!changed) {
-          issues.push({ filePath: ctx.filePath, line: i + 1, column: Math.max(1, line.indexOf(name) + 1), ruleId: 'prefer-const', message: `'${name}' is never reassigned. Use 'const' instead`, severity: 'error' })
+          issues.push({ filePath: ctx.filePath, line: i + 1, column: Math.max(1, line.indexOf(name) + 1), ruleId: 'prefer-const', message: `'${name}' is never reassigned. Use 'const' instead`, severity: 'error', help: `Change 'let ${name}' to 'const ${name}' since the variable is never reassigned. This makes your code more predictable and prevents accidental mutations` })
         }
       }
     }

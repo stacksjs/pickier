@@ -49,6 +49,7 @@ export const preferTemplate: RuleModule = {
           ruleId: 'general/prefer-template',
           message: 'Unexpected string concatenation. Use template literals instead',
           severity: 'warning',
+          help: 'Use template literals (backticks) instead of string concatenation. Example: `hello ${name}!` instead of \'hello \' + name + \'!\'',
         })
       }
     }
