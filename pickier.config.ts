@@ -5,8 +5,8 @@ import type { PickierOptions } from 'pickier'
 // All fields are optional; defaults are shown below.
 
 const config: PickierOptions = {
-  // Increase verbosity of CLI outputs
-  verbose: false,
+  // Increase verbosity of CLI outputs (shows detailed error context)
+  verbose: true,
 
   // Glob patterns to ignore
   ignores: [

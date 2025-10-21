@@ -310,7 +310,8 @@ export async function runFormat(globs: string[], options: FormatOptions): Promis
     }
   }
 
-  if (options.verbose) {
+  const isVerbose = options.verbose !== undefined ? options.verbose : cfg.verbose
+  if (isVerbose) {
     logger.debug(colors.gray(`Checked ${checked} files, ${changed} changed.`))
   }
 

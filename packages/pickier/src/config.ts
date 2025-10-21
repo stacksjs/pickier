@@ -114,7 +114,7 @@ export const defaultConfig: PickierConfig = {
     'markdown/table-column-count': 'error',
     'markdown/table-column-style': 'warn',
   },
-  verbose: false,
+  verbose: true,
 }
 
 // eslint-disable-next-line antfu/no-top-level-await
