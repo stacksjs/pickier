@@ -28,20 +28,23 @@ function makeIndent(visualLevels: number, cfg: PickierConfig): string {
 }
 
 function convertDoubleToSingle(str: string): string {
-  // strip surrounding quotes
+  // strip surrounding quotes: "xyz" → xyz
   const inner = str.slice(1, -1)
-  // unescape escaped double quotes, keep other escapes intact
-  const unescaped = inner.replace(/\\"/g, '"')
-  // escape single quotes that aren't already escaped
-  const escapedSingles = unescaped.replace(/(?<!\\)'/g, '\\\'')
-  return `'${escapedSingles}'`
+  // Strategy: swap quote types for cleaner output
+  // Unescape escaped double quotes: \"  → "
+  // Swap single quotes to double quotes: ' → " (since they're literals in the string)
+  let result = inner.replace(/\\"/g, '"')  // unescape \"
+  result = result.replace(/'/g, '"')        // swap ' to "
+  return `'${result}'`
 }
 
 function convertSingleToDouble(str: string): string {
   const inner = str.slice(1, -1)
-  const unescaped = inner.replace(/\\'/g, '\'')
-  const escapedDoubles = unescaped.replace(/"/g, '\\"')
-  return `"${escapedDoubles}"`
+  // Unescape escaped single quotes: \'  → '
+  // Swap double quotes to single quotes: " → '
+  let result = inner.replace(/\\'/g, '\'')
+  result = result.replace(/"/g, '\'')
+  return `"${result}"`
 }
 
 function fixQuotes(content: string, preferred: 'single' | 'double', filePath: string): string {
@@ -56,25 +59,10 @@ function fixQuotes(content: string, preferred: 'single' | 'double', filePath: st
     let output = ''
     let i = 0
     let inString: 'single' | 'double' | 'template' | null = null
-    let escaped = false
     let stringStart = 0
 
     while (i < line.length) {
       const ch = line[i]
-
-      if (escaped) {
-        output += ch
-        escaped = false
-        i++
-        continue
-      }
-
-      if (ch === '\\' && inString) {
-        escaped = true
-        output += ch
-        i++
-        continue
-      }
 
       // Check for string boundaries
       if (!inString) {
@@ -100,8 +88,17 @@ function fixQuotes(content: string, preferred: 'single' | 'double', filePath: st
         i++
       }
       else {
-        // Inside a string - check if we're exiting
-        if ((inString === 'double' && ch === '"') || (inString === 'single' && ch === '\'')) {
+        // Inside a string - check if we're exiting (but not if escaped)
+        // Count consecutive backslashes before this position
+        let backslashCount = 0
+        let j = i - 1
+        while (j >= 0 && line[j] === '\\') {
+          backslashCount++
+          j--
+        }
+        const isEscaped = backslashCount % 2 === 1
+
+        if (!isEscaped && ((inString === 'double' && ch === '"') || (inString === 'single' && ch === '\''))) {
           // Found closing quote - convert if needed
           const stringContent = line.slice(stringStart + 1, i)
           if (inString === 'double' && preferred === 'single') {
@@ -120,14 +117,14 @@ function fixQuotes(content: string, preferred: 'single' | 'double', filePath: st
           i++
           continue
         }
-        if (inString === 'template' && ch === '`') {
+        if (!isEscaped && inString === 'template' && ch === '`') {
           // Template literal end
           output += ch
           inString = null
           i++
           continue
         }
-        // Still inside string, buffer it
+        // Still inside string, continue scanning
         i++
       }
     }

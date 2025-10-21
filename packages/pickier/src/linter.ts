@@ -237,12 +237,17 @@ export async function runLintProgrammatic(
         fixed = next.join('\n')
       }
       fixed = applyPluginFixes(file, fixed, cfg)
-      if (!options.dryRun && fixed !== src) {
-        writeFileSync(file, fixed, 'utf8')
-        // OPTIMIZATION: Only re-scan if content actually changed
+
+      // If content changed, re-scan the fixed version
+      if (fixed !== src) {
         const newSuppress = parseDisableDirectives(fixed)
         const newCommentLines = getCommentLines(fixed)
         issues = scanContentOptimized(file, fixed, cfg, newSuppress, newCommentLines)
+
+        // Write file only if not dry-run
+        if (!options.dryRun) {
+          writeFileSync(file, fixed, 'utf8')
+        }
       }
     }
 
@@ -1356,16 +1361,21 @@ export async function runLint(globs: string[], options: LintOptions): Promise<nu
         }
         // Apply plugin rule fixers only (no global formatting in lint --fix)
         fixed = applyPluginFixes(file, fixed, cfg)
-        if (!options.dryRun && fixed !== src) {
-          writeFileSync(file, fixed, 'utf8')
-          // OPTIMIZATION: Only re-scan if content actually changed
+
+        // If content changed, re-scan the fixed version
+        if (fixed !== src) {
           const newSuppress = parseDisableDirectives(fixed)
           const newCommentLines = getCommentLines(fixed)
           issues = scanContentOptimized(file, fixed, cfg, newSuppress, newCommentLines)
-        }
 
-        if (options.dryRun && src !== fixed && (options.verbose !== undefined ? options.verbose : cfg.verbose)) {
-          logger.debug(colors.gray(`dry-run: would apply fixes in ${relative(process.cwd(), file)}`))
+          // Write file only if not dry-run
+          if (!options.dryRun) {
+            writeFileSync(file, fixed, 'utf8')
+          }
+
+          if (options.dryRun && (options.verbose !== undefined ? options.verbose : cfg.verbose)) {
+            logger.debug(colors.gray(`dry-run: would apply fixes in ${relative(process.cwd(), file)}`))
+          }
         }
       }
 
