@@ -147,6 +147,11 @@
           "type": "boolean",
           "default": true,
           "description": "Show CodeLens annotations at the top of files with quick actions and issue counts"
+        },
+        "pickier.documentation.baseUrl": {
+          "type": "string",
+          "default": "https://pickier.netlify.app",
+          "description": "Base URL for rule documentation (used in 'View Rule Documentation' action)"
         }
       }
     },

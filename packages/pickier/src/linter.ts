@@ -37,10 +37,14 @@ export async function lintText(
   try {
     const pluginIssues = await applyPlugins(filePath, text, cfg)
     const suppress = parseDisableDirectives(text)
+    const commentLines = getCommentLines(text)
     for (const i of pluginIssues) {
       if (signal?.aborted)
         throw new Error('AbortError')
       if (isSuppressed(i.ruleId as string, i.line, suppress))
+        continue
+      // Skip issues that are on comment-only lines
+      if (commentLines.has(i.line))
         continue
       issues.push({
         filePath: i.filePath,
@@ -174,10 +178,14 @@ export async function runLintProgrammatic(
     try {
       const pluginIssues = await applyPlugins(file, src, cfg)
       const suppress = parseDisableDirectives(src)
+      const commentLines = getCommentLines(src)
       for (const i of pluginIssues) {
         if (signal?.aborted)
           throw new Error('AbortError')
         if (isSuppressed(i.ruleId as string, i.line, suppress))
+          continue
+        // Skip issues that are on comment-only lines
+        if (commentLines.has(i.line))
           continue
         issues.push({
           filePath: i.filePath,
@@ -691,6 +699,148 @@ function stripRegexLiterals(line: string): string {
   return result
 }
 
+// Strip comments from a line, preserving string content
+function stripComments(line: string): string {
+  let result = ''
+  let i = 0
+  let inString: 'single' | 'double' | 'template' | null = null
+  let escaped = false
+
+  while (i < line.length) {
+    const ch = line[i]
+    const next = line[i + 1]
+
+    if (escaped) {
+      result += ch
+      escaped = false
+      i++
+      continue
+    }
+
+    if (ch === '\\' && inString) {
+      escaped = true
+      result += ch
+      i++
+      continue
+    }
+
+    // Handle string boundaries
+    if (!inString) {
+      if (ch === '"') {
+        inString = 'double'
+        result += ch
+        i++
+        continue
+      }
+      if (ch === '\'') {
+        inString = 'single'
+        result += ch
+        i++
+        continue
+      }
+      if (ch === '`') {
+        inString = 'template'
+        result += ch
+        i++
+        continue
+      }
+
+      // Check for single-line comment
+      if (ch === '/' && next === '/') {
+        // Rest of line is a comment, stop here
+        break
+      }
+
+      // Check for block comment start
+      if (ch === '/' && next === '*') {
+        // Skip until we find */
+        i += 2
+        while (i < line.length) {
+          if (line[i] === '*' && line[i + 1] === '/') {
+            i += 2
+            break
+          }
+          i++
+        }
+        // Add a space to preserve word boundaries
+        result += ' '
+        continue
+      }
+
+      result += ch
+      i++
+    }
+    else {
+      // Inside string, check for end
+      if ((inString === 'double' && ch === '"')
+        || (inString === 'single' && ch === '\'')
+        || (inString === 'template' && ch === '`')) {
+        inString = null
+      }
+      result += ch
+      i++
+    }
+  }
+
+  return result
+}
+
+// Build a set of line numbers that are entirely inside comments
+function getCommentLines(content: string): Set<number> {
+  const commentLines = new Set<number>()
+  const lines = content.split(/\r?\n/)
+  let inBlockComment = false
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i]
+    const lineNo = i + 1
+    const trimmed = line.trim()
+
+    // If we're inside a block comment from previous lines
+    if (inBlockComment) {
+      commentLines.add(lineNo)
+
+      // Check if block comment ends on this line
+      if (line.includes('*/')) {
+        inBlockComment = false
+      }
+      continue
+    }
+
+    // Check for single-line comment (entire line is a comment)
+    if (trimmed.startsWith('//')) {
+      commentLines.add(lineNo)
+      continue
+    }
+
+    // Check for block comment start
+    // First, remove any single-line comment from consideration
+    const beforeSingleComment = line.split('//')[0]
+    const blockStartIdx = beforeSingleComment.indexOf('/*')
+
+    if (blockStartIdx !== -1) {
+      // There's a block comment on this line
+      const beforeBlock = beforeSingleComment.substring(0, blockStartIdx).trim()
+      const afterBlockStart = beforeSingleComment.substring(blockStartIdx)
+      const blockEndIdx = afterBlockStart.indexOf('*/')
+
+      // Check if this line has only the block comment (no code before it)
+      if (beforeBlock === '') {
+        commentLines.add(lineNo)
+
+        // Check if block comment ends on the same line
+        if (blockEndIdx === -1) {
+          // Block comment continues to next lines
+          inBlockComment = true
+        }
+      }
+      // If there's code before the block comment, we don't mark the line as a comment
+    }
+  }
+
+  return commentLines
+}
+
 export function scanContent(filePath: string, content: string, cfg: PickierConfig): LintIssue[] {
   const issues: LintIssue[] = []
 
@@ -707,6 +857,9 @@ export function scanContent(filePath: string, content: string, cfg: PickierConfi
   const wantNoCondAssign = sevMap((cfg.rules as any).noCondAssign)
   const consoleCall = /\bconsole\.log\s*\(/
   const debuggerStmt = /^\s*debugger\b/
+
+  // Build a set of line numbers that are entirely inside comments
+  const commentLines = getCommentLines(content)
 
   // Build a set of line numbers that are inside multi-line template literals
   const linesInTemplate = new Set<number>()
@@ -747,11 +900,15 @@ export function scanContent(filePath: string, content: string, cfg: PickierConfi
     const line = lines[i]
     const lineNo = i + 1
 
-    // Skip quote detection for lines inside multi-line template literals and JSDoc comments
-    const isJSDocComment = /^\s*\*/.test(line)
-    if (!linesInTemplate.has(lineNo) && !isJSDocComment) {
-      // Strip regex literals to avoid false positives from quotes in regex
-      const strippedLine = stripRegexLiterals(line)
+    // Skip lines that are entirely comments
+    if (commentLines.has(lineNo)) {
+      continue
+    }
+
+    // Skip quote detection for lines inside multi-line template literals
+    if (!linesInTemplate.has(lineNo)) {
+      // Strip comments and regex literals to avoid false positives
+      const strippedLine = stripComments(stripRegexLiterals(line))
       const indices = detectQuoteIssues(strippedLine, preferredQuotes)
       if (indices.length > 0 && !quotesReported) {
         if (!isSuppressed('quotes', lineNo, suppress)) {
@@ -761,15 +918,11 @@ export function scanContent(filePath: string, content: string, cfg: PickierConfi
       }
     }
     // indentation check: pass leading whitespace only
-    // Skip indentation checks for JSDoc comment lines (e.g., " * comment" or " */")
-    const isJSDocLine = /^\s*\*/.test(line)
-    if (!isJSDocLine) {
-      const leadingMatch = line.match(/^[ \t]*/)
-      const leading = leadingMatch ? leadingMatch[0] : ''
-      if (leading.length > 0 && hasIndentIssue(leading, cfg.format.indent, cfg.format.indentStyle)) {
-        if (!isSuppressed('indent', lineNo, suppress))
-          issues.push({ filePath, line: lineNo, column: 1, ruleId: 'indent', message: 'Incorrect indentation detected', severity: 'warning', help: `Use ${cfg.format.indentStyle === 'spaces' ? cfg.format.indent + ' spaces' : 'tabs'} for indentation. Configure with format.indent and format.indentStyle in your config` })
-      }
+    const leadingMatch = line.match(/^[ \t]*/)
+    const leading = leadingMatch ? leadingMatch[0] : ''
+    if (leading.length > 0 && hasIndentIssue(leading, cfg.format.indent, cfg.format.indentStyle)) {
+      if (!isSuppressed('indent', lineNo, suppress))
+        issues.push({ filePath, line: lineNo, column: 1, ruleId: 'indent', message: 'Incorrect indentation detected', severity: 'warning', help: `Use ${cfg.format.indentStyle === 'spaces' ? cfg.format.indent + ' spaces' : 'tabs'} for indentation. Configure with format.indent and format.indentStyle in your config` })
     }
 
     // built-in lint rules
@@ -864,8 +1017,8 @@ export function scanContent(filePath: string, content: string, cfg: PickierConfi
     // no-cond-assign: forbid assignments inside condition parentheses
     // Skip this check for lines inside multi-line template literals (test content)
     if (wantNoCondAssign && !linesInTemplate.has(lineNo)) {
-      // Strip regex literals to avoid false positives from = in regex patterns
-      const strippedLine = stripRegexLiterals(line)
+      // Strip comments and regex literals to avoid false positives
+      const strippedLine = stripComments(stripRegexLiterals(line))
       // Check for assignment (single =) but exclude comparisons (==, ===) and arrow functions (=>)
       const checkCond = (cond: string) => /[^=!<>]=(?![=>])/.test(cond)
       const m1 = strippedLine.match(/\b(?:if|while)\s*\(([^)]*)\)/)
@@ -1075,8 +1228,12 @@ export async function runLint(globs: string[], options: LintOptions): Promise<nu
       try {
         const pluginIssues = await applyPlugins(file, src, cfg)
         const suppress = parseDisableDirectives(src)
+        const commentLines = getCommentLines(src)
         for (const i of pluginIssues) {
           if (isSuppressed(i.ruleId as string, i.line, suppress))
+            continue
+          // Skip issues that are on comment-only lines
+          if (commentLines.has(i.line))
             continue
           issues.push({
             filePath: i.filePath,

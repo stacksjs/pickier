@@ -414,28 +414,48 @@ async function lintWorkspace() {
 }
 
 function showRuleDocumentation(ruleId: string) {
-  // Generate documentation URL based on rule ID
-  const baseUrl = 'https://github.com/stacksjs/pickier'
-  let url = baseUrl
+  const config = vscode.workspace.getConfiguration('pickier')
+  const baseUrl = config.get<string>('documentation.baseUrl', 'https://pickier.netlify.app')
 
-  // Map rule IDs to documentation sections
-  if (ruleId.includes('sort-')) {
-    url = `${baseUrl}#sorting-rules`
+  // Strip plugin prefix to get bare rule name
+  const ruleName = ruleId.includes('/') ? ruleId.split('/')[1] : ruleId
+
+  // Build documentation URL
+  let url: string
+
+  // Map built-in rules
+  const builtInRules = ['quotes', 'indent', 'no-debugger', 'no-console', 'no-template-curly-in-string', 'no-cond-assign']
+  if (builtInRules.includes(ruleName)) {
+    url = `${baseUrl}/rules/${ruleName}`
   }
-  else if (ruleId.includes('import')) {
-    url = `${baseUrl}#import-rules`
+  // Map pickier plugin rules
+  else if (ruleId.startsWith('pickier/')) {
+    if (ruleName.startsWith('sort-')) {
+      url = `${baseUrl}/rules/pickier-${ruleName}`
+    }
+    else {
+      url = `${baseUrl}/rules/${ruleName}`
+    }
   }
-  else if (ruleId.includes('style/')) {
-    url = `${baseUrl}#style-rules`
+  // Map regexp rules
+  else if (ruleId.startsWith('regexp/')) {
+    url = `${baseUrl}/rules/regexp-${ruleName}`
   }
-  else if (ruleId.includes('regexp/')) {
-    url = `${baseUrl}#regexp-rules`
+  // Map markdown rules
+  else if (ruleId.startsWith('markdown/')) {
+    url = `${baseUrl}/rules/markdown-${ruleName}`
   }
-  else if (ruleId.includes('markdown/')) {
-    url = `${baseUrl}#markdown-rules`
+  // Map style rules
+  else if (ruleId.startsWith('style/')) {
+    url = `${baseUrl}/rules/style-${ruleName}`
   }
-  else if (ruleId.includes('ts/')) {
-    url = `${baseUrl}#typescript-rules`
+  // Map TypeScript rules
+  else if (ruleId.startsWith('ts/')) {
+    url = `${baseUrl}/rules/ts-${ruleName}`
+  }
+  // Fallback to rules index
+  else {
+    url = `${baseUrl}/rules`
   }
 
   vscode.env.openExternal(vscode.Uri.parse(url))
