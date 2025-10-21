@@ -1,160 +1,336 @@
-# Pickier VS Code Extension Examples
+# Pickier VS Code Extension - Example Files
 
-This folder contains example configurations and settings for the Pickier VS Code extension.
+This folder contains comprehensive example files to test all features of the Pickier VS Code extension.
 
-## Configuration Files
+## How to Test
 
-### 1. Basic Configuration (`basic-config.ts`)
+### Step 1: Launch Extension Development Host
 
-A minimal setup perfect for getting started with Pickier. Includes:
+1. Open this workspace in VS Code
+2. Go to Run and Debug (Cmd+Shift+D)
+3. Select "Run Extension" from the dropdown
+4. Click the green play button (or press F5)
+5. A new VS Code window will open with "[Extension Development Host]" in the title
 
-- Essential formatting rules
-- Basic linting configuration
-- Standard file type support
+### Step 2: Open Example Files
 
-**Best for**: New projects, personal development, learning Pickier
+In the Extension Development Host window:
 
-### 2. Advanced Configuration (`advanced-config.ts`)
+1. Open the examples folder: `/packages/vscode/examples/`
+2. Open any example file (`.ts` files numbered 01-10)
+3. Each file is self-contained and demonstrates specific features
 
-A comprehensive setup with advanced features including:
+### Step 3: Test Features
 
-- Custom plugin rules
-- Extended rule configuration
-- Performance optimizations
-- Detailed sorting rules
+Each example file contains detailed instructions at the top. Follow the "HOW TO TEST" section in each file.
 
-**Best for**: Mature projects, teams wanting more control, complex codebases
+## Example Files Overview
 
-### 3. Team/Enterprise Configuration (`team-config.ts`)
+### 01-hover-help-text.ts
+**Tests:** Rich hover tooltips with help text
 
-A strict configuration designed for team environments with:
+**Features:**
+- Hover over any underlined issue
+- See rule ID with severity icon
+- Read descriptive help text
+- See auto-fix indicator (✨) when available
+- Links to disable options
 
-- Zero-tolerance policies for warnings
-- Comprehensive ignore patterns
-- Consistent formatting across team members
-- CI/CD integration considerations
+**What to look for:**
+- Rich markdown-formatted hover tooltips
+- Blue help text explaining how to fix
+- Different icons for errors (🔴) vs warnings (🟡)
 
-**Best for**: Enterprise projects, large teams, production environments
+---
 
-### 4. VS Code Settings (`vscode-settings.json`)
+### 02-codelens-annotations.ts
+**Tests:** CodeLens annotations and stats
 
-Example VS Code workspace settings that:
+**Features:**
+- File-level issue summary at top of file
+- "Fix all" button for auto-fixable issues
+- "Organize Imports" button
+- Real-time updates as you fix issues
 
-- Integrate optimally with Pickier
-- Disable conflicting formatters
-- Set up language-specific preferences
-- Optimize performance
+**What to look for:**
+- CodeLens appears above first line of code
+- Shows count: "⚠️ Pickier: X errors, Y warnings (Z auto-fixable)"
+- Clickable buttons that trigger actions
 
-## Usage Instructions
+---
 
-### Setting up a Configuration
+### 03-code-actions.ts
+**Tests:** All 4 types of code actions
 
-1. **Choose a configuration** that matches your project needs
-2. **Copy the configuration file** to your project root as `pickier.config.ts`
-3. **Modify the settings** as needed for your specific requirements
-4. **Update your VS Code settings** using the provided example
+**Features:**
+- Fix action (for auto-fixable issues)
+- Disable for this line
+- Disable for entire file
+- View documentation
 
-### VS Code Integration
+**What to look for:**
+- Put cursor on any issue
+- Press Cmd+. (or right-click → Quick Fix)
+- See all available actions for that issue type
+- Actions apply correctly
 
-1. **Copy relevant settings** from `vscode-settings.json`
-2. **Add them to your workspace settings** (`.vscode/settings.json`) or user settings
-3. **Restart VS Code** to ensure all settings take effect
-4. **Test the integration** by formatting and linting files
+---
 
-### Customization Tips
+### 04-problems-panel.ts
+**Tests:** Problems panel integration
 
-#### File Extensions
+**Features:**
+- All issues appear in Problems panel
+- Grouped by severity (Errors / Warnings)
+- Click issue to navigate to code
+- See full help text in problem details
 
-Add or remove file extensions based on your project:
+**What to look for:**
+- Open Problems panel (Cmd+Shift+M)
+- See all 6+ issues listed
+- Click on issue to jump to location
+- Expand issue to see help text
 
-```typescript
-extensions: ['ts', 'tsx', 'js', 'jsx', 'vue', 'svelte']
-```
+---
 
-#### Ignore Patterns
+### 05-import-issues.ts
+**Tests:** Import organization features
 
-Customize ignore patterns for your project structure:
+**Features:**
+- Detect unordered imports
+- Detect duplicate imports
+- "Organize Imports" CodeLens action
+- Auto-fix import sorting
 
-```typescript
-ignores: [
-  '**/node_modules/**',
-  '**/your-custom-build-dir/**',
-  '**/legacy-code/**'
-]
-```
+**What to look for:**
+- CodeLens shows "📦 Organize Imports"
+- Issues reported for unordered/duplicate imports
+- Click "Organize Imports" to fix all import issues
 
-#### Rule Severity
+---
 
-Adjust rule severity based on your team's preferences:
+### 06-all-severities.ts
+**Tests:** Different severity levels
 
-```typescript
-rules: {
-  noConsole: 'off',    // Allow console.log
-  noDebugger: 'warn',  // Warn instead of error
-}
-```
+**Features:**
+- Error severity (red squiggly lines)
+- Warning severity (yellow squiggly lines)
+- Different icons in hover tooltips
+- Problems panel groups by severity
 
-## Migration from Other Tools
+**What to look for:**
+- Red underlines for errors (debugger, unused vars, prefer-const)
+- Yellow underlines for warnings (console.log, quotes, prefer-template)
+- CodeLens shows both: "3 errors, 3 warnings"
 
-### From Prettier
+---
 
-1. Disable Prettier in your VS Code settings
-2. Remove Prettier configuration files
-3. Use Pickier's formatting options instead
-4. Adjust any custom Prettier rules to Pickier equivalents
+### 07-auto-fixable-vs-manual.ts
+**Tests:** Auto-fix detection and behavior
 
-### From ESLint
+**Features:**
+- Auto-fixable issues show ✨ icon
+- Manual issues don't show ✨
+- "Fix all" only fixes auto-fixable issues
+- Help text explains manual fix steps
 
-1. Keep ESLint for logical rules
-2. Disable ESLint formatting rules
-3. Use Pickier for formatting and sorting
-4. Configure both tools to work together
+**What to look for:**
+- Hover on auto-fixable: see "✨ Auto-fix available"
+- Hover on manual: no ✨ icon, detailed manual instructions
+- Click "Fix all" in CodeLens: only auto-fixable issues are fixed
+- Manual issues remain with helpful guidance
 
-### From Other Formatters
+---
 
-1. Identify overlapping functionality
-2. Disable conflicting extensions
-3. Migrate custom rules to Pickier configuration
-4. Test thoroughly with your codebase
+### 08-disable-comments.ts
+**Tests:** Disable comment actions
+
+**Features:**
+- "Disable for this line" adds `// eslint-disable-next-line`
+- "Disable for entire file" adds `/* eslint-disable */` at top
+- Disabled issues disappear from diagnostics
+
+**What to look for:**
+- Use code action to disable a rule
+- See disable comment added to file
+- Issue disappears from Problems panel
+- CodeLens updates to show fewer issues
+
+---
+
+### 09-clean-file.ts
+**Tests:** "No issues" state
+
+**Features:**
+- CodeLens shows "✓ Pickier: No issues found"
+- No squiggly underlines anywhere
+- Empty Problems panel
+- Demonstrates what a "perfect" file looks like
+
+**What to look for:**
+- Green checkmark (✓) in CodeLens
+- "No issues found" message
+- Clean, issue-free code
+- This is the target state!
+
+---
+
+### 10-comprehensive-test.ts
+**Tests:** All features combined
+
+**Features:**
+- Multiple issue types in one file
+- Mix of errors and warnings
+- Mix of auto-fixable and manual issues
+- Nested issues
+- Complex scenarios
+
+**What to look for:**
+- CodeLens: "⚠️ Pickier: ~15 errors, ~8 warnings (~12 auto-fixable)"
+- Test all features: hover, code actions, problems panel
+- Click "Fix all" and watch file transform
+- See remaining manual issues with help text
+
+---
+
+## Testing Workflow
+
+### Recommended Testing Order:
+
+1. **Start with 09-clean-file.ts**
+   - See what "perfect" looks like
+   - Understand the baseline
+
+2. **Test 01-hover-help-text.ts**
+   - Get familiar with hover tooltips
+   - See how help text appears
+
+3. **Test 02-codelens-annotations.ts**
+   - Understand CodeLens display
+   - Try "Fix all" button
+
+4. **Test 03-code-actions.ts**
+   - Learn all 4 action types
+   - Practice using Cmd+.
+
+5. **Test remaining files (04-08)**
+   - Explore specific features
+   - Test edge cases
+
+6. **Finish with 10-comprehensive-test.ts**
+   - Complete integration test
+   - See all features working together
+
+### Common Testing Actions:
+
+- **Trigger hover:** Move mouse over underlined code
+- **Trigger code actions:** Put cursor on issue, press Cmd+. (or Ctrl+. on Windows/Linux)
+- **View problems:** Press Cmd+Shift+M to open Problems panel
+- **Test CodeLens:** Look at top of file, click buttons
+- **Test fixes:** Click "Fix all" or use individual fix actions
+
+## Expected Features
+
+When testing, you should see these features working:
+
+### ✅ Rich Hover Tooltips
+- Shows rule ID with icon
+- Displays descriptive message
+- Includes help text (blue)
+- Shows auto-fix indicator (✨)
+- Links to disable options
+
+### ✅ CodeLens Annotations
+- File-level stats at top
+- Issue count by severity
+- Auto-fixable count
+- Clickable "Fix all" button
+- "Organize Imports" button
+
+### ✅ Enhanced Code Actions
+- Fix (for auto-fixable issues)
+- Disable for this line
+- Disable for entire file
+- View documentation
+
+### ✅ Problems Panel Integration
+- All issues listed
+- Grouped by severity
+- Click to navigate
+- Full help text in details
+
+### ✅ Smart Diagnostics
+- Red underlines for errors
+- Yellow underlines for warnings
+- Related information for help text
+- Real-time updates
+
+## Configuration Examples
+
+This folder also contains configuration examples:
+
+- **basic-config.ts** - Minimal setup for getting started
+- **advanced-config.ts** - Comprehensive setup with advanced features
+- **team-config.ts** - Strict configuration for team environments
+- **vscode-settings.json** - Example VS Code workspace settings
+
+See the individual files for details on each configuration option.
 
 ## Troubleshooting
 
-### Common Issues
+### Extension not loading?
+- Make sure you're in the Extension Development Host window
+- Check the Debug Console for errors
+- Try restarting the extension (Cmd+Shift+P → "Developer: Reload Window")
 
-**Configuration not loading**:
+### No issues showing?
+- Make sure Pickier is enabled in settings
+- Check that the file is saved
+- Verify the file is TypeScript/JavaScript
 
-- Ensure the file is named `pickier.config.ts`
-- Check file syntax for errors
-- Verify the file is in the workspace root
+### CodeLens not appearing?
+- Check setting: `pickier.codeLens.enable` should be `true`
+- Try reloading the window
+- Ensure file has issues or is clean (CodeLens shows in both cases)
 
-**Formatting not working**:
+### Hover not working?
+- Hover directly over the underlined code
+- Wait a moment for tooltip to appear
+- Check that there are diagnostics for that line
 
-- Check that Pickier is set as the default formatter
-- Ensure `formatOnSave` is enabled if desired
-- Verify file extensions are included in configuration
+## Configuration
 
-**Performance issues**:
+You can customize extension behavior in VS Code settings:
 
-- Enable caching in the configuration
-- Review ignore patterns to exclude unnecessary files
-- Consider reducing the scope of plugin rules
+```json
+{
+  "pickier.enable": true,
+  "pickier.run": "onSave",
+  "pickier.codeLens.enable": true,
+  "pickier.packageManager": "auto"
+}
+```
 
-### Getting Help
+See `package.json` in the extension root for all available settings.
 
-1. Check the [main documentation](../docs/USAGE.md)
-2. Enable the output channel for debugging
-3. Review VS Code's developer tools
-4. Check the [GitHub repository](https://github.com/stacksjs/pickier) for issues
+## Feedback
 
-## Contributing
+After testing, consider:
+- Which features are most useful?
+- Are there any missing features?
+- Is the help text clear and actionable?
+- Are the code actions discoverable?
+- Is the CodeLens helpful or distracting?
 
-Have a useful configuration or improvement? Please:
+## Next Steps
 
-1. Test it thoroughly
-2. Document its use case
-3. Submit a pull request
-4. Include example usage
+After testing these examples:
 
-## License
+1. Try the extension on your real codebase
+2. Customize Pickier config (`pickier.config.ts`) for your needs
+3. Report any issues or suggestions
+4. Enjoy fast, helpful linting!
 
-These examples are provided under the same MIT license as the Pickier project.
+---
+
+**Note:** These example files intentionally contain issues to demonstrate extension features. Don't be alarmed by the red and yellow squiggly lines - they're there for testing!
