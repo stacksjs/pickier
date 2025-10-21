@@ -1,0 +1,66 @@
+{
+  "name": "@pickier/benchmarks",
+  "type": "module",
+  "version": "0.0.9",
+  "private": true,
+  "description": "Benchmarks for the `pickier` library.",
+  "author": "Chris Breuer <chris@stacksjs.org>",
+  "license": "MIT",
+  "homepage": "https://github.com/stacksjs/pickier#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/stacksjs/pickier.git"
+  },
+  "bugs": {
+    "url": "https://github.com/stacksjs/pickier/issues"
+  },
+  "keywords": [
+    "pickier",
+    "bun"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/src/index.js"
+    },
+    "./*": {
+      "import": "./dist/*"
+    }
+  },
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "bun --bun build.ts",
+    "bench": "bun run benchmarks/index.ts",
+    "bench:lint": "bun run benchmarks/lint.bench.ts",
+    "bench:format": "bun run benchmarks/format.bench.ts",
+    "bench:combined": "bun run benchmarks/combined.bench.ts",
+    "bench:memory": "bun run benchmarks/memory.bench.ts",
+    "bench:parsing": "bun run benchmarks/parsing.bench.ts",
+    "bench:rules": "bun run benchmarks/rules.bench.ts",
+    "bench:comparison": "bun run benchmarks/comparison.ts",
+    "bench:breakdown": "bun run benchmarks/breakdown.ts",
+    "bench:all": "bun run bench:lint && bun run bench:format && bun run bench:combined",
+    "lint": "bunx --bun eslint .",
+    "lint:fix": "bunx --bun eslint . --fix",
+    "prepublishOnly": "bun --bun run build",
+    "test": "bun test"
+  },
+  "dependencies": {
+    "pickier": "workspace:*"
+  },
+  "devDependencies": {
+    "@babel/parser": "^7.26.3",
+    "@babel/traverse": "^7.26.3",
+    "@biomejs/biome": "^1.9.4",
+    "eslint": "^9.15.0",
+    "happy-dom": "^20.0.2",
+    "jsdom": "^25.0.1",
+    "mitata": "^1.0.34",
+    "prettier": "^3.3.3",
+    "typescript": "^5.7.3"
+  }
+}
