@@ -82,6 +82,16 @@
         "command": "pickier.restartExtension",
         "title": "Restart Extension",
         "category": "Pickier"
+      },
+      {
+        "command": "pickier.showRuleDocumentation",
+        "title": "Show Rule Documentation",
+        "category": "Pickier"
+      },
+      {
+        "command": "pickier.disableRule",
+        "title": "Disable Rule",
+        "category": "Pickier"
       }
     ],
     "configuration": {
@@ -132,6 +142,11 @@
           "type": "boolean",
           "default": true,
           "description": "Show issue count in status bar"
+        },
+        "pickier.codeLens.enable": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show CodeLens annotations at the top of files with quick actions and issue counts"
         }
       }
     },

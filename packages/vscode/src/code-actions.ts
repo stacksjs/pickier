@@ -35,9 +35,28 @@ export class PickierCodeActionProvider implements vscode.CodeActionProvider {
         continue
       }
 
-      const action = await this.createFixAction(document, diagnostic, token)
-      if (action) {
-        actions.push(action)
+      // Add fix action
+      const fixAction = await this.createFixAction(document, diagnostic, token)
+      if (fixAction) {
+        actions.push(fixAction)
+      }
+
+      // Add "Disable rule for this line" action
+      const disableLineAction = this.createDisableRuleForLineAction(document, diagnostic, range)
+      if (disableLineAction) {
+        actions.push(disableLineAction)
+      }
+
+      // Add "Disable rule for entire file" action
+      const disableFileAction = this.createDisableRuleForFileAction(document, diagnostic)
+      if (disableFileAction) {
+        actions.push(disableFileAction)
+      }
+
+      // Add "Show rule documentation" action
+      const docsAction = this.createShowRuleDocsAction(diagnostic)
+      if (docsAction) {
+        actions.push(docsAction)
       }
     }
 
@@ -121,7 +140,13 @@ export class PickierCodeActionProvider implements vscode.CodeActionProvider {
       const pickier = await import('pickier')
 
       // For built-in rules like noDebugger, we can apply fixes
-      if (['noDebugger', 'quotes', 'indent'].includes(ruleId)) {
+      if (['noDebugger', 'quotes', 'indent', 'no-debugger', 'no-console'].includes(ruleId)) {
+        return true
+      }
+
+      // Check for common fixable patterns
+      const fixablePatterns = ['sort-', 'prefer-', 'import-dedupe', 'organize']
+      if (fixablePatterns.some(pattern => ruleId.includes(pattern))) {
         return true
       }
 
@@ -141,6 +166,88 @@ export class PickierCodeActionProvider implements vscode.CodeActionProvider {
     catch {
       return false
     }
+  }
+
+  private createDisableRuleForLineAction(
+    document: vscode.TextDocument,
+    diagnostic: vscode.Diagnostic,
+    range: vscode.Range | vscode.Selection,
+  ): vscode.CodeAction | undefined {
+    const ruleId = diagnostic.code?.toString()
+    if (!ruleId) {
+      return undefined
+    }
+
+    const action = new vscode.CodeAction(
+      `Disable ${ruleId} for this line`,
+      vscode.CodeActionKind.QuickFix,
+    )
+
+    action.diagnostics = [diagnostic]
+
+    // Get the line before the diagnostic
+    const line = diagnostic.range.start.line
+    const lineText = document.lineAt(line).text
+    const indent = lineText.match(/^\s*/)?.[0] || ''
+
+    const edit = new vscode.WorkspaceEdit()
+    const comment = `${indent}// eslint-disable-next-line ${ruleId}\n`
+    edit.insert(document.uri, new vscode.Position(line, 0), comment)
+
+    action.edit = edit
+    action.isPreferred = false
+
+    return action
+  }
+
+  private createDisableRuleForFileAction(
+    document: vscode.TextDocument,
+    diagnostic: vscode.Diagnostic,
+  ): vscode.CodeAction | undefined {
+    const ruleId = diagnostic.code?.toString()
+    if (!ruleId) {
+      return undefined
+    }
+
+    const action = new vscode.CodeAction(
+      `Disable ${ruleId} for entire file`,
+      vscode.CodeActionKind.QuickFix,
+    )
+
+    action.diagnostics = [diagnostic]
+
+    const edit = new vscode.WorkspaceEdit()
+    const comment = `/* eslint-disable ${ruleId} */\n`
+    edit.insert(document.uri, new vscode.Position(0, 0), comment)
+
+    action.edit = edit
+    action.isPreferred = false
+
+    return action
+  }
+
+  private createShowRuleDocsAction(
+    diagnostic: vscode.Diagnostic,
+  ): vscode.CodeAction | undefined {
+    const ruleId = diagnostic.code?.toString()
+    if (!ruleId) {
+      return undefined
+    }
+
+    const action = new vscode.CodeAction(
+      `📖 View documentation for ${ruleId}`,
+      vscode.CodeActionKind.QuickFix,
+    )
+
+    action.diagnostics = [diagnostic]
+    action.command = {
+      title: 'Show Rule Documentation',
+      command: 'pickier.showRuleDocumentation',
+      arguments: [ruleId],
+    }
+    action.isPreferred = false
+
+    return action
   }
 }
 

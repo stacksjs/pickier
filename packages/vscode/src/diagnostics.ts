@@ -11,6 +11,7 @@ interface LintResult {
     ruleId: string
     message: string
     severity: 'warning' | 'error'
+    help?: string
   }>
 }
 
@@ -65,7 +66,7 @@ export class PickierDiagnosticProvider {
         const issues = await mod.lintText(documentText, cfg, document.fileName, signal)
         if (token?.isCancellationRequested)
           return []
-        return issues.map(issue => convertIssueToDiagnostic(issue, documentText))
+        return issues.map(issue => convertIssueToDiagnostic(issue, documentText, document.uri))
       }
     }
     catch (e) {
@@ -78,7 +79,7 @@ export class PickierDiagnosticProvider {
     const lintResult = await runPickierAndParseJson([document.fileName], options, this.outputChannel, token, documentText)
     if (token?.isCancellationRequested)
       return []
-    return lintResult.issues.map(issue => convertIssueToDiagnostic(issue, documentText))
+    return lintResult.issues.map(issue => convertIssueToDiagnostic(issue, documentText, document.uri))
   }
 }
 
@@ -138,7 +139,7 @@ async function runPickierAndParseJson(
 }
 
 // Helper: convert a single issue to a VS Code diagnostic
-function convertIssueToDiagnostic(issue: LintResult['issues'][number], documentText?: string): vscode.Diagnostic {
+function convertIssueToDiagnostic(issue: LintResult['issues'][number], documentText?: string, documentUri?: vscode.Uri): vscode.Diagnostic {
   const line = Math.max(0, issue.line - 1)
   const column = Math.max(0, issue.column - 1)
 
@@ -193,6 +194,16 @@ function convertIssueToDiagnostic(issue: LintResult['issues'][number], documentT
   diagnostic.source = 'pickier'
   diagnostic.code = issue.ruleId
 
+  // Add help text as related information (for hover and problems panel)
+  if (issue.help && documentUri) {
+    diagnostic.relatedInformation = [
+      new vscode.DiagnosticRelatedInformation(
+        new vscode.Location(documentUri, range),
+        issue.help,
+      ),
+    ]
+  }
+
   // Add tags for better visual feedback
   const tags: vscode.DiagnosticTag[] = []
 
@@ -224,7 +235,8 @@ export async function lintPathsToDiagnostics(paths: string[], output: vscode.Out
       const map: Record<string, vscode.Diagnostic[]> = {}
       for (const issue of res.issues) {
         const list = map[issue.filePath] || (map[issue.filePath] = [])
-        list.push(convertIssueToDiagnostic(issue))
+        const uri = vscode.Uri.file(issue.filePath)
+        list.push(convertIssueToDiagnostic(issue, undefined, uri))
       }
       return map
     }
@@ -237,7 +249,8 @@ export async function lintPathsToDiagnostics(paths: string[], output: vscode.Out
   const map: Record<string, vscode.Diagnostic[]> = {}
   for (const issue of result.issues) {
     const list = map[issue.filePath] || (map[issue.filePath] = [])
-    list.push(convertIssueToDiagnostic(issue))
+    const uri = vscode.Uri.file(issue.filePath)
+    list.push(convertIssueToDiagnostic(issue, undefined, uri))
   }
   return map
 }

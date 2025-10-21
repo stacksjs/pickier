@@ -4,6 +4,8 @@ import { clearConfigCache, disposeConfigWatcher, getPickierConfig, watchConfigFi
 import { lintPathsToDiagnostics, PickierDiagnosticProvider } from './diagnostics'
 import { PickierFormattingProvider } from './formatter'
 import { PickierStatusBar } from './status-bar'
+import { PickierHoverProvider } from './hover'
+import { PickierCodeLensProvider } from './codelens'
 
 let diagnosticCollection: vscode.DiagnosticCollection
 let statusBarItem: PickierStatusBar
@@ -63,6 +65,22 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   // Register diagnostic provider
   const diagnosticProvider = new PickierDiagnosticProvider(diagnosticCollection, outputChannel)
 
+  // Register hover provider
+  const hoverProvider = new PickierHoverProvider(diagnosticCollection)
+  supportedLanguages.forEach((language) => {
+    context.subscriptions.push(
+      vscode.languages.registerHoverProvider(language, hoverProvider),
+    )
+  })
+
+  // Register CodeLens provider
+  const codeLensProvider = new PickierCodeLensProvider(diagnosticCollection)
+  supportedLanguages.forEach((language) => {
+    context.subscriptions.push(
+      vscode.languages.registerCodeLensProvider(language, codeLensProvider),
+    )
+  })
+
   // Watch config file for changes
   const workspaceFolders = vscode.workspace.workspaceFolders
   if (workspaceFolders && workspaceFolders.length > 0) {
@@ -98,6 +116,8 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     vscode.commands.registerCommand('pickier.applyFix', async (document: vscode.TextDocument, diagnostic: vscode.Diagnostic) => {
       await applyFix(document, diagnostic)
     }),
+    vscode.commands.registerCommand('pickier.showRuleDocumentation', (ruleId: string) => showRuleDocumentation(ruleId)),
+    vscode.commands.registerCommand('pickier.disableRule', (ruleId: string) => disableRule(ruleId)),
     vscode.commands.registerCommand('pickier.showOutputChannel', () => showOutputChannel(outputChannel)),
     vscode.commands.registerCommand('pickier.restartExtension', () => restartExtension()),
     diagnosticCollection,
@@ -391,4 +411,43 @@ async function lintWorkspace() {
     vscode.window.showErrorMessage(`Failed to lint workspace: ${errorMessage}`)
     outputChannel.appendLine(`Workspace lint error: ${errorMessage}`)
   }
+}
+
+function showRuleDocumentation(ruleId: string) {
+  // Generate documentation URL based on rule ID
+  const baseUrl = 'https://github.com/stacksjs/pickier'
+  let url = baseUrl
+
+  // Map rule IDs to documentation sections
+  if (ruleId.includes('sort-')) {
+    url = `${baseUrl}#sorting-rules`
+  }
+  else if (ruleId.includes('import')) {
+    url = `${baseUrl}#import-rules`
+  }
+  else if (ruleId.includes('style/')) {
+    url = `${baseUrl}#style-rules`
+  }
+  else if (ruleId.includes('regexp/')) {
+    url = `${baseUrl}#regexp-rules`
+  }
+  else if (ruleId.includes('markdown/')) {
+    url = `${baseUrl}#markdown-rules`
+  }
+  else if (ruleId.includes('ts/')) {
+    url = `${baseUrl}#typescript-rules`
+  }
+
+  vscode.env.openExternal(vscode.Uri.parse(url))
+}
+
+function disableRule(ruleId: string) {
+  const message = `To disable ${ruleId}, add this to your pickier.config.ts:\n\npluginRules: {\n  '${ruleId}': 'off'\n}`
+  vscode.window.showInformationMessage(message, 'Copy Config')
+    .then((selection) => {
+      if (selection === 'Copy Config') {
+        vscode.env.clipboard.writeText(`'${ruleId}': 'off'`)
+        vscode.window.showInformationMessage('Config copied to clipboard')
+      }
+    })
 }
