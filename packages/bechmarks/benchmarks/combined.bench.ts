@@ -34,7 +34,6 @@ async function runPickierFull(filePath: string) {
     // Run format
     const pickier = await import('pickier')
     if ('runFormat' in pickier) {
-      // @ts-expect-error - internal API
       await pickier.runFormat([filePath], { write: false })
     }
 
@@ -208,5 +207,4 @@ group('Combined - Memory Efficiency (10 iterations)', () => {
 await run({
   format: 'mitata',
   colors: true,
-  json: false,
 })

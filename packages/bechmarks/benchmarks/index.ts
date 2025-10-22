@@ -66,7 +66,6 @@ group('⚡ Quick Overview - Combined', () => {
     await runLintProgrammatic([fixtures.medium], { reporter: 'json' })
     const pickier = await import('pickier')
     if ('runFormat' in pickier) {
-      // @ts-expect-error - internal API
       await pickier.runFormat([fixtures.medium], { write: false })
     }
   })
@@ -132,7 +131,6 @@ group('💪 Stress Test - 100 Iterations', () => {
 await run({
   format: 'mitata',
   colors: true,
-  json: false,
 })
 
 console.log(`\n${'='.repeat(80)}`)

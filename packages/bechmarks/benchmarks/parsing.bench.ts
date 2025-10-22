@@ -166,5 +166,4 @@ group('Parsing - With Error Recovery', () => {
 await run({
   format: 'mitata',
   colors: true,
-  json: false,
 })

@@ -149,5 +149,4 @@ group('Linting - Cold Start', () => {
 await run({
   format: 'mitata',
   colors: true,
-  json: false,
 })
