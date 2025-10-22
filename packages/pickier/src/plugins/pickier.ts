@@ -1,9 +1,8 @@
 import type { PickierPlugin } from '../types'
-import { noUnusedVarsRule } from '../rules/general/no-unused-vars'
-import { preferConstRule } from '../rules/general/prefer-const'
-import { preferTemplate } from '../rules/general/prefer-template'
+// Import rules
 import { firstRule } from '../rules/imports/first'
 import { importDedupeRule } from '../rules/imports/import-dedupe'
+import { noDuplicateImportsRule } from '../rules/imports/no-duplicate-imports'
 import { namedRule } from '../rules/imports/named'
 import { noCycleRule } from '../rules/imports/no-cycle'
 import { noImportDistRule } from '../rules/imports/no-import-dist'
@@ -20,15 +19,15 @@ import { topLevelFunctionRule } from '../rules/style/top-level-function'
 export const pickierPlugin: PickierPlugin = {
   name: 'pickier',
   rules: {
+    // Sort rules
     'sort-exports': sortExportsRule,
     'sort-objects': sortObjectsRule,
     'sort-imports': sortImportsRule,
     'sort-named-imports': sortNamedImportsRule,
     'sort-heritage-clauses': sortHeritageClausesRule,
     'sort-keys': sortKeysRule,
-    'prefer-const': preferConstRule,
-    'prefer-template': preferTemplate,
-    'no-unused-vars': noUnusedVarsRule,
+
+    // Import rules
     'import-dedupe': importDedupeRule,
     'import-first': firstRule,
     'import-named': namedRule,
@@ -36,6 +35,9 @@ export const pickierPlugin: PickierPlugin = {
     'import-no-unresolved': noUnresolvedRule,
     'no-import-dist': noImportDistRule,
     'no-import-node-modules-by-path': noImportNodeModulesByPathRule,
+    'no-duplicate-imports': noDuplicateImportsRule,
+
+    // Style rules
     'top-level-function': topLevelFunctionRule,
   },
 }

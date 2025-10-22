@@ -1,34 +1,6 @@
 import type { PickierPlugin } from '../types'
 
-// Import Possible Problems rules (from general/)
-import { arrayCallbackReturnRule } from '../rules/general/array-callback-return'
-import { constructorSuperRule } from '../rules/general/constructor-super'
-import { forDirectionRule } from '../rules/general/for-direction'
-import { getterReturnRule } from '../rules/general/getter-return'
-import { noAsyncPromiseExecutorRule } from '../rules/general/no-async-promise-executor'
-import { noCompareNegZeroRule } from '../rules/general/no-compare-neg-zero'
-import { noCondAssignRule } from '../rules/general/no-cond-assign'
-import { noConstAssignRule } from '../rules/general/no-const-assign'
-import { noConstantConditionRule } from '../rules/general/no-constant-condition'
-import { noDupeClassMembersRule } from '../rules/general/no-dupe-class-members'
-import { noDupeKeysRule } from '../rules/general/no-dupe-keys'
-import { noDuplicateCaseRule } from '../rules/general/no-duplicate-case'
-import { noEmptyPatternRule } from '../rules/general/no-empty-pattern'
-import { noFallthroughRule } from '../rules/general/no-fallthrough'
-import { noLossOfPrecisionRule } from '../rules/general/no-loss-of-precision'
-import { noPromiseExecutorReturnRule } from '../rules/general/no-promise-executor-return'
-import { noRedeclareRule } from '../rules/general/no-redeclare'
-import { noSelfAssignRule } from '../rules/general/no-self-assign'
-import { noSelfCompareRule } from '../rules/general/no-self-compare'
-import { noSparseArraysRule } from '../rules/general/no-sparse-arrays'
-import { noUndefRule } from '../rules/general/no-undef'
-import { noUnsafeNegationRule } from '../rules/general/no-unsafe-negation'
-import { noUnreachableRule } from '../rules/general/no-unreachable'
-import { noUselessCatchRule } from '../rules/general/no-useless-catch'
-import { useIsNaNRule } from '../rules/general/use-isnan'
-import { validTypeofRule } from '../rules/general/valid-typeof'
-
-// Import Best Practices & Code Quality rules (from quality/)
+// Import Best Practices rules
 import { complexityRule } from '../rules/quality/complexity'
 import { defaultCaseRule } from '../rules/quality/default-case'
 import { eqeqeqRule } from '../rules/quality/eqeqeq'
@@ -69,37 +41,9 @@ import { noWithRule } from '../rules/quality/no-with'
 import { preferArrowCallbackRule } from '../rules/quality/prefer-arrow-callback'
 import { requireAwaitRule } from '../rules/quality/require-await'
 
-export const eslintPlugin: PickierPlugin = {
-  name: 'eslint',
+export const qualityPlugin: PickierPlugin = {
+  name: 'quality',
   rules: {
-    // Possible Problems (Error Detection)
-    'array-callback-return': arrayCallbackReturnRule,
-    'constructor-super': constructorSuperRule,
-    'for-direction': forDirectionRule,
-    'getter-return': getterReturnRule,
-    'no-async-promise-executor': noAsyncPromiseExecutorRule,
-    'no-compare-neg-zero': noCompareNegZeroRule,
-    'no-cond-assign': noCondAssignRule,
-    'no-constant-condition': noConstantConditionRule,
-    'no-const-assign': noConstAssignRule,
-    'no-dupe-class-members': noDupeClassMembersRule,
-    'no-dupe-keys': noDupeKeysRule,
-    'no-duplicate-case': noDuplicateCaseRule,
-    'no-empty-pattern': noEmptyPatternRule,
-    'no-fallthrough': noFallthroughRule,
-    'no-loss-of-precision': noLossOfPrecisionRule,
-    'no-promise-executor-return': noPromiseExecutorReturnRule,
-    'no-redeclare': noRedeclareRule,
-    'no-self-assign': noSelfAssignRule,
-    'no-self-compare': noSelfCompareRule,
-    'no-sparse-arrays': noSparseArraysRule,
-    'no-undef': noUndefRule,
-    'no-unsafe-negation': noUnsafeNegationRule,
-    'no-unreachable': noUnreachableRule,
-    'no-useless-catch': noUselessCatchRule,
-    'use-isnan': useIsNaNRule,
-    'valid-typeof': validTypeofRule,
-
     // Best Practices
     'default-case': defaultCaseRule,
     'eqeqeq': eqeqeqRule,
