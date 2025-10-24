@@ -233,5 +233,4 @@ group('Rules - Caching (10x same file)', () => {
 await run({
   format: 'mitata',
   colors: true,
-  json: false,
 })

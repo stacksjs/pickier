@@ -13,7 +13,7 @@ describe('pickier/prefer-template', () => {
     const dir = tmp()
     const file = 'a.ts'
     const src = [
-      'const greeting = "Hello " + name',
+      'const greeting = \'Hello \' + name',
       '',
     ].join('\n')
     writeFileSync(join(dir, file), src, 'utf8')
@@ -25,7 +25,7 @@ describe('pickier/prefer-template', () => {
       lint: { extensions: ['ts'], reporter: 'json', cache: false, maxWarnings: -1 },
       format: { extensions: ['ts'], trimTrailingWhitespace: true, maxConsecutiveBlankLines: 1, finalNewline: 'one', indent: 2, quotes: 'single', semi: false },
       rules: { noDebugger: 'off', noConsole: 'off' },
-      pluginRules: { 'pickier/prefer-template': 'error', 'pickier/no-unused-vars': 'off' },
+      pluginRules: { 'general/prefer-template': 'error', 'pickier/no-unused-vars': 'off', 'style/max-statements-per-line': 'off' },
     }, null, 2), 'utf8')
 
     const code = await runLint([dir], { config: cfgPath, reporter: 'json' })
@@ -36,7 +36,7 @@ describe('pickier/prefer-template', () => {
     const dir = tmp()
     const file = 'b.ts'
     const src = [
-      'const message = prefix + " world"',
+      'const message = prefix + \' world\'',
       '',
     ].join('\n')
     writeFileSync(join(dir, file), src, 'utf8')
@@ -48,7 +48,7 @@ describe('pickier/prefer-template', () => {
       lint: { extensions: ['ts'], reporter: 'json', cache: false, maxWarnings: -1 },
       format: { extensions: ['ts'], trimTrailingWhitespace: true, maxConsecutiveBlankLines: 1, finalNewline: 'one', indent: 2, quotes: 'single', semi: false },
       rules: { noDebugger: 'off', noConsole: 'off' },
-      pluginRules: { 'pickier/prefer-template': 'error', 'pickier/no-unused-vars': 'off' },
+      pluginRules: { 'general/prefer-template': 'error', 'pickier/no-unused-vars': 'off', 'style/max-statements-per-line': 'off' },
     }, null, 2), 'utf8')
 
     const code = await runLint([dir], { config: cfgPath, reporter: 'json' })
@@ -71,7 +71,7 @@ describe('pickier/prefer-template', () => {
       lint: { extensions: ['ts'], reporter: 'json', cache: false, maxWarnings: -1 },
       format: { extensions: ['ts'], trimTrailingWhitespace: true, maxConsecutiveBlankLines: 1, finalNewline: 'one', indent: 2, quotes: 'single', semi: false },
       rules: { noDebugger: 'off', noConsole: 'off' },
-      pluginRules: { 'pickier/prefer-template': 'error', 'pickier/no-unused-vars': 'off' },
+      pluginRules: { 'general/prefer-template': 'error', 'pickier/no-unused-vars': 'off', 'style/max-statements-per-line': 'off' },
     }, null, 2), 'utf8')
 
     const code = await runLint([dir], { config: cfgPath, reporter: 'json' })
@@ -94,7 +94,7 @@ describe('pickier/prefer-template', () => {
       lint: { extensions: ['ts'], reporter: 'json', cache: false, maxWarnings: -1 },
       format: { extensions: ['ts'], trimTrailingWhitespace: true, maxConsecutiveBlankLines: 1, finalNewline: 'one', indent: 2, quotes: 'single', semi: false },
       rules: { noDebugger: 'off', noConsole: 'off' },
-      pluginRules: { 'pickier/prefer-template': 'error', 'pickier/no-unused-vars': 'off' },
+      pluginRules: { 'general/prefer-template': 'error', 'pickier/no-unused-vars': 'off', 'style/max-statements-per-line': 'off' },
     }, null, 2), 'utf8')
 
     const code = await runLint([dir], { config: cfgPath, reporter: 'json' })

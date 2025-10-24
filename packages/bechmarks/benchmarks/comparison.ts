@@ -140,7 +140,6 @@ group('✨ Small File Formatting (~50 lines)', () => {
   bench('Pickier', async () => {
     const pickier = await import('pickier')
     if ('runFormat' in pickier) {
-      // @ts-expect-error - internal API
       await pickier.runFormat([fixtures.small], { write: false })
     }
   })
@@ -159,7 +158,6 @@ group('✨ Medium File Formatting (~500 lines)', () => {
   bench('Pickier', async () => {
     const pickier = await import('pickier')
     if ('runFormat' in pickier) {
-      // @ts-expect-error - internal API
       await pickier.runFormat([fixtures.medium], { write: false })
     }
   })
@@ -178,7 +176,6 @@ group('✨ Large File Formatting (~2000 lines)', () => {
   bench('Pickier', async () => {
     const pickier = await import('pickier')
     if ('runFormat' in pickier) {
-      // @ts-expect-error - internal API
       await pickier.runFormat([fixtures.large], { write: false })
     }
   })
@@ -202,7 +199,6 @@ group('🔄 Small File: Lint + Format (~50 lines)', () => {
     await runLintProgrammatic([fixtures.small], { reporter: 'json' })
     const pickier = await import('pickier')
     if ('runFormat' in pickier) {
-      // @ts-expect-error - internal API
       await pickier.runFormat([fixtures.small], { write: false })
     }
   })
@@ -237,7 +233,6 @@ group('🔄 Medium File: Lint + Format (~500 lines)', () => {
     await runLintProgrammatic([fixtures.medium], { reporter: 'json' })
     const pickier = await import('pickier')
     if ('runFormat' in pickier) {
-      // @ts-expect-error - internal API
       await pickier.runFormat([fixtures.medium], { write: false })
     }
   })
@@ -272,7 +267,6 @@ group('🔄 Large File: Lint + Format (~2000 lines)', () => {
     await runLintProgrammatic([fixtures.large], { reporter: 'json' })
     const pickier = await import('pickier')
     if ('runFormat' in pickier) {
-      // @ts-expect-error - internal API
       await pickier.runFormat([fixtures.large], { write: false })
     }
   })
@@ -360,7 +354,6 @@ group('📈 Batch Processing: All Files', () => {
 await run({
   format: 'mitata',
   colors: true,
-  json: false,
 })
 
 console.log(`\n${'='.repeat(100)}`)

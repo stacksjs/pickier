@@ -109,14 +109,19 @@ Sometimes you need to break a rule temporarily. Use disable comments to suppress
 
 ### Plugin Architecture
 
-Pickier's rules are organized into plugins:
-- **Core** - Built-in rules always available (quotes, indent, etc.)
-- **Pickier** - General code quality rules (no-unused-vars, prefer-const, etc.)
-- **Sort** - Organize imports, objects, and other structures
-- **RegExp** - Catch problematic regular expressions
-- **Markdown** - Format markdown files consistently
+Pickier's rules are organized into plugins for better organization and discoverability:
 
-Each plugin can be configured independently, giving you fine-grained control.
+- **Core** - Built-in rules always available (quotes, indent, debugger, console)
+- **ESLint** (`eslint/`) - Legacy compatibility layer for ESLint rule names
+- **General** (`general/`) - Error detection and possible problems (no-undef, no-const-assign, array-callback-return, etc.)
+- **Quality** (`quality/`) - Best practices and code quality (eqeqeq, no-eval, no-var, prefer-arrow-callback, etc.)
+- **Pickier** (`pickier/`) - Sorting and import organization (sort-imports, sort-objects, import-dedupe, etc.)
+- **Style** (`style/`) - Code style enforcement (brace-style, curly, max-statements-per-line, etc.)
+- **TypeScript** (`ts/`) - TypeScript-specific rules (no-explicit-any, prefer-optional-chain, no-floating-promises, etc.)
+- **RegExp** (`regexp/`) - Regular expression safety (no-super-linear-backtracking, no-unused-capturing-group, etc.)
+- **Markdown** (`markdown/`) - Markdown documentation linting with 53+ rules
+
+Each plugin can be configured independently through the `pluginRules` configuration, giving you fine-grained control over your linting experience.
 
 ## Best Practices
 

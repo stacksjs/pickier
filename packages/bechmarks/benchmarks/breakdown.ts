@@ -114,7 +114,6 @@ group('🔬 Small File Performance Deep Dive', () => {
   bench('Pickier: Format only', async () => {
     const pickier = await import('pickier')
     if ('runFormat' in pickier) {
-      // @ts-expect-error - internal API
       await pickier.runFormat([fixtures.small], { write: false })
     }
   })
@@ -123,7 +122,6 @@ group('🔬 Small File Performance Deep Dive', () => {
     await runLintProgrammatic([fixtures.small], { reporter: 'json' })
     const pickier = await import('pickier')
     if ('runFormat' in pickier) {
-      // @ts-expect-error - internal API
       await pickier.runFormat([fixtures.small], { write: false })
     }
   })
@@ -175,7 +173,6 @@ group('🔬 Medium File Performance Deep Dive', () => {
   bench('Pickier: Format only', async () => {
     const pickier = await import('pickier')
     if ('runFormat' in pickier) {
-      // @ts-expect-error - internal API
       await pickier.runFormat([fixtures.medium], { write: false })
     }
   })
@@ -184,7 +181,6 @@ group('🔬 Medium File Performance Deep Dive', () => {
     await runLintProgrammatic([fixtures.medium], { reporter: 'json' })
     const pickier = await import('pickier')
     if ('runFormat' in pickier) {
-      // @ts-expect-error - internal API
       await pickier.runFormat([fixtures.medium], { write: false })
     }
   })
@@ -236,7 +232,6 @@ group('🔬 Large File Performance Deep Dive', () => {
   bench('Pickier: Format only', async () => {
     const pickier = await import('pickier')
     if ('runFormat' in pickier) {
-      // @ts-expect-error - internal API
       await pickier.runFormat([fixtures.large], { write: false })
     }
   })
@@ -245,7 +240,6 @@ group('🔬 Large File Performance Deep Dive', () => {
     await runLintProgrammatic([fixtures.large], { reporter: 'json' })
     const pickier = await import('pickier')
     if ('runFormat' in pickier) {
-      // @ts-expect-error - internal API
       await pickier.runFormat([fixtures.large], { write: false })
     }
   })
@@ -306,7 +300,6 @@ group('📊 Scaling Analysis: Performance vs Size', () => {
 await run({
   format: 'mitata',
   colors: true,
-  json: false,
 })
 
 console.log(`\n${'='.repeat(120)}`)

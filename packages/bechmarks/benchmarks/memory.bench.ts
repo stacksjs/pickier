@@ -150,5 +150,4 @@ group('Memory - Cache Efficiency', () => {
 await run({
   format: 'mitata',
   colors: true,
-  json: false,
 })
