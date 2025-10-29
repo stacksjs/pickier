@@ -75,6 +75,6 @@
     "tinyglobby": "^0.2.14"
   },
   "devDependencies": {
-    "bunfig": "^0.15.1"
+    "bunfig": "^0.15.2"
   }
 }
