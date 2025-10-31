@@ -60,7 +60,6 @@ async function runPickierFormat(filePath: string) {
     // Import the runFormat function from pickier
     const pickier = await import('pickier')
     if ('runFormat' in pickier) {
-      // @ts-expect-error - internal API
       await pickier.runFormat([filePath], { write: false })
     }
     return true
@@ -142,7 +141,6 @@ group('Formatting - Cold Start', () => {
   bench('pickier (cold)', async () => {
     const pickier = await import('pickier')
     if ('runFormat' in pickier) {
-      // @ts-expect-error - internal API
       await pickier.runFormat([fixtures.medium], { write: false })
     }
   })
@@ -172,5 +170,4 @@ group('Formatting - String Operations', () => {
 await run({
   format: 'mitata',
   colors: true,
-  json: false,
 })

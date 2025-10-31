@@ -1,16 +1,18 @@
 # Rules Reference
 
-Pickier includes a comprehensive set of linting rules organized into categories. All rules support both `// eslint-disable-next-line` and `// pickier-disable-next-line` directives.
+Pickier includes a comprehensive set of linting rules organized into plugins. All rules support both `// eslint-disable-next-line` and `// pickier-disable-next-line` directives for compatibility.
 
 ## Table of Contents
 
-- [Core Rules](#core-rules)
-- [General Rules](#general-rules)
-- [Sort Rules](#sort-rules)
-- [Style Rules](#style-rules)
-- [TypeScript Rules](#typescript-rules)
-- [Regular Expression Rules](#regexp-rules)
-- [Markdown Rules](#markdown-rules)
+- [Core Rules](#core-rules) - Built-in rules always available
+- [ESLint Plugin](#eslint-plugin) - Legacy compatibility layer
+- [General Plugin](#general-plugin) - Error detection and possible problems
+- [Quality Plugin](#quality-plugin) - Best practices and code quality
+- [Pickier Plugin](#pickier-plugin) - Sorting and import organization
+- [Style Plugin](#style-plugin) - Code style enforcement
+- [TypeScript Plugin](#typescript-plugin) - TypeScript-specific rules
+- [RegExp Plugin](#regexp-plugin) - Regular expression safety
+- [Markdown Plugin](#markdown-plugin) - Markdown documentation linting
 
 ## Quick Reference
 
@@ -161,163 +163,214 @@ if ((user = getUser())) {
 
 [Full documentation →](./no-cond-assign.md)
 
-## General Rules
+## ESLint Plugin
 
-General rules from the `pickier` plugin for code quality.
+The `eslint/` plugin provides a legacy compatibility layer for ESLint rule names. These rules are duplicates of the `general/` and `quality/` plugins, allowing for a smooth migration from ESLint.
 
-### pickier/no-unused-vars
-- **Default:** `error`
-- **Auto-fix:** ❌
-- **Help:** Either use this variable in your code, remove it, or prefix it with an underscore (_name) to mark it as intentionally unused
+**Note:** It's recommended to use the `general/` or `quality/` prefixes for new configurations, as the `eslint/` prefix is maintained only for backward compatibility.
 
-Disallows unused variables, parameters, and imports.
+[See General Plugin](#general-plugin) and [Quality Plugin](#quality-plugin) for the actual rule implementations.
 
-```ts
-// ❌ Bad
-const unused = 'value'
-function test(unusedParam: string) {
-  return 42
-}
+## General Plugin
 
-// ✅ Good
-const _unused = 'value'  // Prefixed with _ to mark as intentional
-function test(_unusedParam: string) {  // Prefixed with _
-  return 42
-}
-```
+The `general/` plugin contains error detection and possible problems rules. These rules catch common programming errors and potential bugs.
 
-[Full documentation →](./no-unused-vars.md)
+### Available Rules
 
-### pickier/prefer-const
-- **Default:** `error`
-- **Auto-fix:** ✅
-- **Help:** Change 'let name' to 'const name' since the variable is never reassigned
+All rules in this plugin can be referenced with either `general/rule-name` or `eslint/rule-name` (for compatibility).
 
-Requires const declarations for variables that are never reassigned.
+**Error Detection:**
+- `array-callback-return` - Enforce return statements in array callbacks
+- `constructor-super` - Require super() calls in constructors
+- `for-direction` - Enforce "for" loop update clause moving counter in the right direction
+- `getter-return` - Enforce return statements in getters
+- `no-async-promise-executor` - Disallow async promise executor
+- `no-compare-neg-zero` - Disallow comparing against -0
+- `no-cond-assign` - Disallow assignment in conditional expressions
+- `no-const-assign` - Disallow reassigning const variables
+- `no-constant-condition` - Disallow constant expressions in conditions
+- `no-constructor-return` - Disallow returning value from constructor
+- `no-dupe-class-members` - Disallow duplicate class members
+- `no-dupe-keys` - Disallow duplicate keys in object literals
+- `no-duplicate-case` - Disallow duplicate case labels
+- `no-empty-pattern` - Disallow empty destructuring patterns
+- `no-fallthrough` - Disallow fallthrough of case statements
+- `no-irregular-whitespace` - Disallow irregular whitespace
+- `no-loss-of-precision` - Disallow number literals that lose precision
+- `no-promise-executor-return` - Disallow returning values from Promise executor
+- `no-redeclare` - Disallow variable redeclaration
+- `no-self-assign` - Disallow assignments where both sides are exactly the same
+- `no-self-compare` - Disallow comparisons where both sides are exactly the same
+- `no-sparse-arrays` - Disallow sparse arrays
+- `no-undef` - Disallow undeclared variables
+- `no-unsafe-negation` - Disallow negating the left operand of relational operators
+- `no-unreachable` - Disallow unreachable code after return, throw, continue, and break
+- `no-unused-vars` - Disallow unused variables
+- `no-useless-catch` - Disallow unnecessary catch clauses
+- `prefer-const` - Require const declarations for variables that are never reassigned
+- `prefer-object-spread` - Prefer object spread over Object.assign
+- `prefer-template` - Require template literals instead of string concatenation
+- `use-isnan` - Require calls to isNaN() when checking for NaN
+- `valid-typeof` - Enforce comparing typeof expressions against valid strings
 
-```ts
-// ❌ Bad
-let x = 10
-let name = 'John'
-return x + name.length
+## Quality Plugin
 
-// ✅ Good (auto-fixed)
-const x = 10
-const name = 'John'
-return x + name.length
-```
+The `quality/` plugin contains best practices and code quality rules. These rules enforce coding standards and prevent common antipatterns.
 
-[Full documentation →](./prefer-const.md)
+### Available Rules
 
-### pickier/prefer-template
-- **Default:** `warn`
-- **Auto-fix:** ✅
-- **Help:** Use template literals (backticks) instead of string concatenation
+All rules in this plugin can be referenced with either `quality/rule-name` or `eslint/rule-name` (for compatibility).
 
-Requires template literals instead of string concatenation.
+**Best Practices:**
+- `default-case` - Require default cases in switch statements
+- `eqeqeq` - Require === and !==
+- `no-alert` - Disallow the use of alert, confirm, and prompt
+- `no-await-in-loop` - Disallow await inside of loops
+- `no-caller` - Disallow use of caller/callee
+- `no-case-declarations` - Disallow lexical declarations in case clauses
+- `no-else-return` - Disallow else blocks after return statements
+- `no-empty` - Disallow empty block statements
+- `no-empty-function` - Disallow empty functions
+- `no-eval` - Disallow eval()
+- `no-extend-native` - Disallow extending native types
+- `no-global-assign` - Disallow assignment to native objects
+- `no-implied-eval` - Disallow implied eval()
+- `no-iterator` - Disallow __iterator__ property
+- `no-new` - Disallow new operators outside of assignments
+- `no-new-func` - Disallow new operators with Function object
+- `no-new-wrappers` - Disallow new operators with String, Number, and Boolean
+- `no-octal` - Disallow octal literals
+- `no-param-reassign` - Disallow reassignment of function parameters
+- `no-proto` - Disallow __proto__ property
+- `no-return-assign` - Disallow assignment in return statement
+- `no-shadow` - Disallow variable declarations from shadowing outer scope
+- `no-throw-literal` - Disallow throwing literals as exceptions
+- `no-use-before-define` - Disallow use of variables before they are defined
+- `no-useless-call` - Disallow unnecessary .call() and .apply()
+- `no-with` - Disallow with statements
+- `require-await` - Disallow async functions which have no await expression
 
-```ts
-// ❌ Bad
-const greeting = 'Hello ' + name + '!'
-const url = baseUrl + '/' + path
+**Code Quality & Complexity:**
+- `complexity` - Enforce a maximum cyclomatic complexity
+- `max-depth` - Enforce a maximum depth that blocks can be nested
+- `max-lines-per-function` - Enforce a maximum number of lines per function
+- `no-extra-boolean-cast` - Disallow unnecessary boolean casts
+- `no-lonely-if` - Disallow if statements as the only statement in else blocks
+- `no-sequences` - Disallow comma operators
+- `no-useless-concat` - Disallow unnecessary concatenation of strings
+- `no-useless-escape` - Disallow unnecessary escape characters
+- `no-useless-rename` - Disallow renaming import, export, and destructured assignments
+- `no-useless-return` - Disallow redundant return statements
+- `no-var` - Require let or const instead of var
+- `prefer-arrow-callback` - Require arrow functions as callbacks
 
-// ✅ Good (auto-fixed)
-const greeting = `Hello ${name}!`
-const url = `${baseUrl}/${path}`
-```
+## Pickier Plugin
 
-[Full documentation →](./prefer-template.md)
+The `pickier/` plugin contains sorting and import organization rules specific to Pickier.
 
-## Sort Rules
+### Available Rules
 
-Sort rules help maintain consistent ordering in your code. All are disabled by default.
+**Sort Rules:**
+- `sort-exports` - Enforce sorted export declarations
+- `sort-objects` - Enforce sorted object properties
+- `sort-imports` - Enforce sorted import declarations
+- `sort-named-imports` - Enforce sorted named imports
+- `sort-heritage-clauses` - Enforce sorted heritage clauses (extends/implements)
+- `sort-keys` - Enforce sorted object keys
 
-### pickier/sort-imports
-- **Default:** `off`
-- **Auto-fix:** ✅
+**Import Rules:**
+- `import-dedupe` - Remove duplicate imports
+- `import-first` - Ensure imports come first
+- `import-named` - Ensure named imports exist in the module
+- `import-no-cycle` - Prevent import cycles
+- `import-no-unresolved` - Ensure imports point to valid files
+- `no-import-dist` - Disallow importing from dist folders
+- `no-import-node-modules-by-path` - Disallow importing node_modules by path
+- `no-duplicate-imports` - Disallow duplicate imports
 
-Enforces sorted import declarations.
+**Style Rules:**
+- `top-level-function` - Enforce top-level function declarations
 
-```ts
-// ❌ Bad
-import { z } from 'zod'
-import { readFile } from 'fs'
-import React from 'react'
+## Style Plugin
 
-// ✅ Good (auto-fixed)
-import { readFile } from 'fs'
-import React from 'react'
-import { z } from 'zod'
-```
+The `style/` plugin enforces code style and formatting conventions.
 
-[Full documentation →](./pickier-sort-imports.md)
+### Available Rules
 
-### pickier/sort-named-imports
-- **Default:** `off`
-- **Auto-fix:** ✅
+- `brace-style` - Enforce consistent brace style
+- `curly` - Enforce consistent use of curly braces
+- `max-statements-per-line` - Enforce maximum number of statements per line
+- `if-newline` - Enforce newlines in if statements
+- `consistent-chaining` - Enforce consistent newlines in method chains
+- `consistent-list-newline` - Enforce consistent newlines in array/object literals
+- `indent-unindent` - Enforce consistent indentation levels
 
-Enforces alphabetically sorted named imports.
+## TypeScript Plugin
 
-```ts
-// ❌ Bad
-import { useState, useEffect, useCallback } from 'react'
+The `ts/` plugin contains TypeScript-specific linting rules.
 
-// ✅ Good (auto-fixed)
-import { useCallback, useEffect, useState } from 'react'
-```
+### Available Rules
 
-[Full documentation →](./pickier-sort-named-imports.md)
+- `no-require-imports` - Disallow require() imports
+- `no-top-level-await` - Disallow top-level await
+- `no-ts-export-equal` - Disallow TypeScript export = syntax
+- `no-explicit-any` - Disallow explicit any types
+- `prefer-nullish-coalescing` - Prefer nullish coalescing operator (??)
+- `prefer-optional-chain` - Prefer optional chaining (?.)
+- `no-floating-promises` - Require promises to be awaited or returned
+- `no-misused-promises` - Disallow misused promises
+- `no-unsafe-assignment` - Disallow unsafe assignments
 
-### Other Sort Rules
-- `pickier/sort-exports` - Sort export statements
-- `pickier/sort-objects` - Sort object properties
-- `pickier/sort-keys` - Sort object keys
-- `pickier/sort-classes` - Sort class members
-- `pickier/sort-enums` - Sort enum members
-- `pickier/sort-heritage-clauses` - Sort extends/implements clauses
+## RegExp Plugin
 
-## Regular Expression Rules
+The `regexp/` plugin provides regular expression safety and optimization rules.
 
-Rules for safer and more efficient regular expressions.
+### Available Rules
 
-### regexp/no-super-linear-backtracking
-- **Default:** `error`
-- **Auto-fix:** ❌
+- `no-super-linear-backtracking` - Disallow exponential backtracking (ReDoS prevention)
+- `no-unused-capturing-group` - Disallow unused capturing groups
+- `no-useless-lazy` - Disallow useless lazy quantifiers
 
-Prevents exponential backtracking that can cause ReDoS vulnerabilities.
+## Markdown Plugin
 
-```ts
-// ❌ Bad - can cause catastrophic backtracking
-const regex = /(a+)+b/
+The `markdown/` plugin provides 53+ rules for markdown linting and formatting. See [Markdown Rules Documentation](./markdown.md) for full details.
 
-// ✅ Good
-const regex = /a+b/
-```
+### Rule Categories
 
-[Full documentation →](./regexp-no-super-linear-backtracking.md)
+**Heading Rules (11 rules):**
+- `heading-increment`, `heading-style`, `no-missing-space-atx`, `no-multiple-space-atx`
+- `no-missing-space-closed-atx`, `no-multiple-space-closed-atx`
+- `blanks-around-headings`, `heading-start-left`, `no-duplicate-heading`
+- `single-title`, `no-trailing-punctuation`
 
-### regexp/no-unused-capturing-group
-- **Default:** `warn`
-- **Auto-fix:** ❌
+**List Rules (6 rules):**
+- `ul-style`, `list-indent`, `ul-indent`, `ol-prefix`
+- `list-marker-space`, `blanks-around-lists`
 
-Warns about capturing groups that aren't used.
+**Whitespace Rules (9 rules):**
+- `no-trailing-spaces`, `no-hard-tabs`, `no-multiple-blanks`
+- `no-multiple-space-blockquote`, `no-blanks-blockquote`
+- `blanks-around-fences`, `single-trailing-newline`, `blanks-around-tables`
 
-```ts
-// ❌ Bad - capturing group not used
-const regex = /test-(\\d+)/
-const match = text.match(regex)
+**Link Rules (9 rules):**
+- `no-reversed-links`, `no-bare-urls`, `no-space-in-links`
+- `no-empty-links`, `link-fragments`, `reference-links-images`
+- `link-image-reference-definitions`, `link-image-style`, `descriptive-link-text`
 
-// ✅ Good - use non-capturing group
-const regex = /test-(?:\\d+)/
-// Or use the captured value
-const [, id] = text.match(/test-(\\d+)/)
-```
+**Code Rules (5 rules):**
+- `line-length`, `commands-show-output`, `fenced-code-language`
+- `code-block-style`, `code-fence-style`
 
-[Full documentation →](./regexp-no-unused-capturing-group.md)
+**Emphasis/Strong Rules (5 rules):**
+- `no-emphasis-as-heading`, `no-space-in-emphasis`, `no-space-in-code`
+- `emphasis-style`, `strong-style`
 
-## Markdown Rules
+**Other Rules (8 rules):**
+- `no-inline-html`, `hr-style`, `first-line-heading`
+- `required-headings`, `proper-names`, `no-alt-text`
+- `table-pipe-style`, `table-column-count`, `table-column-style`
 
-Rules for consistent markdown formatting. See [markdown rules documentation](./markdown.md).
+---
 
 ## Disabling Rules
 

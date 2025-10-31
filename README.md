@@ -153,12 +153,19 @@ export default config
 
 ### Plugin system (rules)
 
-Pickier supports an ESLint-style plugin system for lint rules. You can load plugins, configure their rules per severity, and mark experimental rules as WIP to surface errors early.
+Pickier supports an ESLint-style plugin system for lint rules organized into focused categories:
 
-Concepts:
-- Plugin: `{ name: string, rules: Record<string, RuleModule> }`
-- RuleModule: `{ meta?: { docs?: string; recommended?: boolean; wip?: boolean }, check(content, context) => LintIssue[] }`
-- Configure rules via `pluginRules: { 'pluginName/ruleId': 'off' | 'warn' | 'error' | ['warn', options] }`
+**Available Plugins:**
+- `eslint/` - Legacy compatibility layer for ESLint rule names
+- `general/` - Error detection and possible problems (35+ rules)
+- `quality/` - Best practices and code quality (40+ rules)
+- `pickier/` - Sorting and import organization (17 rules)
+- `style/` - Code style enforcement (7 rules)
+- `ts/` - TypeScript-specific rules (9 rules)
+- `regexp/` - Regular expression safety (3 rules)
+- `markdown/` - Markdown documentation linting (53+ rules)
+
+Configure rules via `pluginRules: { 'pluginName/ruleId': 'off' | 'warn' | 'error' | ['warn', options] }`
 
 Define a plugin (example):
 
