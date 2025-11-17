@@ -1,6 +1,6 @@
 {
   "publisher": "pickier",
-  "name": "@pickier/vscode",
+  "name": "pickier-vscode",
   "displayName": "Pickier",
   "type": "module",
   "version": "0.1.7",
@@ -27,10 +27,9 @@
     "Formatters",
     "Linters"
   ],
-  "main": "./dist/index.js",
-  "icon": "images/logo.png",
+  "main": "./dist/extension.js",
   "engines": {
-    "vscode": "^1.74.0"
+    "vscode": "^1.103.0"
   },
   "activationEvents": [
     "onLanguage:typescript",
@@ -63,6 +62,36 @@
         "command": "pickier.lintWorkspace",
         "title": "Lint Workspace",
         "category": "Pickier"
+      },
+      {
+        "command": "pickier.organizeImports",
+        "title": "Organize Imports",
+        "category": "Pickier"
+      },
+      {
+        "command": "pickier.fixAll",
+        "title": "Fix All Auto-fixable Issues",
+        "category": "Pickier"
+      },
+      {
+        "command": "pickier.showOutputChannel",
+        "title": "Show Output Channel",
+        "category": "Pickier"
+      },
+      {
+        "command": "pickier.restartExtension",
+        "title": "Restart Extension",
+        "category": "Pickier"
+      },
+      {
+        "command": "pickier.showRuleDocumentation",
+        "title": "Show Rule Documentation",
+        "category": "Pickier"
+      },
+      {
+        "command": "pickier.disableRule",
+        "title": "Disable Rule",
+        "category": "Pickier"
       }
     ],
     "configuration": {
@@ -89,10 +118,40 @@
           "default": true,
           "description": "Lint files on save"
         },
+        "pickier.lintOnChange": {
+          "type": "boolean",
+          "default": true,
+          "description": "Lint files as you type (with 500ms debounce)"
+        },
+        "pickier.formatOnPaste": {
+          "type": "boolean",
+          "default": false,
+          "description": "Format pasted code automatically"
+        },
         "pickier.showOutputChannel": {
           "type": "boolean",
           "default": false,
           "description": "Show Pickier output channel"
+        },
+        "pickier.codeActions.enable": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable code actions (quick fixes) for auto-fixable issues"
+        },
+        "pickier.statusBar.showIssueCount": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show issue count in status bar"
+        },
+        "pickier.codeLens.enable": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show CodeLens annotations at the top of files with quick actions and issue counts"
+        },
+        "pickier.documentation.baseUrl": {
+          "type": "string",
+          "default": "https://pickier.netlify.app",
+          "description": "Base URL for rule documentation (used in 'View Rule Documentation' action)"
         }
       }
     },
@@ -157,8 +216,8 @@
     "pretest": "bun run compile && bun run lint",
     "lint": "eslint src --ext ts",
     "test": "bun test",
-    "package": "vsce package",
-    "publish": "vsce publish"
+    "package": "vsce package --no-dependencies",
+    "publish": "vsce publish --no-dependencies"
   },
   "dependencies": {
     "pickier": "workspace:*"

@@ -42,29 +42,90 @@ export const noTopLevelAwaitRule: RuleModule = {
 
       // block comments
       if (inBlock) {
-        if (ch === '*' && next === '/') { inBlock = false; i++; col++ }
+        if (ch === '*' && next === '/') {
+          inBlock = false
+          i++
+          col++
+        }
         continue
       }
 
       // string/template handling
-      if (inSQ) { if (!escape && ch === '\\') { escape = true; continue } if (!escape && ch === '\'') { inSQ = false } escape = false; continue }
-      if (inDQ) { if (!escape && ch === '\\') { escape = true; continue } if (!escape && ch === '"') { inDQ = false } escape = false; continue }
-      if (inTQ) { if (!escape && ch === '\\') { escape = true; continue } if (!escape && ch === '`') { inTQ = false } escape = false; continue }
+      if (inSQ) {
+        if (!escape && ch === '\\') {
+          escape = true
+          continue
+        }
+
+        if (!escape && ch === '\'') {
+          inSQ = false
+          escape = false
+          continue
+        }
+      }
+      if (inDQ) {
+        if (!escape && ch === '\\') {
+          escape = true
+          continue
+        }
+
+        if (!escape && ch === '"') {
+          inDQ = false
+          escape = false
+          continue
+        }
+      }
+      if (inTQ) {
+        if (!escape && ch === '\\') {
+          escape = true
+          continue
+        }
+
+        if (!escape && ch === '`') {
+          inTQ = false
+        }
+
+        escape = false
+        continue
+      }
 
       // comment starts
-      if (ch === '/' && next === '*') { inBlock = true; i++; col++; continue }
-      if (ch === '/' && next === '/') { inLine = true; i++; col++; continue }
+      if (ch === '/' && next === '*') {
+        inBlock = true
+        i++
+        col++
+        continue
+      }
+      if (ch === '/' && next === '/') {
+        inLine = true
+        i++
+        col++
+        continue
+      }
 
       // string starts
-      if (ch === '\'') { inSQ = true; continue }
-      if (ch === '"') { inDQ = true; continue }
-      if (ch === '`') { inTQ = true; continue }
+      if (ch === '\'') {
+        inSQ = true
+        continue
+      }
+      if (ch === '"') {
+        inDQ = true
+        continue
+      }
+      if (ch === '`') {
+        inTQ = true
+        continue
+      }
 
       // brace depth (ignore in strings/comments handled above)
-      if (ch === '{') { depth++; continue }
+      if (ch === '{') {
+        depth++
+        continue
+      }
       if (ch === '}') {
         if (depth > 0)
-          depth--; continue
+          depth--
+        continue
       }
 
       // detect 'await' token

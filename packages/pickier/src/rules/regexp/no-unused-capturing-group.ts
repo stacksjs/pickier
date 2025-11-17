@@ -11,7 +11,7 @@ function findIssues(content: string, ctx: RuleContext): LintIssue[] {
 
   // Match JavaScript regex literals roughly: /.../flags
   // Avoid matching `//` comments by requiring a preceding boundary or start
-  const re = /(^|[^\\\w])/g
+  const _re = /(^|[^\\\w])/g
   let idx = 0
 
   // Scan the file for regex literals by iterating characters and detecting '/'

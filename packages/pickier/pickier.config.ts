@@ -4,7 +4,7 @@
 import type { PickierConfig } from './src/types'
 
 const config: PickierConfig = {
-  verbose: false,
+  verbose: true,
   ignores: ['**/node_modules/**', '**/dist/**', '**/build/**'],
   lint: {
     extensions: ['ts', 'js', 'html', 'css', 'json', 'jsonc', 'md', 'yaml', 'yml', 'stx'],

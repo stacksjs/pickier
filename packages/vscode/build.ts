@@ -1,11 +1,14 @@
 console.log('Building...')
 
 await Bun.build({
-  entrypoints: ['src/index.ts'],
+  entrypoints: ['src/extension.ts'],
   outdir: './dist',
-  splitting: true,
+  splitting: false,
   external: ['vscode'],
   target: 'node',
+  format: 'esm',
 })
 
 console.log('Built successfully!')
+
+export {}

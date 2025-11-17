@@ -21,6 +21,7 @@ export interface LintIssue {
   ruleId: string
   message: string
   severity: 'warning' | 'error'
+  help?: string
 }
 
 export type Extension = 'ts' | 'js' | 'html' | 'css' | 'json' | 'jsonc' | 'md' | 'yaml' | 'yml' | 'stx'
@@ -62,6 +63,8 @@ export interface PickierConfig {
   // Support both bare rule IDs (preferred) and legacy plugin-prefixed IDs
   pluginRules?: RulesConfigMap
 }
+
+export type PickierOptions = Partial<PickierConfig>
 
 // Plugin system types
 export type RulesConfigMap = Record<string, RuleSeverity | [RuleSeverity, unknown]>

@@ -12,7 +12,7 @@ export const noImportDistRule: RuleModule = {
       if (!m)
         continue
       const src = m[1]
-      const isDist = (src === 'dist') || ((src.startsWith('.') || src.startsWith('/')) && /(^|\/)dist(\/.|$)/.test(src))
+      const isDist = (src === 'dist') || ((src.startsWith('.') || src.startsWith('/')) && /(?:^|\/)dist(?:\/.|$)/.test(src))
       if (isDist) {
         issues.push({ filePath: ctx.filePath, line: i + 1, column: Math.max(1, line.indexOf(src) + 1), ruleId: 'pickier/no-import-dist', message: `Do not import modules in \`dist\` folder, got ${src}`, severity: 'error' })
       }

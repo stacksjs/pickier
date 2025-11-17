@@ -44,16 +44,16 @@ See Advanced » Plugin System for options.
 
 ## Inline disables
 
-You can suppress issues for the next line using either ESLint-style or Pickier-style prefixes:
+You can suppress issues for the next line using either Pickier-style or ESLint-style prefixes:
 
 ```ts
-// eslint-disable-next-line no-console, quotes
+// pickier-disable-next-line no-console, quotes
 console.log("x")
 
 // pickier-disable-next-line sort-objects
 const obj = { b: 1, a: 2 }
 
-// eslint-disable-next-line pickier/sort-objects
+// pickier-disable-next-line pickier/sort-objects
 const obj2 = { y: 1, x: 2 }
 
 // pickier-disable-next-line ts/no-require-imports
@@ -64,7 +64,8 @@ Notes:
 
 - When no rule list is provided, all rules for the next line are suppressed.
 - Rule matching accepts both prefixed and bare IDs (e.g., `sort-objects` or `pickier/sort-objects`).
-- Block comment form is also supported on a single line: `/* eslint-disable-next-line no-console */`.
+- Block comment form is also supported: `/* pickier-disable-next-line no-console */`.
+- The `eslint-disable-next-line` prefix also works for compatibility.
 
 ## CLI usage
 

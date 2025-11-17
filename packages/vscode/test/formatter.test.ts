@@ -3,11 +3,16 @@ import { PickierFormattingProvider } from '../src/formatter'
 
 import { createVscodeMock } from './utils/vscode-mock'
 
+// Set up mocks BEFORE importing from source
 mock.module('vscode', () => createVscodeMock())
 
 mock.module('pickier', () => ({
   defaultConfig: { semi: false },
   formatCode: (text: string) => text.toUpperCase(),
+}))
+
+mock.module('bunfig', () => ({
+  loadConfig: async (opts: any) => opts.defaultConfig || {},
 }))
 
 function makeDoc(text: string, fileName = '/workspace/file.ts'): any {
@@ -25,6 +30,9 @@ describe('PickierFormattingProvider', () => {
     mock.module('pickier', () => ({
       defaultConfig: { semi: false },
       formatCode: (text: string) => text.toUpperCase(),
+    }))
+    mock.module('bunfig', () => ({
+      loadConfig: async (opts: any) => opts.defaultConfig || {},
     }))
   })
 

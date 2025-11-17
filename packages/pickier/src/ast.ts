@@ -19,7 +19,8 @@ export function buildSourceMap(text: string): SourceMap {
   }
   function indexToLoc(idx: number): Loc {
     // binary search for line
-    let lo = 0; let hi = lineStarts.length - 1
+    let lo = 0
+    let hi = lineStarts.length - 1
     while (lo <= hi) {
       const mid = (lo + hi) >> 1
       const start = lineStarts[mid]
@@ -46,17 +47,22 @@ export function tokenize(text: string): Token[] {
   while (i < n) {
     const c = text[i]
     // whitespace
-    if (c <= ' ') { i++; continue }
+    if (c <= ' ') {
+      i++
+      continue
+    }
     // line comment
     if (c === '/' && text[i + 1] === '/') {
-      const s = i; i += 2
+      const s = i
+      i += 2
       while (i < n && text[i] !== '\n') i++
       push('LineComment', s, i)
       continue
     }
     // block comment
     if (c === '/' && text[i + 1] === '*') {
-      const s = i; i += 2
+      const s = i
+      i += 2
       while (i < n && !(text[i] === '*' && text[i + 1] === '/')) i++
       i = Math.min(n, i + 2)
       push('BlockComment', s, i)
@@ -64,11 +70,19 @@ export function tokenize(text: string): Token[] {
     }
     // string
     if (c === '"' || c === '\'') {
-      const q = c; const s = i; i++
+      const q = c
+      const s = i
+      i++
       while (i < n) {
         const ch = text[i]
-        if (ch === '\\') { i += 2; continue }
-        if (ch === q) { i++; break }
+        if (ch === '\\') {
+          i += 2
+          continue
+        }
+        if (ch === q) {
+          i++
+          break
+        }
         i++
       }
       push('String', s, i)
@@ -76,14 +90,29 @@ export function tokenize(text: string): Token[] {
     }
     // template
     if (c === '`') {
-      const s = i; i++
+      const s = i
+      i++
       let depth = 0
       while (i < n) {
         const ch = text[i]
-        if (ch === '\\') { i += 2; continue }
-        if (ch === '`' && depth === 0) { i++; break }
-        if (ch === '$' && text[i + 1] === '{') { depth++; i += 2; continue }
-        if (ch === '}' && depth > 0) { depth--; i++; continue }
+        if (ch === '\\') {
+          i += 2
+          continue
+        }
+        if (ch === '`' && depth === 0) {
+          i++
+          break
+        }
+        if (ch === '$' && text[i + 1] === '{') {
+          depth++
+          i += 2
+          continue
+        }
+        if (ch === '}' && depth > 0) {
+          depth--
+          i++
+          continue
+        }
         i++
       }
       push('Template', s, i)
@@ -93,24 +122,33 @@ export function tokenize(text: string): Token[] {
     if (c === '/') {
       // handled comments above? we are before comment checks, so do them first
       if (text[i + 1] === '/') {
-        const s = i; i += 2
+        const s = i
+        i += 2
         while (i < n && text[i] !== '\n') i++
         push('LineComment', s, i)
         continue
       }
       if (text[i + 1] === '*') {
-        const s = i; i += 2
+        const s = i
+        i += 2
         while (i < n && !(text[i] === '*' && text[i + 1] === '/')) i++
         i = Math.min(n, i + 2)
         push('BlockComment', s, i)
         continue
       }
       if (isRegexPossible(tokens)) {
-        const s = i; i++
+        const s = i
+        i++
         while (i < n) {
           const ch = text[i]
-          if (ch === '\\') { i += 2; continue }
-          if (ch === '/') { i++; break }
+          if (ch === '\\') {
+            i += 2
+            continue
+          }
+          if (ch === '/') {
+            i++
+            break
+          }
           i++
         }
         // flags
@@ -150,8 +188,8 @@ function isRegexPossible(tokens: Token[]): boolean {
   const t = tokens[tokens.length - 1]
   // after these token types, a regex can appear
   return (
-    t.type === 'Punct' && /[(!,{;:?=]/.test(t.value)
-    || t.type === 'Word' && /^(return|throw|case|of|in|instanceof|typeof|void|new)$/.test(t.value)
+    (t.type === 'Punct' && /[(!,{;:?=]/.test(t.value))
+    || (t.type === 'Word' && /^(?:return|throw|case|of|in|instanceof|typeof|void|new)$/.test(t.value))
   )
 }
 
@@ -177,13 +215,36 @@ export function findMatching(text: string, start: number, open: string, close: s
       let tplDepth = 0
       while (i < n) {
         const ch = text[i]
-        if (ch === '\\') { i += 2; continue }
-        if (ch === '`' && tplDepth === 0) { i++; break }
-        if (ch === '$' && text[i + 1] === '{') { tplDepth++; i += 2; continue }
-        if (ch === '}' && tplDepth > 0) { tplDepth--; i++; continue }
-        if (ch === '"' || ch === '\'') { i = skipString(i, ch as '"' | '\''); continue }
-        if (ch === '/' && text[i + 1] === '/') { i = skipLineComment(i + 2); continue }
-        if (ch === '/' && text[i + 1] === '*') { i = skipBlockComment(i); continue }
+        if (ch === '\\') {
+          i += 2
+          continue
+        }
+        if (ch === '`' && tplDepth === 0) {
+          i++
+          break
+        }
+        if (ch === '$' && text[i + 1] === '{') {
+          tplDepth++
+          i += 2
+          continue
+        }
+        if (ch === '}' && tplDepth > 0) {
+          tplDepth--
+          i++
+          continue
+        }
+        if (ch === '"' || ch === '\'') {
+          i = skipString(i, ch as '"' | '\'')
+          continue
+        }
+        if (ch === '/' && text[i + 1] === '/') {
+          i = skipLineComment(i + 2)
+          continue
+        }
+        if (ch === '/' && text[i + 1] === '*') {
+          i = skipBlockComment(i)
+          continue
+        }
         i++
       }
       return i
@@ -192,8 +253,14 @@ export function findMatching(text: string, start: number, open: string, close: s
     i++
     while (i < n) {
       const ch = text[i]
-      if (ch === '\\') { i += 2; continue }
-      if (ch === quote) { i++; break }
+      if (ch === '\\') {
+        i += 2
+        continue
+      }
+      if (ch === quote) {
+        i++
+        break
+      }
       i++
     }
     return i
@@ -217,8 +284,14 @@ export function findMatching(text: string, start: number, open: string, close: s
     const n = text.length
     while (i < n) {
       const ch = text[i]
-      if (ch === '\\') { i += 2; continue }
-      if (ch === '/') { i++; break }
+      if (ch === '\\') {
+        i += 2
+        continue
+      }
+      if (ch === '/') {
+        i++
+        break
+      }
       i++
     }
     // flags
@@ -239,10 +312,22 @@ export function findMatching(text: string, start: number, open: string, close: s
       continue
     }
     // Skip literals and comments to avoid false brace hits and performance issues
-    if (ch === '"' || ch === '\'' || ch === '`') { i = skipString(i, ch as '"' | '\'' | '`') - 1; continue }
-    if (ch === '/' && text[i + 1] === '/') { i = skipLineComment(i + 2) - 1; continue }
-    if (ch === '/' && text[i + 1] === '*') { i = skipBlockComment(i) - 1; continue }
-    if (ch === '/' && isRegexStart(i)) { i = skipRegex(i) - 1; continue }
+    if (ch === '"' || ch === '\'' || ch === '`') {
+      i = skipString(i, ch as '"' | '\'' | '`') - 1
+      continue
+    }
+    if (ch === '/' && text[i + 1] === '/') {
+      i = skipLineComment(i + 2) - 1
+      continue
+    }
+    if (ch === '/' && text[i + 1] === '*') {
+      i = skipBlockComment(i) - 1
+      continue
+    }
+    if (ch === '/' && isRegexStart(i)) {
+      i = skipRegex(i) - 1
+      continue
+    }
   }
   return -1
 }

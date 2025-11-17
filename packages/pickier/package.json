@@ -55,10 +55,23 @@
     "zip:darwin-x64": "zip -j bin/pickier-darwin-x64.zip bin/pickier-darwin-x64",
     "zip:darwin-arm64": "zip -j bin/pickier-darwin-arm64.zip bin/pickier-darwin-arm64",
     "prepublishOnly": "bun --bun run build && bun run compile:all && bun run zip",
-    "test": "bun test --coverage"
+    "test": "PICKIER_NO_AUTO_CONFIG=1 bun test --coverage",
+    "test:core": "PICKIER_NO_AUTO_CONFIG=1 bun test test/core",
+    "test:format": "PICKIER_NO_AUTO_CONFIG=1 bun test test/format",
+    "test:lint": "PICKIER_NO_AUTO_CONFIG=1 bun test test/lint",
+    "test:rules": "PICKIER_NO_AUTO_CONFIG=1 bun test test/rules",
+    "test:rules:sort": "PICKIER_NO_AUTO_CONFIG=1 bun test test/rules/sort",
+    "test:rules:style": "PICKIER_NO_AUTO_CONFIG=1 bun test test/rules/style",
+    "test:rules:quality": "PICKIER_NO_AUTO_CONFIG=1 bun test test/rules/quality",
+    "test:rules:imports": "PICKIER_NO_AUTO_CONFIG=1 bun test test/rules/imports",
+    "test:rules:typescript": "PICKIER_NO_AUTO_CONFIG=1 bun test test/rules/typescript",
+    "test:rules:regexp": "PICKIER_NO_AUTO_CONFIG=1 bun test test/rules/regexp",
+    "test:plugin": "PICKIER_NO_AUTO_CONFIG=1 bun test test/plugin",
+    "test:watch": "PICKIER_NO_AUTO_CONFIG=1 bun test --watch"
   },
   "dependencies": {
     "@stacksjs/clapp": "^0.1.16",
+    "p-limit": "^7.2.0",
     "tinyglobby": "^0.2.14"
   },
   "devDependencies": {

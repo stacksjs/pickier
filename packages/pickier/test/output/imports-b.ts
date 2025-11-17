@@ -4,4 +4,3 @@ import { Used } from 'pkg'
 
 const x = Used
 export { x }
-

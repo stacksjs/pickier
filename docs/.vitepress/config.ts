@@ -125,6 +125,7 @@ export default withPwa(
               { text: 'pickier', link: '/rules/pickier' },
               { text: 'style', link: '/rules/style' },
               { text: 'regexp', link: '/rules/regexp' },
+              { text: 'markdown', link: '/rules/markdown' },
               { text: 'noDebugger', link: '/rules/no-debugger' },
               { text: 'noConsole', link: '/rules/no-console' },
               { text: 'noCondAssign', link: '/rules/no-cond-assign' },

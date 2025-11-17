@@ -11,6 +11,7 @@ interface LintResult {
     ruleId: string
     message: string
     severity: 'warning' | 'error'
+    help?: string
   }>
 }
 
@@ -54,16 +55,18 @@ export class PickierDiagnosticProvider {
   }
 
   private async lintDocument(document: vscode.TextDocument, token?: vscode.CancellationToken): Promise<vscode.Diagnostic[]> {
+    const documentText = document.getText()
+
     // Prefer programmatic API if available to avoid stdout capture and temp files
     try {
       const mod: any = await import('pickier')
       const cfg = await (async () => mod.defaultConfig as any)()
       if (typeof mod.lintText === 'function') {
         const signal = token ? tokenToAbortSignal(token) : undefined
-        const issues = await mod.lintText(document.getText(), cfg, document.fileName, signal)
+        const issues = await mod.lintText(documentText, cfg, document.fileName, signal)
         if (token?.isCancellationRequested)
           return []
-        return issues.map(convertIssueToDiagnostic)
+        return issues.map(issue => convertIssueToDiagnostic(issue, documentText, document.uri))
       }
     }
     catch (e) {
@@ -73,10 +76,10 @@ export class PickierDiagnosticProvider {
 
     // Fallback: temp file + stdout JSON capture
     const options = { reporter: 'json' as const, maxWarnings: -1 }
-    const lintResult = await runPickierAndParseJson([document.fileName], options, this.outputChannel, token, document.getText())
+    const lintResult = await runPickierAndParseJson([document.fileName], options, this.outputChannel, token, documentText)
     if (token?.isCancellationRequested)
       return []
-    return lintResult.issues.map(convertIssueToDiagnostic)
+    return lintResult.issues.map(issue => convertIssueToDiagnostic(issue, documentText, document.uri))
   }
 }
 
@@ -136,19 +139,88 @@ async function runPickierAndParseJson(
 }
 
 // Helper: convert a single issue to a VS Code diagnostic
-function convertIssueToDiagnostic(issue: LintResult['issues'][number]): vscode.Diagnostic {
+function convertIssueToDiagnostic(issue: LintResult['issues'][number], documentText?: string, documentUri?: vscode.Uri): vscode.Diagnostic {
   const line = Math.max(0, issue.line - 1)
   const column = Math.max(0, issue.column - 1)
-  const range = new vscode.Range(
-    new vscode.Position(line, column),
-    new vscode.Position(line, column + 1),
-  )
+
+  // Try to create a better range that underlines the problematic token/word
+  let range: vscode.Range
+  if (documentText) {
+    const lines = documentText.split(/\r?\n/)
+    if (line < lines.length) {
+      const lineText = lines[line]
+      const startCol = column
+
+      // Find the end of the current word/token for better underlining
+      let endCol = startCol + 1
+
+      // Check if we're at a word character
+      if (startCol < lineText.length && /\w/.test(lineText[startCol])) {
+        // Extend to the end of the word
+        while (endCol < lineText.length && /\w/.test(lineText[endCol])) {
+          endCol++
+        }
+      }
+      else {
+        // For non-word characters, underline at least 3 characters or until end of line
+        endCol = Math.min(startCol + 3, lineText.length)
+      }
+
+      range = new vscode.Range(
+        new vscode.Position(line, startCol),
+        new vscode.Position(line, endCol),
+      )
+    }
+    else {
+      // Fallback if line is out of bounds
+      range = new vscode.Range(
+        new vscode.Position(line, column),
+        new vscode.Position(line, column + 1),
+      )
+    }
+  }
+  else {
+    // Fallback when we don't have document text
+    range = new vscode.Range(
+      new vscode.Position(line, column),
+      new vscode.Position(line, column + 1),
+    )
+  }
+
   const severity = issue.severity === 'error'
     ? vscode.DiagnosticSeverity.Error
     : vscode.DiagnosticSeverity.Warning
   const diagnostic = new vscode.Diagnostic(range, issue.message, severity)
   diagnostic.source = 'pickier'
   diagnostic.code = issue.ruleId
+
+  // Add help text as related information (for hover and problems panel)
+  if (issue.help && documentUri) {
+    diagnostic.relatedInformation = [
+      new vscode.DiagnosticRelatedInformation(
+        new vscode.Location(documentUri, range),
+        issue.help,
+      ),
+    ]
+  }
+
+  // Add tags for better visual feedback
+  const tags: vscode.DiagnosticTag[] = []
+
+  // Mark unused code with a fade-out effect
+  if (issue.ruleId.includes('no-unused') || issue.ruleId.includes('unused')) {
+    tags.push(vscode.DiagnosticTag.Unnecessary)
+  }
+
+  // Mark deprecated code
+  if (issue.ruleId.includes('deprecated') || issue.message.toLowerCase().includes('deprecated')) {
+    tags.push(vscode.DiagnosticTag.Deprecated)
+  }
+
+  if (tags.length > 0) {
+    diagnostic.tags = tags
+  }
+
   return diagnostic
 }
 
@@ -163,7 +235,8 @@ export async function lintPathsToDiagnostics(paths: string[], output: vscode.Out
       const map: Record<string, vscode.Diagnostic[]> = {}
       for (const issue of res.issues) {
         const list = map[issue.filePath] || (map[issue.filePath] = [])
-        list.push(convertIssueToDiagnostic(issue))
+        const uri = vscode.Uri.file(issue.filePath)
+        list.push(convertIssueToDiagnostic(issue, undefined, uri))
       }
       return map
     }
@@ -176,7 +249,8 @@ export async function lintPathsToDiagnostics(paths: string[], output: vscode.Out
   const map: Record<string, vscode.Diagnostic[]> = {}
   for (const issue of result.issues) {
     const list = map[issue.filePath] || (map[issue.filePath] = [])
-    list.push(convertIssueToDiagnostic(issue))
+    const uri = vscode.Uri.file(issue.filePath)
+    list.push(convertIssueToDiagnostic(issue, undefined, uri))
   }
   return map
 }

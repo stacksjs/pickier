@@ -17,6 +17,8 @@
 - Zero-config defaults; simple, typed `pickier.config.ts` when you need it
 - Import organization: splits type/value imports, sorts modules/specifiers, removes unused named imports
 - JSON and config sorting for common files _(e.g. `package.json`, `tsconfig.json`)_
+- **Markdown linting with 53 rules** for documentation quality _(headings, lists, links, code blocks, tables, etc.)_
+  - 27 rules support auto-fix for common formatting issues
 - Flexible formatting: `indent`, `indentStyle` _(tabs or spaces)_, `quotes`, `semi`, `trimTrailingWhitespace`, `maxConsecutiveBlankLines`, `finalNewline`
 - Smart whitespace cleanup
 - ESLint-style plugin system for lint rules _(load plugins, enable/disable rules, WIP labeling)_
@@ -134,6 +136,16 @@ const config: PickierConfig = {
     noDebugger: 'error',
     noConsole: 'warn',
   },
+
+  // Plugin rules for markdown, style, sorting, etc.
+  pluginRules: {
+    // Markdown linting (53 rules available)
+    // See https://pickier.dev/rules/markdown for full list
+    'markdown/heading-increment': 'error',
+    'markdown/no-trailing-spaces': 'error',
+    'markdown/fenced-code-language': 'error',
+    'markdown/no-duplicate-heading': 'warn',
+  },
 }
 
 export default config
@@ -141,12 +153,19 @@ export default config
 
 ### Plugin system (rules)
 
-Pickier supports an ESLint-style plugin system for lint rules. You can load plugins, configure their rules per severity, and mark experimental rules as WIP to surface errors early.
+Pickier supports an ESLint-style plugin system for lint rules organized into focused categories:
 
-Concepts:
-- Plugin: `{ name: string, rules: Record<string, RuleModule> }`
-- RuleModule: `{ meta?: { docs?: string; recommended?: boolean; wip?: boolean }, check(content, context) => LintIssue[] }`
-- Configure rules via `pluginRules: { 'pluginName/ruleId': 'off' | 'warn' | 'error' | ['warn', options] }`
+**Available Plugins:**
+- `eslint/` - Legacy compatibility layer for ESLint rule names
+- `general/` - Error detection and possible problems (35+ rules)
+- `quality/` - Best practices and code quality (40+ rules)
+- `pickier/` - Sorting and import organization (17 rules)
+- `style/` - Code style enforcement (7 rules)
+- `ts/` - TypeScript-specific rules (9 rules)
+- `regexp/` - Regular expression safety (3 rules)
+- `markdown/` - Markdown documentation linting (53+ rules)
+
+Configure rules via `pluginRules: { 'pluginName/ruleId': 'off' | 'warn' | 'error' | ['warn', options] }`
 
 Define a plugin (example):
 

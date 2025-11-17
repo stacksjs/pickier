@@ -2,7 +2,7 @@ import type { PickierConfig } from './types'
 import { readFileSync } from 'node:fs'
 import { extname, isAbsolute, resolve } from 'node:path'
 import process from 'node:process'
-import { config as defaultConfig } from './config'
+import { defaultConfig } from './config'
 
 /**
  * Colorize console output (simple ANSI colors)
@@ -64,8 +64,28 @@ export function mergeConfig(base: PickierConfig, override: Partial<PickierConfig
 }
 
 export async function loadConfigFromPath(pathLike: string | undefined): Promise<PickierConfig> {
-  if (!pathLike)
+  if (!pathLike) {
+    // Skip auto-loading in test environment
+    if (process.env.PICKIER_NO_AUTO_CONFIG === '1') {
+      return defaultConfig
+    }
+
+    // Try to auto-load bunfig config if it exists in the project root
+    try {
+      const { existsSync } = await import('node:fs')
+      const { join } = await import('node:path')
+      const configPath = join(process.cwd(), 'pickier.config.ts')
+      if (existsSync(configPath)) {
+        // Load the bunfig-merged config
+        const { config } = await import('./config')
+        return config
+      }
+    }
+    catch {
+      // If bunfig loading fails, fall back to defaultConfig
+    }
     return defaultConfig
+  }
 
   const abs = isAbsolute(pathLike) ? pathLike : resolve(process.cwd(), pathLike)
   const ext = extname(abs).toLowerCase()
@@ -110,13 +130,29 @@ function toPosixPath(p: string): string {
  * Not a full glob engine; optimized for directory skip checks in manual traversal.
  */
 export function shouldIgnorePath(absPath: string, ignoreGlobs: string[]): boolean {
-  const rel = toPosixPath(absPath.startsWith(process.cwd())
-    ? absPath.slice(process.cwd().length)
-    : absPath)
+  // For files outside the project, only apply universal ignore patterns
+  const isOutsideProject = !absPath.startsWith(process.cwd())
+  const universalIgnores = ['**/node_modules/**', '**/dist/**', '**/build/**', '**/.git/**']
+
+  const effectiveIgnores = isOutsideProject
+    ? ignoreGlobs.filter(pattern => universalIgnores.includes(pattern))
+    : ignoreGlobs
+
+  const rel = toPosixPath(isOutsideProject ? absPath : absPath.slice(process.cwd().length))
   // quick checks for typical patterns **/name/**
-  for (const g of ignoreGlobs) {
+  for (const g of effectiveIgnores) {
     // normalize
     const gg = toPosixPath(g.trim())
+
+    // handle file extension patterns like **/*.test.ts or **/*.spec.ts
+    const filePattern = gg.match(/\*\*\/\*\.(.+)$/)
+    if (filePattern) {
+      const extension = filePattern[1]
+      if (rel.endsWith(`.${extension}`))
+        return true
+      continue
+    }
+
     // handle patterns like any-depth/name/any-depth (including dot-prefixed names)
     const m = gg.match(/\*\*\/(.+?)\/\*\*$/)
     if (m) {

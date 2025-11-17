@@ -1,10 +1,11 @@
-import * as path from 'node:path'
 import * as vscode from 'vscode'
+import { organizeImports, restartExtension, showOutputChannel } from './commands'
+import { clearConfigCache, disposeConfigWatcher, getPickierConfig, watchConfigFile } from './config'
 import { lintPathsToDiagnostics, PickierDiagnosticProvider } from './diagnostics'
-// Import types and functions from the pickier package
-// Note: These will be dynamically imported to avoid bundling issues
 import { PickierFormattingProvider } from './formatter'
 import { PickierStatusBar } from './status-bar'
+import { PickierHoverProvider } from './hover'
+import { PickierCodeLensProvider } from './codelens'
 
 let diagnosticCollection: vscode.DiagnosticCollection
 let statusBarItem: PickierStatusBar
@@ -46,15 +47,79 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     )
   })
 
+  // Register code actions provider (dynamic import to avoid circular dependency)
+  const { PickierCodeActionProvider } = await import('./code-actions')
+  const codeActionProvider = new PickierCodeActionProvider()
+  supportedLanguages.forEach((language) => {
+    context.subscriptions.push(
+      vscode.languages.registerCodeActionsProvider(
+        language,
+        codeActionProvider,
+        {
+          providedCodeActionKinds: PickierCodeActionProvider.providedCodeActionKinds,
+        },
+      ),
+    )
+  })
+
   // Register diagnostic provider
   const diagnosticProvider = new PickierDiagnosticProvider(diagnosticCollection, outputChannel)
 
+  // Register hover provider
+  const hoverProvider = new PickierHoverProvider(diagnosticCollection)
+  supportedLanguages.forEach((language) => {
+    context.subscriptions.push(
+      vscode.languages.registerHoverProvider(language, hoverProvider),
+    )
+  })
+
+  // Register CodeLens provider
+  const codeLensProvider = new PickierCodeLensProvider(diagnosticCollection)
+  supportedLanguages.forEach((language) => {
+    context.subscriptions.push(
+      vscode.languages.registerCodeLensProvider(language, codeLensProvider),
+    )
+  })
+
+  // Watch config file for changes
+  const workspaceFolders = vscode.workspace.workspaceFolders
+  if (workspaceFolders && workspaceFolders.length > 0) {
+    const watcher = watchConfigFile(workspaceFolders[0].uri.fsPath, async () => {
+      outputChannel.appendLine('Config file changed, reloading...')
+      clearConfigCache()
+
+      // Re-lint all open documents
+      for (const editor of vscode.window.visibleTextEditors) {
+        if (supportedLanguages.includes(editor.document.languageId)) {
+          const token = resetLintToken(editor.document)
+          await diagnosticProvider.provideDiagnostics(editor.document, token)
+        }
+      }
+    })
+    context.subscriptions.push(watcher)
+  }
+
   // Register commands
+  const { applyFix, fixAllInDocument } = await import('./code-actions')
   context.subscriptions.push(
     vscode.commands.registerCommand('pickier.format', () => formatDocument()),
     vscode.commands.registerCommand('pickier.formatSelection', () => formatSelection()),
     vscode.commands.registerCommand('pickier.lint', () => lintDocument()),
     vscode.commands.registerCommand('pickier.lintWorkspace', () => lintWorkspace()),
+    vscode.commands.registerCommand('pickier.organizeImports', () => organizeImports()),
+    vscode.commands.registerCommand('pickier.fixAll', async (document?: vscode.TextDocument) => {
+      const doc = document || vscode.window.activeTextEditor?.document
+      if (doc) {
+        await fixAllInDocument(doc)
+      }
+    }),
+    vscode.commands.registerCommand('pickier.applyFix', async (document: vscode.TextDocument, diagnostic: vscode.Diagnostic) => {
+      await applyFix(document, diagnostic)
+    }),
+    vscode.commands.registerCommand('pickier.showRuleDocumentation', (ruleId: string) => showRuleDocumentation(ruleId)),
+    vscode.commands.registerCommand('pickier.disableRule', (ruleId: string) => disableRule(ruleId)),
+    vscode.commands.registerCommand('pickier.showOutputChannel', () => showOutputChannel(outputChannel)),
+    vscode.commands.registerCommand('pickier.restartExtension', () => restartExtension()),
     diagnosticCollection,
     statusBarItem,
     outputChannel,
@@ -65,21 +130,31 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     vscode.workspace.onDidSaveTextDocument(async (document) => {
       const config = vscode.workspace.getConfiguration('pickier')
 
-      if (config.get('lintOnSave', true)) {
-        const token = resetLintToken(document)
-        await diagnosticProvider.provideDiagnostics(document, token)
+      if (!supportedLanguages.includes(document.languageId)) {
+        return
       }
 
-      if (config.get('formatOnSave', false)) {
-        await formatDocumentInternal(document)
+      statusBarItem.showWorking()
+
+      try {
+        if (config.get('lintOnSave', true)) {
+          const token = resetLintToken(document)
+          await diagnosticProvider.provideDiagnostics(document, token)
+        }
+
+        if (config.get('formatOnSave', false)) {
+          await formatDocumentInternal(document)
+        }
+      }
+      finally {
+        statusBarItem.hideWorking()
+        statusBarItem.update(document, diagnosticCollection)
       }
     }),
 
-    vscode.workspace.onDidChangeTextDocument((event) => {
+    vscode.workspace.onDidChangeTextDocument(async (event) => {
       const doc = event.document
       if (doc.languageId && supportedLanguages.includes(doc.languageId)) {
-        statusBarItem.update(doc)
-
         const key = doc.uri.toString()
         const existing = changeDebounceTimers.get(key)
         if (existing)
@@ -89,8 +164,15 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
           changeDebounceTimers.delete(key)
           const config = vscode.workspace.getConfiguration('pickier')
           if (config.get('lintOnChange', true)) {
-            const token = resetLintToken(doc)
-            await diagnosticProvider.provideDiagnostics(doc, token)
+            statusBarItem.showWorking()
+            try {
+              const token = resetLintToken(doc)
+              await diagnosticProvider.provideDiagnostics(doc, token)
+            }
+            finally {
+              statusBarItem.hideWorking()
+              statusBarItem.update(doc, diagnosticCollection)
+            }
           }
         }, 500)
 
@@ -100,14 +182,65 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
     vscode.workspace.onDidOpenTextDocument(async (document) => {
       if (supportedLanguages.includes(document.languageId)) {
-        const token = resetLintToken(document)
-        await diagnosticProvider.provideDiagnostics(document, token)
+        statusBarItem.showWorking()
+        try {
+          const token = resetLintToken(document)
+          await diagnosticProvider.provideDiagnostics(document, token)
+        }
+        finally {
+          statusBarItem.hideWorking()
+          statusBarItem.update(document, diagnosticCollection)
+        }
       }
     }),
 
     vscode.window.onDidChangeActiveTextEditor((editor) => {
       if (editor && supportedLanguages.includes(editor.document.languageId)) {
-        statusBarItem.update(editor.document)
+        statusBarItem.update(editor.document, diagnosticCollection)
+      }
+    }),
+
+    // Format on paste support
+    vscode.workspace.onDidChangeTextDocument(async (event) => {
+      const config = vscode.workspace.getConfiguration('pickier')
+
+      if (!config.get('formatOnPaste', false)) {
+        return
+      }
+
+      if (!config.get('enable', true)) {
+        return
+      }
+
+      const document = event.document
+      if (!supportedLanguages.includes(document.languageId)) {
+        return
+      }
+
+      // Check if this is a paste operation (contentChanges with large text additions)
+      for (const change of event.contentChanges) {
+        // Heuristic: paste operations typically insert more than one line
+        if (change.text.length > 50 && change.text.includes('\n')) {
+          try {
+            const cfg = await getPickierConfig()
+            const { formatCode } = await import('pickier')
+
+            const formatted = formatCode(change.text, cfg, document.fileName)
+
+            if (formatted !== change.text) {
+              const editor = vscode.window.activeTextEditor
+              if (editor && editor.document === document) {
+                await editor.edit((editBuilder) => {
+                  editBuilder.replace(change.range, formatted)
+                })
+              }
+            }
+          }
+          catch (error) {
+            console.error('Error formatting pasted text:', error)
+          }
+          break // Only process the first large paste
+        }
       }
     }),
   )
@@ -116,7 +249,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   if (vscode.window.activeTextEditor) {
     const document = vscode.window.activeTextEditor.document
     if (supportedLanguages.includes(document.languageId)) {
-      statusBarItem.update(document)
+      statusBarItem.update(document, diagnosticCollection)
       const token = resetLintToken(document)
       await diagnosticProvider.provideDiagnostics(document, token)
     }
@@ -139,6 +272,12 @@ export function deactivate(): void {
     cts.dispose()
   }
   lintTokenSources.clear()
+
+  // Dispose config watcher
+  disposeConfigWatcher()
+
+  // Clear config cache
+  clearConfigCache()
 }
 
 async function formatDocument() {
@@ -167,6 +306,8 @@ async function formatSelection() {
   const document = editor.document
   const selectedText = document.getText(selection)
 
+  statusBarItem.showWorking()
+
   try {
     const config = await getPickierConfig()
     const { formatCode } = await import('pickier')
@@ -182,6 +323,10 @@ async function formatSelection() {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error'
     vscode.window.showErrorMessage(`Failed to format selection: ${errorMessage}`)
     outputChannel.appendLine(`Format error: ${errorMessage}`)
+  }
+  finally {
+    statusBarItem.hideWorking()
+    statusBarItem.update(document, diagnosticCollection)
   }
 }
 
@@ -221,9 +366,17 @@ async function lintDocument() {
     return
   }
 
-  const diagnosticProvider = new PickierDiagnosticProvider(diagnosticCollection, outputChannel)
-  const token = resetLintToken(editor.document)
-  await diagnosticProvider.provideDiagnostics(editor.document, token)
+  statusBarItem.showWorking()
+
+  try {
+    const diagnosticProvider = new PickierDiagnosticProvider(diagnosticCollection, outputChannel)
+    const token = resetLintToken(editor.document)
+    await diagnosticProvider.provideDiagnostics(editor.document, token)
+  }
+  finally {
+    statusBarItem.hideWorking()
+    statusBarItem.update(editor.document, diagnosticCollection)
+  }
 }
 
 async function lintWorkspace() {
@@ -260,23 +413,61 @@ async function lintWorkspace() {
   }
 }
 
-async function getPickierConfig() {
-  const workspaceFolders = vscode.workspace.workspaceFolders
-  if (!workspaceFolders) {
-    throw new Error('No workspace folder found')
-  }
-
-  const workspaceRoot = workspaceFolders[0].uri.fsPath
+function showRuleDocumentation(ruleId: string) {
   const config = vscode.workspace.getConfiguration('pickier')
-  const configPath = config.get<string>('configPath', '')
+  const baseUrl = config.get<string>('documentation.baseUrl', 'https://pickier.netlify.app')
 
-  if (configPath) {
-    const _fullConfigPath = path.resolve(workspaceRoot, configPath)
-    // For now, we'll use default config since loading external configs requires more setup
-    // TODO: Implement dynamic config loading
+  // Strip plugin prefix to get bare rule name
+  const ruleName = ruleId.includes('/') ? ruleId.split('/')[1] : ruleId
+
+  // Build documentation URL
+  let url: string
+
+  // Map built-in rules
+  const builtInRules = ['quotes', 'indent', 'no-debugger', 'no-console', 'no-template-curly-in-string', 'no-cond-assign']
+  if (builtInRules.includes(ruleName)) {
+    url = `${baseUrl}/rules/${ruleName}`
+  }
+  // Map pickier plugin rules
+  else if (ruleId.startsWith('pickier/')) {
+    if (ruleName.startsWith('sort-')) {
+      url = `${baseUrl}/rules/pickier-${ruleName}`
+    }
+    else {
+      url = `${baseUrl}/rules/${ruleName}`
+    }
+  }
+  // Map regexp rules
+  else if (ruleId.startsWith('regexp/')) {
+    url = `${baseUrl}/rules/regexp-${ruleName}`
+  }
+  // Map markdown rules
+  else if (ruleId.startsWith('markdown/')) {
+    url = `${baseUrl}/rules/markdown-${ruleName}`
+  }
+  // Map style rules
+  else if (ruleId.startsWith('style/')) {
+    url = `${baseUrl}/rules/style-${ruleName}`
+  }
+  // Map TypeScript rules
+  else if (ruleId.startsWith('ts/')) {
+    url = `${baseUrl}/rules/ts-${ruleName}`
+  }
+  // Fallback to rules index
+  else {
+    url = `${baseUrl}/rules`
   }
 
-  // Return default config for now
-  const { defaultConfig } = await import('pickier')
-  return defaultConfig
+  vscode.env.openExternal(vscode.Uri.parse(url))
+}
+
+function disableRule(ruleId: string) {
+  const message = `To disable ${ruleId}, add this to your pickier.config.ts:\n\npluginRules: {\n  '${ruleId}': 'off'\n}`
+  vscode.window.showInformationMessage(message, 'Copy Config')
+    .then((selection) => {
+      if (selection === 'Copy Config') {
+        vscode.env.clipboard.writeText(`'${ruleId}': 'off'`)
+        vscode.window.showInformationMessage('Config copied to clipboard')
+      }
+    })
 }

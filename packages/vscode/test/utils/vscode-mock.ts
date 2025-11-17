@@ -67,8 +67,66 @@ export function createVscodeMock(overrides: Partial<any> = {}): any {
     Right: 2,
   } as const
 
+  const CodeActionKind = {
+    Empty: '',
+    QuickFix: 'quickfix',
+    Refactor: 'refactor',
+    RefactorExtract: 'refactor.extract',
+    RefactorInline: 'refactor.inline',
+    RefactorRewrite: 'refactor.rewrite',
+    Source: 'source',
+    SourceOrganizeImports: 'source.organizeImports',
+    SourceFixAll: 'source.fixAll',
+  } as const
+
+  class CodeActionImpl {
+    title: string
+    kind?: any
+    diagnostics?: any[]
+    isPreferred?: boolean
+    command?: any
+    edit?: any
+
+    constructor(title: string, kind?: any) {
+      this.title = title
+      this.kind = kind
+    }
+  }
+
+  // CodeActionProvider interface (for TypeScript implements checking)
+  interface _CodeActionProvider {
+    provideCodeActions: (
+      document: any,
+      range: any,
+      context: any,
+      token: any,
+    ) => Promise<any[] | undefined>
+  }
+
+  class WorkspaceEditImpl {
+    private changes = new Map<string, any[]>()
+
+    replace(uri: any, range: any, newText: string) {
+      const key = typeof uri === 'string' ? uri : uri.toString()
+      const edits = this.changes.get(key) || []
+      edits.push({ range, newText })
+      this.changes.set(key, edits)
+    }
+  }
+
+  class RelativePatternImpl {
+    constructor(public base: string, public pattern: string) {}
+  }
+
+  class FileSystemWatcherImpl {
+    onDidCreate = makeEvent<any>().event
+    onDidChange = makeEvent<any>().event
+    onDidDelete = makeEvent<any>().event
+    dispose = mock(() => {})
+  }
+
   // Minimal TextDocument
-  class TextDocumentImpl {
+  class _TextDocumentImpl {
     uri: any
     constructor(public fileName: string, private text: string, public languageId: string = 'typescript') {
       this.uri = { fsPath: this.fileName, toString: () => `file://${this.fileName}` }
@@ -111,18 +169,22 @@ export function createVscodeMock(overrides: Partial<any> = {}): any {
   const diagnosticStore = new Map<string, any[]>()
   const diagnosticCollection = {
     set: mock((uri: any, diagnostics: any[]) => {
-      const key = typeof uri === 'string' ? uri : uri.fsPath
+      const key = typeof uri === 'string' ? uri : uri.toString()
       diagnosticStore.set(key, diagnostics)
     }),
+    get: mock((uri: any) => {
+      const key = typeof uri === 'string' ? uri : uri.toString()
+      return diagnosticStore.get(key) || []
+    }),
     delete: mock((uri: any) => {
-      const key = typeof uri === 'string' ? uri : uri.fsPath
+      const key = typeof uri === 'string' ? uri : uri.toString()
       diagnosticStore.delete(key)
     }),
     dispose: mock(() => {}),
   }
 
   // Commands registry
-  const commandsMap = new Map<string, Function>()
+  const commandsMap = new Map<string, (...args: any[]) => any>()
 
   // Workspace events
   const onDidSaveTextDocument = makeEvent<any>()
@@ -141,6 +203,11 @@ export function createVscodeMock(overrides: Partial<any> = {}): any {
     TextEdit: TextEditImpl,
     StatusBarAlignment,
     CancellationTokenSource: CancellationTokenSourceImpl,
+    CodeAction: CodeActionImpl,
+    CodeActionKind,
+    WorkspaceEdit: WorkspaceEditImpl,
+    RelativePattern: RelativePatternImpl,
+    CodeActionProvider: null as any, // Interface for TypeScript checking
 
     // namespace APIs
     Uri: { file: (fsPath: string) => ({ fsPath, toString: () => `file://${fsPath}` }) },
@@ -160,23 +227,28 @@ export function createVscodeMock(overrides: Partial<any> = {}): any {
 
     workspace: {
       getConfiguration: mock(() => ({
-        get: (key: string, defaultValue: any) => {
+        get: (key: string, defaultValue: any = undefined) => {
           const map: Record<string, any> = {
-            enable: true,
-            lintOnSave: true,
-            lintOnChange: true,
-            formatOnSave: false,
-            showOutputChannel: false,
-            configPath: '',
+            'enable': true,
+            'lintOnSave': true,
+            'lintOnChange': true,
+            'formatOnSave': false,
+            'formatOnPaste': false,
+            'showOutputChannel': false,
+            'configPath': '',
+            'codeActions.enable': true,
+            'statusBar.showIssueCount': true,
           }
           if (key in map)
             return map[key]
           // support "pickier.xxx" keys
           if (key.startsWith('pickier.'))
             return map[key.replace('pickier.', '')]
-          return defaultValue
+          return defaultValue !== undefined ? defaultValue : false
         },
       })),
+      applyEdit: mock(async () => true),
+      createFileSystemWatcher: mock(() => new FileSystemWatcherImpl()),
       onDidSaveTextDocument: onDidSaveTextDocument.event,
       onDidChangeTextDocument: onDidChangeTextDocument.event,
       onDidOpenTextDocument: onDidOpenTextDocument.event,
@@ -187,12 +259,17 @@ export function createVscodeMock(overrides: Partial<any> = {}): any {
       createDiagnosticCollection: mock(() => diagnosticCollection),
       registerDocumentFormattingEditProvider: mock(() => ({ dispose() {} })),
       registerDocumentRangeFormattingEditProvider: mock(() => ({ dispose() {} })),
+      registerCodeActionsProvider: mock(() => ({ dispose() {} })),
     },
 
     commands: {
-      registerCommand: mock((cmd: string, cb: Function) => {
+      registerCommand: mock((cmd: string, cb: (...args: any[]) => any) => {
         commandsMap.set(cmd, cb)
-        return { dispose() { commandsMap.delete(cmd) } }
+        return {
+          dispose() {
+            commandsMap.delete(cmd)
+          },
+        }
       }),
       _invoke: (cmd: string, ...args: any[]) => commandsMap.get(cmd)?.(...args),
     },

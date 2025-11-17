@@ -7,4 +7,3 @@ import { X } from './local'
 
 const v = B + (NS ? 1 : 0) + X
 export { v }
-

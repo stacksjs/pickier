@@ -1,16 +1,20 @@
-/* eslint-disable no-console */
 import type { FormatOptions, LintIssue, PickierConfig, PickierPlugin, RulesConfigMap } from './types'
 import { readFileSync, writeFileSync } from 'node:fs'
 import { relative } from 'node:path'
 import process from 'node:process'
+import { Logger } from '@stacksjs/clarity'
 import { glob as tinyGlob } from 'tinyglobby'
 import { formatCode } from './format'
 import { getAllPlugins } from './plugins'
 import { colors, expandPatterns, loadConfigFromPath, shouldIgnorePath } from './utils'
 
+const logger = new Logger('pickier', {
+  showTags: false,
+})
+
 function trace(...args: any[]) {
   if (process.env.PICKIER_TRACE === '1')
-    console.log('[pickier:trace]', ...args)
+    logger.debug('[pickier:trace]', args)
 }
 
 async function withTimeout<T>(p: Promise<T>, ms: number, label: string): Promise<T> {
@@ -24,7 +28,7 @@ async function withTimeout<T>(p: Promise<T>, ms: number, label: string): Promise
     return res as T
   }
   catch (e) {
-    console.error(`[pickier:error] ${label} failed:`, (e as any)?.message || e)
+    logger.error(`[pickier:error] ${label} failed:`, (e as any)?.message || e)
     trace('withTimeout error:', label, e)
     throw e
   }
@@ -87,17 +91,127 @@ export function applyFixes(filePath: string, content: string, cfg: PickierConfig
   return current
 }
 
-export function formatStylish(issues: LintIssue[]): string {
-  const rel = (p: string) => relative(process.cwd(), p)
-  let out = ''
-  let lastFile = ''
+export function formatVerbose(issues: LintIssue[]): string {
+  if (issues.length === 0)
+    return ''
+
+  // Group issues by file
+  const byFile = new Map<string, LintIssue[]>()
   for (const issue of issues) {
-    if (issue.filePath !== lastFile) {
-      lastFile = issue.filePath
-      out += `\n${colors.bold(rel(issue.filePath))}\n`
+    const list = byFile.get(issue.filePath) || []
+    list.push(issue)
+    byFile.set(issue.filePath, list)
+  }
+
+  let out = ''
+  for (const [filePath, fileIssues] of byFile) {
+    // Print filename header
+    out += `\n${colors.bold(`\x1B[4m${filePath}\x1B[24m`)}\n`
+
+    // Read the file to get source code for snippets
+    let fileContent: string
+    try {
+      fileContent = readFileSync(filePath, 'utf8')
     }
-    const sev = issue.severity === 'error' ? colors.red('error') : colors.yellow('warn ')
-    out += `${sev}  ${colors.gray(String(issue.line))}:${colors.gray(String(issue.column))}  ${colors.blue(issue.ruleId)}  ${issue.message}\n`
+    catch {
+      // If we can't read the file, fall back to basic formatting without snippets
+      for (const issue of fileIssues) {
+        const sev = issue.severity === 'error' ? colors.red('error') : colors.yellow('warn ')
+        out += `  ${issue.line}:${issue.column}  ${sev}  ${issue.message}  ${colors.blue(issue.ruleId)}\n`
+      }
+      continue
+    }
+
+    const lines = fileContent.split(/\r?\n/)
+
+    for (const issue of fileIssues) {
+      const icon = issue.severity === 'error' ? colors.red('!') : colors.yellow('!')
+      const ruleText = colors.blue(issue.ruleId)
+
+      // Header: "  ! rule-id: message"
+      out += `\n  ${icon} ${ruleText}: ${issue.message}\n`
+
+      // Show context: 2 lines before and after the error line
+      const contextBefore = 2
+      const contextAfter = 2
+      const startLine = Math.max(1, issue.line - contextBefore)
+      const endLine = Math.min(lines.length, issue.line + contextAfter)
+
+      // Calculate padding for line numbers
+      const maxLineNum = endLine
+      const lineNumWidth = String(maxLineNum).length
+
+      // Location indicator: "    ,-[:line:col]"
+      out += `  ${colors.gray('  ,-')}${colors.gray(`[:${issue.line}:${issue.column}]`)}\n`
+
+      // Show code snippet with line numbers
+      for (let i = startLine; i <= endLine; i++) {
+        const lineNum = String(i).padStart(lineNumWidth)
+        const lineContent = lines[i - 1] || ''
+
+        if (i === issue.line) {
+          // Highlight the error line
+          out += ` ${colors.gray(lineNum)} ${colors.gray('|')} ${colors.red(',->     ')}${lineContent}\n`
+        }
+        else if (i === issue.line + 1 && contextAfter > 0) {
+          // Show continuation marker on next line if needed
+          out += ` ${colors.gray(lineNum)} ${colors.gray('|')} ${colors.red('|         ')}${lineContent}\n`
+        }
+        else if (i === issue.line + contextAfter && contextAfter > 1) {
+          // Last line with end marker
+          out += ` ${colors.gray(lineNum)} ${colors.gray('|')} ${colors.red('`->     ')}${lineContent}\n`
+        }
+        else {
+          // Regular context line
+          out += ` ${colors.gray(lineNum)} ${colors.gray('|       ')}${lineContent}\n`
+        }
+      }
+
+      // End marker
+      out += `  ${colors.gray('  `----')}\n`
+
+      // Help text if available
+      if (issue.help) {
+        out += `  ${colors.blue('help')}: ${issue.help}\n`
+      }
+    }
+  }
+
+  return out
+}
+
+export function formatStylish(issues: LintIssue[]): string {
+  if (issues.length === 0)
+    return ''
+
+  // Group issues by file
+  const byFile = new Map<string, LintIssue[]>()
+  for (const issue of issues) {
+    const list = byFile.get(issue.filePath) || []
+    list.push(issue)
+    byFile.set(issue.filePath, list)
+  }
+
+  let out = ''
+  for (const [filePath, fileIssues] of byFile) {
+    // Use full absolute path and underline it (ESLint style)
+    out += `\n${colors.bold(`\x1B[4m${filePath}\x1B[24m`)}\n`
+
+    for (const issue of fileIssues) {
+      const sev = issue.severity === 'error' ? colors.red('error') : colors.yellow('warn ')
+
+      // Format: "  line:col  severity  message  ruleId"
+      // Pad line:col to align nicely (e.g., "  5:10")
+      const lineCol = `${issue.line}:${issue.column}`
+      const paddedLineCol = lineCol.padStart(6)
+
+      // Align message and ruleId with proper spacing
+      // Message on left, ruleId on right (like ESLint)
+      const messageWidth = 60
+      const paddedMessage = issue.message.padEnd(messageWidth)
+
+      out += `${paddedLineCol}  ${sev}  ${paddedMessage}  ${colors.blue(issue.ruleId)}\n`
+    }
   }
   return out
 }
@@ -176,7 +290,7 @@ export async function runFormat(globs: string[], options: FormatOptions): Promis
     const fmt = formatCode(src, cfg, file)
     if (options.check) {
       if (fmt !== src) {
-        console.log(`${relative(process.cwd(), file)} needs formatting`)
+        logger.debug(`${relative(process.cwd(), file)} needs formatting`)
         changed++
       }
       checked++
@@ -191,15 +305,16 @@ export async function runFormat(globs: string[], options: FormatOptions): Promis
     else {
       // default to check mode when neither flag specified
       if (fmt !== src) {
-        console.log(`${relative(process.cwd(), file)} needs formatting`)
+        logger.debug(`${relative(process.cwd(), file)} needs formatting`)
         changed++
       }
       checked++
     }
   }
 
-  if (options.verbose) {
-    console.log(colors.gray(`Checked ${checked} files, ${changed} changed.`))
+  const isVerbose = options.verbose !== undefined ? options.verbose : cfg.verbose
+  if (isVerbose) {
+    logger.debug(colors.gray(`Checked ${checked} files, ${changed} changed.`))
   }
 
   // In check mode, non-zero exit when changes are needed; otherwise 0

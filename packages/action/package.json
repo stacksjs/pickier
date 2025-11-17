@@ -1,9 +1,0 @@
-{
-  "name": "@pickier/action",
-  "version": "0.1.7",
-  "private": true,
-  "scripts": {
-    "build": "echo 'TODO: Building... action'",
-    "compile": "echo 'TODO: Compiling... action'"
-  }
-}

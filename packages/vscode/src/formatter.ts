@@ -1,7 +1,7 @@
 import * as vscode from 'vscode'
-// Dynamic imports will be used to avoid bundling issues
+import { getPickierConfig } from './config'
 
-export class PickierFormattingProvider implements vscode.DocumentFormattingEditProvider, vscode.DocumentRangeFormattingEditProvider {
+export class PickierFormattingProvider implements vscode.DocumentFormattingEditProvider, vscode.DocumentRangeFormattingEditProvider, vscode.OnTypeFormattingEditProvider {
   async provideDocumentFormattingEdits(
     document: vscode.TextDocument,
     options: vscode.FormattingOptions,
@@ -12,7 +12,7 @@ export class PickierFormattingProvider implements vscode.DocumentFormattingEditP
     }
 
     try {
-      const config = await this.getPickierConfig()
+      const config = await getPickierConfig()
       const { formatCode } = await import('pickier')
       const text = document.getText()
       const formatted = formatCode(text, config, document.fileName)
@@ -45,7 +45,7 @@ export class PickierFormattingProvider implements vscode.DocumentFormattingEditP
     }
 
     try {
-      const config = await this.getPickierConfig()
+      const config = await getPickierConfig()
       const { formatCode } = await import('pickier')
       const text = document.getText(range)
       const formatted = formatCode(text, config, document.fileName)
@@ -62,10 +62,14 @@ export class PickierFormattingProvider implements vscode.DocumentFormattingEditP
     }
   }
 
-  private async getPickierConfig(): Promise<any> {
-    // For now, return default config
-    // TODO: Implement config file discovery and loading
-    const { defaultConfig } = await import('pickier')
-    return defaultConfig
+  async provideOnTypeFormattingEdits(
+    _document: vscode.TextDocument,
+    _position: vscode.Position,
+    _ch: string,
+    _options: vscode.FormattingOptions,
+    _token: vscode.CancellationToken,
+  ): Promise<vscode.TextEdit[]> {
+    // Format on type for specific trigger characters
+    return []
   }
 }
