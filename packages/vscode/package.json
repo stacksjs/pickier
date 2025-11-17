@@ -224,8 +224,8 @@
   },
   "devDependencies": {
     "@types/bun": "1.2.20",
-    "@types/vscode": "^1.103.0",
+    "@types/vscode": "^1.106.0",
     "@vscode/test-electron": "^2.5.2",
-    "@vscode/vsce": "^3.6.0"
+    "@vscode/vsce": "^3.7.0"
   }
 }
