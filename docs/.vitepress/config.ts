@@ -113,6 +113,7 @@ export default withPwa(
             collapsed: false,
             items: [
               { text: 'Configuration Deep Dive', link: '/advanced/configuration-deep-dive' },
+              { text: 'Disable Comments', link: '/advanced/disable-comments' },
               { text: 'Globbing & Ignores', link: '/advanced/globbing-and-ignores' },
               { text: 'Plugin System', link: '/advanced/plugin-system' },
               { text: 'CI Usage', link: '/advanced/ci' },
