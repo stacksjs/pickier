@@ -1,3 +1,170 @@
+[Compare changes](https://github.com/stacksjs/pickier/compare/v0.1.7...v0.1.8)
+
+### 🚀 Features
+
+- add helper message on all rules ([b042cf7](https://github.com/stacksjs/pickier/commit/b042cf7))
+- make verbose default true and configurable ([ddf32b3](https://github.com/stacksjs/pickier/commit/ddf32b3))
+
+### 🐛 Bug Fixes
+
+- prevent spacing transformations in comment-only lines ([768af07](https://github.com/stacksjs/pickier/commit/768af07))
+
+### 🧹 Chores
+
+- release v0.1.8 ([3775dff](https://github.com/stacksjs/pickier/commit/3775dff))
+- wip ([b4b1e9d](https://github.com/stacksjs/pickier/commit/b4b1e9d))
+- update docs to reflect new rules ([31046eb](https://github.com/stacksjs/pickier/commit/31046eb))
+- fix tests and typecheck ([16edb5e](https://github.com/stacksjs/pickier/commit/16edb5e))
+- wip ([ce24c88](https://github.com/stacksjs/pickier/commit/ce24c88))
+- wip ([6c4fee6](https://github.com/stacksjs/pickier/commit/6c4fee6))
+- improve benchmarks ([63abf29](https://github.com/stacksjs/pickier/commit/63abf29))
+- wip ([bf9680a](https://github.com/stacksjs/pickier/commit/bf9680a))
+- wip ([0ed6afc](https://github.com/stacksjs/pickier/commit/0ed6afc))
+- wip ([a931e5c](https://github.com/stacksjs/pickier/commit/a931e5c))
+- update docs ([03e1628](https://github.com/stacksjs/pickier/commit/03e1628))
+- update vscode extension ([0e169d0](https://github.com/stacksjs/pickier/commit/0e169d0))
+- improve vscode extension capabilities ([2b78f70](https://github.com/stacksjs/pickier/commit/2b78f70))
+- wip ([fb6a6ae](https://github.com/stacksjs/pickier/commit/fb6a6ae))
+- wip ([d7764ee](https://github.com/stacksjs/pickier/commit/d7764ee))
+- wip ([2676627](https://github.com/stacksjs/pickier/commit/2676627))
+- wip ([ac663c9](https://github.com/stacksjs/pickier/commit/ac663c9))
+- wip ([4526abc](https://github.com/stacksjs/pickier/commit/4526abc))
+- wip ([bb221e7](https://github.com/stacksjs/pickier/commit/bb221e7))
+- wip ([2eccede](https://github.com/stacksjs/pickier/commit/2eccede))
+- wip ([ca71944](https://github.com/stacksjs/pickier/commit/ca71944))
+- wip ([aa9356f](https://github.com/stacksjs/pickier/commit/aa9356f))
+- wip ([310911d](https://github.com/stacksjs/pickier/commit/310911d))
+- add markdown tests ([18fafc6](https://github.com/stacksjs/pickier/commit/18fafc6))
+- update tests ([e0986c7](https://github.com/stacksjs/pickier/commit/e0986c7))
+- wip ([3bd2d13](https://github.com/stacksjs/pickier/commit/3bd2d13))
+- wip ([82eac86](https://github.com/stacksjs/pickier/commit/82eac86))
+- wip ([bb75ba6](https://github.com/stacksjs/pickier/commit/bb75ba6))
+- wip ([783063c](https://github.com/stacksjs/pickier/commit/783063c))
+- wip ([bd39d6c](https://github.com/stacksjs/pickier/commit/bd39d6c))
+- wip ([0316320](https://github.com/stacksjs/pickier/commit/0316320))
+- wip ([52565f1](https://github.com/stacksjs/pickier/commit/52565f1))
+- wip ([61b9d4d](https://github.com/stacksjs/pickier/commit/61b9d4d))
+- wip ([6961374](https://github.com/stacksjs/pickier/commit/6961374))
+- wip ([c179314](https://github.com/stacksjs/pickier/commit/c179314))
+- wip ([a4e47ef](https://github.com/stacksjs/pickier/commit/a4e47ef))
+- wip ([210e266](https://github.com/stacksjs/pickier/commit/210e266))
+- wip ([c6d3267](https://github.com/stacksjs/pickier/commit/c6d3267))
+- wip ([59477d6](https://github.com/stacksjs/pickier/commit/59477d6))
+- wip ([5905dd4](https://github.com/stacksjs/pickier/commit/5905dd4))
+- wip ([ed8b2c5](https://github.com/stacksjs/pickier/commit/ed8b2c5))
+- wip ([924ebea](https://github.com/stacksjs/pickier/commit/924ebea))
+- wip ([27c7294](https://github.com/stacksjs/pickier/commit/27c7294))
+- wip ([55094a3](https://github.com/stacksjs/pickier/commit/55094a3))
+- wip ([4ec56b2](https://github.com/stacksjs/pickier/commit/4ec56b2))
+- wip ([bbd6381](https://github.com/stacksjs/pickier/commit/bbd6381))
+- wip ([f32a0d7](https://github.com/stacksjs/pickier/commit/f32a0d7))
+- wip ([b8105ed](https://github.com/stacksjs/pickier/commit/b8105ed))
+- wip ([f156634](https://github.com/stacksjs/pickier/commit/f156634))
+- wip ([802ebaf](https://github.com/stacksjs/pickier/commit/802ebaf))
+- wip ([ca352fe](https://github.com/stacksjs/pickier/commit/ca352fe))
+- wip ([e6daa99](https://github.com/stacksjs/pickier/commit/e6daa99))
+- wip ([3a245a4](https://github.com/stacksjs/pickier/commit/3a245a4))
+- wip ([6c0c33b](https://github.com/stacksjs/pickier/commit/6c0c33b))
+- wip ([dfc4ed1](https://github.com/stacksjs/pickier/commit/dfc4ed1))
+- wip ([7e3d7e3](https://github.com/stacksjs/pickier/commit/7e3d7e3))
+- add clarity  and improve logging ([567e754](https://github.com/stacksjs/pickier/commit/567e754))
+- update tooling ([beb8b06](https://github.com/stacksjs/pickier/commit/beb8b06))
+- wip ([ee10acf](https://github.com/stacksjs/pickier/commit/ee10acf))
+- wip ([bf6b29b](https://github.com/stacksjs/pickier/commit/bf6b29b))
+- wip ([230f1a1](https://github.com/stacksjs/pickier/commit/230f1a1))
+- wip ([4ab0f40](https://github.com/stacksjs/pickier/commit/4ab0f40))
+- wip ([63a7d40](https://github.com/stacksjs/pickier/commit/63a7d40))
+- wip ([b7df839](https://github.com/stacksjs/pickier/commit/b7df839))
+
+### Contributors
+
+- Adelino Ngomacha <adelinob335@gmail.com>
+- Chris <chrisbreuer93@gmail.com>
+- cab-mikee <mike.cabz32@gmail.com>
+
+[Compare changes](https://github.com/stacksjs/pickier/compare/v0.1.7...HEAD)
+
+### 🚀 Features
+
+- add helper message on all rules ([b042cf7](https://github.com/stacksjs/pickier/commit/b042cf7))
+- make verbose default true and configurable ([ddf32b3](https://github.com/stacksjs/pickier/commit/ddf32b3))
+
+### 🐛 Bug Fixes
+
+- prevent spacing transformations in comment-only lines ([768af07](https://github.com/stacksjs/pickier/commit/768af07))
+
+### 🧹 Chores
+
+- wip ([b4b1e9d](https://github.com/stacksjs/pickier/commit/b4b1e9d))
+- update docs to reflect new rules ([31046eb](https://github.com/stacksjs/pickier/commit/31046eb))
+- fix tests and typecheck ([16edb5e](https://github.com/stacksjs/pickier/commit/16edb5e))
+- wip ([ce24c88](https://github.com/stacksjs/pickier/commit/ce24c88))
+- wip ([6c4fee6](https://github.com/stacksjs/pickier/commit/6c4fee6))
+- improve benchmarks ([63abf29](https://github.com/stacksjs/pickier/commit/63abf29))
+- wip ([bf9680a](https://github.com/stacksjs/pickier/commit/bf9680a))
+- wip ([0ed6afc](https://github.com/stacksjs/pickier/commit/0ed6afc))
+- wip ([a931e5c](https://github.com/stacksjs/pickier/commit/a931e5c))
+- update docs ([03e1628](https://github.com/stacksjs/pickier/commit/03e1628))
+- update vscode extension ([0e169d0](https://github.com/stacksjs/pickier/commit/0e169d0))
+- improve vscode extension capabilities ([2b78f70](https://github.com/stacksjs/pickier/commit/2b78f70))
+- wip ([fb6a6ae](https://github.com/stacksjs/pickier/commit/fb6a6ae))
+- wip ([d7764ee](https://github.com/stacksjs/pickier/commit/d7764ee))
+- wip ([2676627](https://github.com/stacksjs/pickier/commit/2676627))
+- wip ([ac663c9](https://github.com/stacksjs/pickier/commit/ac663c9))
+- wip ([4526abc](https://github.com/stacksjs/pickier/commit/4526abc))
+- wip ([bb221e7](https://github.com/stacksjs/pickier/commit/bb221e7))
+- wip ([2eccede](https://github.com/stacksjs/pickier/commit/2eccede))
+- wip ([ca71944](https://github.com/stacksjs/pickier/commit/ca71944))
+- wip ([aa9356f](https://github.com/stacksjs/pickier/commit/aa9356f))
+- wip ([310911d](https://github.com/stacksjs/pickier/commit/310911d))
+- add markdown tests ([18fafc6](https://github.com/stacksjs/pickier/commit/18fafc6))
+- update tests ([e0986c7](https://github.com/stacksjs/pickier/commit/e0986c7))
+- wip ([3bd2d13](https://github.com/stacksjs/pickier/commit/3bd2d13))
+- wip ([82eac86](https://github.com/stacksjs/pickier/commit/82eac86))
+- wip ([bb75ba6](https://github.com/stacksjs/pickier/commit/bb75ba6))
+- wip ([783063c](https://github.com/stacksjs/pickier/commit/783063c))
+- wip ([bd39d6c](https://github.com/stacksjs/pickier/commit/bd39d6c))
+- wip ([0316320](https://github.com/stacksjs/pickier/commit/0316320))
+- wip ([52565f1](https://github.com/stacksjs/pickier/commit/52565f1))
+- wip ([61b9d4d](https://github.com/stacksjs/pickier/commit/61b9d4d))
+- wip ([6961374](https://github.com/stacksjs/pickier/commit/6961374))
+- wip ([c179314](https://github.com/stacksjs/pickier/commit/c179314))
+- wip ([a4e47ef](https://github.com/stacksjs/pickier/commit/a4e47ef))
+- wip ([210e266](https://github.com/stacksjs/pickier/commit/210e266))
+- wip ([c6d3267](https://github.com/stacksjs/pickier/commit/c6d3267))
+- wip ([59477d6](https://github.com/stacksjs/pickier/commit/59477d6))
+- wip ([5905dd4](https://github.com/stacksjs/pickier/commit/5905dd4))
+- wip ([ed8b2c5](https://github.com/stacksjs/pickier/commit/ed8b2c5))
+- wip ([924ebea](https://github.com/stacksjs/pickier/commit/924ebea))
+- wip ([27c7294](https://github.com/stacksjs/pickier/commit/27c7294))
+- wip ([55094a3](https://github.com/stacksjs/pickier/commit/55094a3))
+- wip ([4ec56b2](https://github.com/stacksjs/pickier/commit/4ec56b2))
+- wip ([bbd6381](https://github.com/stacksjs/pickier/commit/bbd6381))
+- wip ([f32a0d7](https://github.com/stacksjs/pickier/commit/f32a0d7))
+- wip ([b8105ed](https://github.com/stacksjs/pickier/commit/b8105ed))
+- wip ([f156634](https://github.com/stacksjs/pickier/commit/f156634))
+- wip ([802ebaf](https://github.com/stacksjs/pickier/commit/802ebaf))
+- wip ([ca352fe](https://github.com/stacksjs/pickier/commit/ca352fe))
+- wip ([e6daa99](https://github.com/stacksjs/pickier/commit/e6daa99))
+- wip ([3a245a4](https://github.com/stacksjs/pickier/commit/3a245a4))
+- wip ([6c0c33b](https://github.com/stacksjs/pickier/commit/6c0c33b))
+- wip ([dfc4ed1](https://github.com/stacksjs/pickier/commit/dfc4ed1))
+- wip ([7e3d7e3](https://github.com/stacksjs/pickier/commit/7e3d7e3))
+- add clarity  and improve logging ([567e754](https://github.com/stacksjs/pickier/commit/567e754))
+- update tooling ([beb8b06](https://github.com/stacksjs/pickier/commit/beb8b06))
+- wip ([ee10acf](https://github.com/stacksjs/pickier/commit/ee10acf))
+- wip ([bf6b29b](https://github.com/stacksjs/pickier/commit/bf6b29b))
+- wip ([230f1a1](https://github.com/stacksjs/pickier/commit/230f1a1))
+- wip ([4ab0f40](https://github.com/stacksjs/pickier/commit/4ab0f40))
+- wip ([63a7d40](https://github.com/stacksjs/pickier/commit/63a7d40))
+- wip ([b7df839](https://github.com/stacksjs/pickier/commit/b7df839))
+
+### Contributors
+
+- Adelino Ngomacha <adelinob335@gmail.com>
+- Chris <chrisbreuer93@gmail.com>
+- cab-mikee <mike.cabz32@gmail.com>
+
 [Compare changes](https://github.com/stacksjs/pickier/compare/v0.1.4...HEAD)
 
 ### Contributors

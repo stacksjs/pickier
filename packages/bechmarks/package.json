@@ -1,7 +1,7 @@
 {
   "name": "@pickier/benchmarks",
   "type": "module",
-  "version": "0.0.9",
+  "version": "0.1.8",
   "private": true,
   "description": "Benchmarks for the `pickier` library.",
   "author": "Chris Breuer <chris@stacksjs.org>",
