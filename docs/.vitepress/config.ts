@@ -105,6 +105,7 @@ export default withPwa(
               { text: 'JSON & Config Sorting', link: '/features/json-and-config-sorting' },
               { text: 'Linting Basics', link: '/features/linting-basics' },
               { text: 'Performance', link: '/features/performance' },
+              { text: 'Benchmarks', link: '/features/benchmarks' },
             ],
           },
           {
