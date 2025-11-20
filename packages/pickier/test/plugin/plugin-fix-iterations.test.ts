@@ -122,7 +122,7 @@ describe('plugin fix iterations', () => {
   it('handles PICKIER_TRACE environment variable', async () => {
     const dir = tmp()
     const file = join(dir, 'test.ts')
-    writeFileSync(file, 'const x = 1\n', 'utf8')
+    writeFileSync(file, 'const _x = 1\n', 'utf8')
 
     // Set trace mode
     process.env.PICKIER_TRACE = '1'
