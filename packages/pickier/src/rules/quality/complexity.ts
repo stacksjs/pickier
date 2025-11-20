@@ -33,7 +33,8 @@ export const complexityRule: RuleModule = {
       if (inFunction) {
         // Count braces
         for (const char of line) {
-          if (char === '{') braceCount++
+          if (char === '{')
+            braceCount++
           if (char === '}') {
             braceCount--
             if (braceCount === 0) {
@@ -63,7 +64,7 @@ export const complexityRule: RuleModule = {
           /\bcatch\s*\(/,
           /\b&&\b/,
           /\b\|\|\b/,
-          /\?\s*.*\s*:/,
+          /\?\s*(?:\S.*(?:[\n\r\u2028\u2029]\s*)?)?:/,
         ]
 
         for (const pattern of complexityIncreases) {

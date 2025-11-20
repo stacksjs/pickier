@@ -23,7 +23,8 @@ export const noBlanksBlockquoteRule: RuleModule = {
 
       if (isBlockquote) {
         inBlockquote = true
-      } else if (isBlank && inBlockquote && nextIsBlockquote) {
+      }
+      else if (isBlank && inBlockquote && nextIsBlockquote) {
         // Blank line between blockquote lines
         issues.push({
           filePath: ctx.filePath,
@@ -33,7 +34,8 @@ export const noBlanksBlockquoteRule: RuleModule = {
           message: 'Blank line inside blockquote should use blockquote symbol (>)',
           severity: 'error',
         })
-      } else if (!isBlockquote && !isBlank) {
+      }
+      else if (!isBlockquote && !isBlank) {
         inBlockquote = false
       }
     }

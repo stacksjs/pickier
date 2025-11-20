@@ -17,7 +17,7 @@ export const preferGlobalBuffer: RuleModule = {
     const lines = content.split(/\r?\n/)
 
     // Check if Buffer is imported from "buffer" module
-    const hasBufferImport = content.match(/(?:import|require)\s*\(?.*?['"]buffer['"]/m)
+    const hasBufferImport = content.match(/(?:import|require)\s*\(?.*?['"]buffer['"]/)
 
     // If no import, check for Buffer usage
     if (!hasBufferImport) {

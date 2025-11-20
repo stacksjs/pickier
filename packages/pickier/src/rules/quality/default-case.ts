@@ -28,7 +28,8 @@ export const defaultCaseRule: RuleModule = {
       if (inSwitch) {
         // Count braces
         for (const char of line) {
-          if (char === '{') braceCount++
+          if (char === '{')
+            braceCount++
           if (char === '}') {
             braceCount--
             if (braceCount === 0) {

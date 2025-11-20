@@ -35,8 +35,10 @@ export const constructorSuperRule: RuleModule = {
       if (inConstructor) {
         // Count braces
         for (const char of line) {
-          if (char === '{') braceCount++
-          if (char === '}') braceCount--
+          if (char === '{')
+            braceCount++
+          if (char === '}')
+            braceCount--
         }
 
         // Check for super() call

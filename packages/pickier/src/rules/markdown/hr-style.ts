@@ -34,10 +34,12 @@ export const hrStyleRule: RuleModule = {
             message: `Expected horizontal rule style '${style}'`,
             severity: 'error',
           })
-        } else if (style === 'consistent') {
+        }
+        else if (style === 'consistent') {
           if (detectedStyle === null) {
             detectedStyle = currentStyle
-          } else if (detectedStyle !== currentStyle) {
+          }
+          else if (detectedStyle !== currentStyle) {
             issues.push({
               filePath: ctx.filePath,
               line: i + 1,

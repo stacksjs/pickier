@@ -49,7 +49,8 @@ export const noPromiseExecutorReturnRule: RuleModule = {
             })
           }
 
-          if (braceCount === 0 && inExecutor) break
+          if (braceCount === 0 && inExecutor)
+            break
           currentLineIndex++
         }
       }

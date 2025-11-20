@@ -13,7 +13,7 @@ export const noCompareNegZeroRule: RuleModule = {
       const line = lines[i]
 
       // Match comparisons with -0: x === -0, x == -0, etc.
-      const pattern = /([!=]==?)\s*-0\b|(?:\b-0\s*)([!=]==?)/g
+      const pattern = /([!=]==?)\s*-0\b|\b-0\s*([!=]==?)/g
 
       let match
       while ((match = pattern.exec(line)) !== null) {

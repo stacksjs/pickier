@@ -30,7 +30,7 @@ export const noMultiSpaces: RuleModule = {
 
       // Check for multiple consecutive spaces in the code portion (not indentation)
       // Pattern: 2+ spaces not at start of line
-      const multiSpacePattern = /  +/g
+      const multiSpacePattern = / {2,}/g
       let match
 
       while ((match = multiSpacePattern.exec(codeAfterIndent)) !== null) {

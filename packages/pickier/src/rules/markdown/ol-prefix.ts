@@ -34,7 +34,8 @@ export const olPrefixRule: RuleModule = {
             message: `Ordered list item prefix should be '1.', found '${number}.'`,
             severity: 'error',
           })
-        } else if (style === 'ordered' && number !== expectedNumber) {
+        }
+        else if (style === 'ordered' && number !== expectedNumber) {
           issues.push({
             filePath: ctx.filePath,
             line: i + 1,
@@ -46,7 +47,8 @@ export const olPrefixRule: RuleModule = {
         }
 
         expectedNumber++
-      } else if (line.trim().length === 0) {
+      }
+      else if (line.trim().length === 0) {
         // Blank line resets the counter
         expectedNumber = 1
       }
@@ -71,15 +73,18 @@ export const olPrefixRule: RuleModule = {
 
         if (style === 'one') {
           fixedLines.push(line.replace(/^(\s*)\d+(\.\s+)/, `${indent}1${suffix}`))
-        } else if (style === 'ordered') {
+        }
+        else if (style === 'ordered') {
           fixedLines.push(line.replace(/^(\s*)\d+(\.\s+)/, `${indent}${expectedNumber}${suffix}`))
           expectedNumber++
-        } else {
+        }
+        else {
           // one_or_ordered - keep as is
           fixedLines.push(line)
           expectedNumber++
         }
-      } else {
+      }
+      else {
         fixedLines.push(line)
         if (line.trim().length === 0) {
           expectedNumber = 1

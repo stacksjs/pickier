@@ -129,7 +129,7 @@ export const preferObjectSpreadRule: RuleModule = {
         }
         // Also flag cases where the first argument is not being mutated in a clear way
         // (i.e., it's not a variable by itself, suggesting it's being used for merging)
-        else if (firstArg === '{}' || /^{.*}$/.test(firstArg)) {
+        else if (firstArg === '{}' || /^\{.*\}$/.test(firstArg)) {
           issues.push({
             filePath: ctx.filePath,
             line: i + 1,
@@ -155,7 +155,7 @@ export const preferObjectSpreadRule: RuleModule = {
       // Simple fix for common case: Object.assign({}, ...)
       // This is a basic fixer - complex cases may need manual intervention
       line = line.replace(
-        /\bObject\.assign\s*\(\s*{}\s*,\s*([^)]+)\)/g,
+        /\bObject\.assign\s*\(\s*\{\}\s*,\s*([^)]+)\)/g,
         (match, args) => {
           // Split args by comma (simple heuristic)
           const argList = args.split(',').map((a: string) => a.trim())

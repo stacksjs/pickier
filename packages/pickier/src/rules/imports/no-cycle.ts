@@ -1,6 +1,6 @@
+import type { RuleModule } from '../../types'
 import { existsSync, readFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
-import type { RuleModule } from '../../types'
 
 export const noCycleRule: RuleModule = {
   meta: {
@@ -48,7 +48,7 @@ export const noCycleRule: RuleModule = {
 
     function extractImports(content: string, baseDir: string): string[] {
       const imports: string[] = []
-      const importRegex = /\bimport\s+.*?\s+from\s+['"]([^'"]+)['"]/g
+      const importRegex = /\bimport(?:\s{2,}|\s+\S.*?(?:[\n\r\u2028\u2029]\s*|[\t\v\f \xA0\u1680\u2000-\u200A\u202F\u205F\u3000\uFEFF]))from\s+['"]([^'"]+)['"]/g
 
       let match
       while ((match = importRegex.exec(content)) !== null) {
@@ -74,7 +74,7 @@ export const noCycleRule: RuleModule = {
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i]
 
-      const importMatch = line.match(/\bimport\s+.*?\s+from\s+['"]([^'"]+)['"]/)
+      const importMatch = line.match(/\bimport(?:\s{2,}|\s+\S.*?(?:[\n\r\u2028\u2029]\s*|[\t\v\f \xA0\u1680\u2000-\u200A\u202F\u205F\u3000\uFEFF]))from\s+['"]([^'"]+)['"]/)
       if (importMatch) {
         const importPath = importMatch[1]
 

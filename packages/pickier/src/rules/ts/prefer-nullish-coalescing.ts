@@ -192,7 +192,7 @@ export const preferNullishCoalescingRule: RuleModule = {
         const looksLikeDefaultValue = (
           // Right operand is a number, string, object, or function call
           /^["'`\d]/.test(rightOperand)
-          || /^{/.test(rightOperand)
+          || /^\{/.test(rightOperand)
           || /^[\w$]+\(/.test(rightOperand)
           || /^[\w$.[\]]+$/.test(rightOperand)
         )

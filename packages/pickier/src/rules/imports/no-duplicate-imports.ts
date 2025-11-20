@@ -54,7 +54,7 @@ export const noDuplicateImportsRule: RuleModule = {
       //          import { a, b } from 'bar'
       //          import * as foo from 'bar'
       //          import type { Foo } from 'bar'
-      const importMatch = trimmed.match(/^import\s+(?:type\s+)?(?:{[^}]*}|[\w$]+(?:\s*,\s*{[^}]*})?|\*\s+as\s+[\w$]+)\s+from\s+(['"`])(.+?)\1/)
+      const importMatch = trimmed.match(/^import\s+(?:type\s+)?(?:\{[^}]*\}|[\w$]+(?:\s*,\s*\{[^}]*\})?|\*\s+as\s+[\w$]+)\s+from\s+(['"`])(.+?)\1/)
 
       if (importMatch) {
         const modulePath = importMatch[2]
@@ -79,7 +79,7 @@ export const noDuplicateImportsRule: RuleModule = {
       }
 
       // Also check for export ... from statements
-      const exportMatch = trimmed.match(/^export\s+(?:type\s+)?(?:{[^}]*}|\*(?:\s+as\s+[\w$]+)?)\s+from\s+(['"`])(.+?)\1/)
+      const exportMatch = trimmed.match(/^export\s+(?:type\s+)?(?:\{[^}]*\}|\*(?:\s+as\s+[\w$]+)?)\s+from\s+(['"`])(.+?)\1/)
 
       if (exportMatch) {
         const modulePath = exportMatch[2]

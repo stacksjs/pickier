@@ -171,7 +171,7 @@ export class PickierCodeActionProvider implements vscode.CodeActionProvider {
   private createDisableRuleForLineAction(
     document: vscode.TextDocument,
     diagnostic: vscode.Diagnostic,
-    range: vscode.Range | vscode.Selection,
+    _range: vscode.Range | vscode.Selection,
   ): vscode.CodeAction | undefined {
     const ruleId = diagnostic.code?.toString()
     if (!ruleId) {

@@ -17,7 +17,7 @@ export const preferGlobalProcess: RuleModule = {
     const lines = content.split(/\r?\n/)
 
     // Check if process is imported from "process" module
-    const hasProcessImport = content.match(/(?:import|require)\s*\(?.*?['"]process['"]/m)
+    const hasProcessImport = content.match(/(?:import|require)\s*\(?.*?['"]process['"]/)
 
     // If no import, check for process usage
     if (!hasProcessImport) {

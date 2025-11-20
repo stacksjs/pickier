@@ -33,8 +33,8 @@ function convertDoubleToSingle(str: string): string {
   // Strategy: swap quote types for cleaner output
   // Unescape escaped double quotes: \"  → "
   // Swap single quotes to double quotes: ' → " (since they're literals in the string)
-  let result = inner.replace(/\\"/g, '"')  // unescape \"
-  result = result.replace(/'/g, '"')        // swap ' to "
+  let result = inner.replace(/\\"/g, '"') // unescape \"
+  result = result.replace(/'/g, '"') // swap ' to "
   return `'${result}'`
 }
 

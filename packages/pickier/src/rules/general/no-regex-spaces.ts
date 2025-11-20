@@ -29,7 +29,7 @@ export const noRegexSpaces: RuleModule = {
         const regexContent = match[1]
 
         // Check for multiple consecutive spaces in the regex
-        if (/  +/.test(regexContent)) {
+        if (/ {2,}/.test(regexContent)) {
           const column = match.index + 1
 
           issues.push({
@@ -49,7 +49,7 @@ export const noRegexSpaces: RuleModule = {
       while ((match = regExpPattern.exec(line)) !== null) {
         const regexContent = match[1]
 
-        if (/  +/.test(regexContent)) {
+        if (/ {2,}/.test(regexContent)) {
           const column = match.index + 1
 
           issues.push({

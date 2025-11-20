@@ -38,7 +38,8 @@ export const blanksAroundTablesRule: RuleModule = {
             severity: 'error',
           })
         }
-      } else if (!isTableLine && inTable) {
+      }
+      else if (!isTableLine && inTable) {
         // End of table
         inTable = false
 

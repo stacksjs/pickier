@@ -7,9 +7,9 @@
 import { execSync } from 'node:child_process'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
+import { ESLint } from 'eslint'
 import { bench, group, run } from 'mitata'
 import { runLintProgrammatic } from 'pickier'
-import { ESLint } from 'eslint'
 import * as prettier from 'prettier'
 
 console.log('\n🚀 Pickier Benchmarks\n')
@@ -72,7 +72,8 @@ group('⚡ Linters - Medium File (418 lines)', () => {
       execSync(`bunx @biomejs/biome lint ${fixtures.medium}`, {
         stdio: 'ignore',
       })
-    } catch {
+    }
+    catch {
       // Biome exits with code 1 if issues found
     }
   })
@@ -82,7 +83,8 @@ group('⚡ Linters - Medium File (418 lines)', () => {
       execSync(`bunx oxlint ${fixtures.medium}`, {
         stdio: 'ignore',
       })
-    } catch {
+    }
+    catch {
       // oxlint exits with code 1 if issues found
     }
   })
@@ -120,7 +122,8 @@ group('⚡ Linters - Large File (1279 lines)', () => {
       execSync(`bunx @biomejs/biome lint ${fixtures.large}`, {
         stdio: 'ignore',
       })
-    } catch {
+    }
+    catch {
       // Biome exits with code 1 if issues found
     }
   })
@@ -130,7 +133,8 @@ group('⚡ Linters - Large File (1279 lines)', () => {
       execSync(`bunx oxlint ${fixtures.large}`, {
         stdio: 'ignore',
       })
-    } catch {
+    }
+    catch {
       // oxlint exits with code 1 if issues found
     }
   })
@@ -172,7 +176,8 @@ group('📊 Throughput - Lines per Second', () => {
       execSync(`bunx @biomejs/biome lint ${fixtures.medium}`, {
         stdio: 'ignore',
       })
-    } catch {
+    }
+    catch {
       // Biome exits with code 1 if issues found
     }
   })
@@ -182,7 +187,8 @@ group('📊 Throughput - Lines per Second', () => {
       execSync(`bunx oxlint ${fixtures.medium}`, {
         stdio: 'ignore',
       })
-    } catch {
+    }
+    catch {
       // oxlint exits with code 1 if issues found
     }
   })
@@ -200,7 +206,8 @@ group('📊 Throughput - Lines per Second', () => {
       execSync(`bunx @biomejs/biome lint ${fixtures.large}`, {
         stdio: 'ignore',
       })
-    } catch {
+    }
+    catch {
       // Biome exits with code 1 if issues found
     }
   })
@@ -210,7 +217,8 @@ group('📊 Throughput - Lines per Second', () => {
       execSync(`bunx oxlint ${fixtures.large}`, {
         stdio: 'ignore',
       })
-    } catch {
+    }
+    catch {
       // oxlint exits with code 1 if issues found
     }
   })
@@ -236,7 +244,8 @@ group('💪 Stress Test - 50 Iterations (Small File)', () => {
         execSync(`bunx @biomejs/biome lint ${fixtures.small}`, {
           stdio: 'ignore',
         })
-      } catch {
+      }
+      catch {
         // Biome exits with code 1 if issues found
       }
     }
@@ -248,7 +257,8 @@ group('💪 Stress Test - 50 Iterations (Small File)', () => {
         execSync(`bunx oxlint ${fixtures.small}`, {
           stdio: 'ignore',
         })
-      } catch {
+      }
+      catch {
         // oxlint exits with code 1 if issues found
       }
     }
@@ -267,13 +277,7 @@ group('💪 Stress Test - 50 Iterations (Small File)', () => {
 
 // Run all benchmarks
 await run({
-  units: true,      // Show units (ms, μs, etc.)
-  silent: false,    // Show output
-  avg: true,        // Show average time
-  json: false,      // Don't output JSON
-  colors: true,     // Colorful output
-  min_max: true,    // Show min/max values
-  percentiles: true, // Show percentiles
+  colors: true, // Colorful output
 })
 
 console.log(`\n${'='.repeat(80)}`)

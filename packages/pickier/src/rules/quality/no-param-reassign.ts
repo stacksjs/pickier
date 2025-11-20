@@ -16,7 +16,7 @@ export const noParamReassignRule: RuleModule = {
 
       // Match function declarations and arrow functions
       const funcMatches = [
-        ...line.matchAll(/function\s+(\w+)?\s*\(([^)]*)\)/g),
+        ...line.matchAll(/function\s+(?:(\w+)\s*)?\(([^)]*)\)/g),
         ...line.matchAll(/(?:const|let|var)?\s*(\w+)\s*=\s*\(([^)]*)\)\s*=>/g),
         ...line.matchAll(/(?:const|let|var)?\s*(\w+)\s*=\s*(\w+)\s*=>/g),
       ]
