@@ -216,8 +216,7 @@
     "pretest": "bun run compile && bun run lint",
     "lint": "eslint src --ext ts",
     "test": "bun test",
-    "package": "bunx @vscode/vsce package --no-dependencies",
-    "publish": "bunx @vscode/vsce publish --no-dependencies"
+    "package": "bunx @vscode/vsce package --no-dependencies"
   },
   "dependencies": {
     "pickier": "workspace:*"
