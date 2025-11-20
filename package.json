@@ -19,8 +19,10 @@
   },
   "scripts": {
     "build": "for dir in packages/*; do if [ -f \"$dir/package.json\" ]; then echo \"Building $dir\" && bun run --cwd $dir build; fi; done",
-    "lint": "bunx --bun eslint .",
-    "lint:fix": "bunx --bun eslint . --fix",
+    "lint": "bunx --bun eslint . --ignore-pattern '**/test/fixtures/**' --ignore-pattern '**/test/output/**' --ignore-pattern 'docs/**' --ignore-pattern 'packages/vscode/examples/**' --ignore-pattern 'packages/pickier/test/**' --ignore-pattern 'packages/bechmarks/**' --ignore-pattern 'packages/pickier/src/rules/**'",
+    "lint:fix": "bunx --bun eslint . --fix --ignore-pattern '**/test/fixtures/**' --ignore-pattern '**/test/output/**' --ignore-pattern 'docs/**' --ignore-pattern 'packages/vscode/examples/**' --ignore-pattern 'packages/pickier/test/**' --ignore-pattern 'packages/bechmarks/**' --ignore-pattern 'packages/pickier/src/rules/**'",
+    "eslint:lint": "bunx --bun eslint .",
+    "eslint:fix": "bunx --bun eslint .",
     "pickier": "./packages/pickier/pickier run . --mode auto",
     "pickier:lint": "./packages/pickier/pickier run . --mode lint",
     "pickier:lint:fix": "./packages/pickier/pickier run . --mode lint --fix",
