@@ -571,6 +571,22 @@ export async function applyPlugins(filePath: string, content: string, cfg: Picki
   const rulesConfig: RulesConfigMap = { ...(cfg.pluginRules || {}) as RulesConfigMap }
   if (cfg.rules?.noUnusedCapturingGroup)
     rulesConfig['regexp/no-unused-capturing-group'] = cfg.rules.noUnusedCapturingGroup
+
+  // Rule aliasing: map antfu/ prefix to actual implementations
+  const ruleAliases: Record<string, string> = {
+    'antfu/curly': 'style/curly',
+    'antfu/if-newline': 'style/if-newline',
+    'antfu/no-top-level-await': 'ts/no-top-level-await',
+  }
+
+  // Apply aliases: if antfu/X is configured, map it to the actual rule
+  for (const [alias, target] of Object.entries(ruleAliases)) {
+    if (rulesConfig[alias as keyof RulesConfigMap]) {
+      rulesConfig[target as keyof RulesConfigMap] = rulesConfig[alias as keyof RulesConfigMap]
+      // Don't delete the alias entry in case it's referenced elsewhere
+    }
+  }
+
   // Also support bare rule IDs (without plugin prefix) by mapping to any plugins that define them
   for (const key of Object.keys(cfg.pluginRules || {})) {
     if (!key.includes('/')) {

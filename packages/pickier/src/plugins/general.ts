@@ -17,6 +17,8 @@ import { noDuplicateCaseRule } from '../rules/general/no-duplicate-case'
 import { noEmptyPatternRule } from '../rules/general/no-empty-pattern'
 import { noFallthroughRule } from '../rules/general/no-fallthrough'
 import { noIrregularWhitespaceRule } from '../rules/general/no-irregular-whitespace'
+import { noNew } from '../rules/general/no-new'
+import { noRegexSpaces } from '../rules/general/no-regex-spaces'
 import { noLossOfPrecisionRule } from '../rules/general/no-loss-of-precision'
 import { noPromiseExecutorReturnRule } from '../rules/general/no-promise-executor-return'
 import { noRedeclareRule } from '../rules/general/no-redeclare'
@@ -55,6 +57,8 @@ export const generalPlugin: PickierPlugin = {
     'no-fallthrough': noFallthroughRule,
     'no-irregular-whitespace': noIrregularWhitespaceRule,
     'no-loss-of-precision': noLossOfPrecisionRule,
+    'no-new': noNew,
+    'no-regex-spaces': noRegexSpaces,
     'no-promise-executor-return': noPromiseExecutorReturnRule,
     'no-redeclare': noRedeclareRule,
     'no-self-assign': noSelfAssignRule,
