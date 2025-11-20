@@ -1,3 +1,27 @@
+[Compare changes](https://github.com/stacksjs/pickier/compare/v0.1.8...v0.1.9)
+
+### 🐛 Bug Fixes
+
+- update vscode package and publish scripts ([b5476fc](https://github.com/stacksjs/pickier/commit/b5476fc))
+
+### 🧹 Chores
+
+- release v0.1.9 ([195fc9e](https://github.com/stacksjs/pickier/commit/195fc9e))
+
+### Contributors
+
+- Adelino Ngomacha <adelinob335@gmail.com>
+
+[Compare changes](https://github.com/stacksjs/pickier/compare/v0.1.8...HEAD)
+
+### 🐛 Bug Fixes
+
+- update vscode package and publish scripts ([b5476fc](https://github.com/stacksjs/pickier/commit/b5476fc))
+
+### Contributors
+
+- Adelino Ngomacha <adelinob335@gmail.com>
+
 [Compare changes](https://github.com/stacksjs/pickier/compare/v0.1.7...v0.1.8)
 
 ### 🚀 Features
