@@ -1,6 +1,6 @@
+import type { RuleModule } from '../../types'
 import { existsSync, readFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
-import type { RuleModule } from '../../types'
 
 export const namedRule: RuleModule = {
   meta: {

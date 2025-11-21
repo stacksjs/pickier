@@ -15,7 +15,7 @@ export const noSpaceInLinksRule: RuleModule = {
       const line = lines[i]
 
       // Check for spaces inside link text [  text  ](url)
-      const matches = line.matchAll(/\[(\s+.+?|\s*.+?\s+)\]\([^)]+\)/g)
+      const matches = line.matchAll(/\[(\s+(?:\S.*?|[\t\v\f \xA0\u1680\u2000-\u200A\u202F\u205F\u3000\uFEFF])|\s*(?:\S.*?|[\t\v\f \xA0\u1680\u2000-\u200A\u202F\u205F\u3000\uFEFF])\s+)\]\([^)]+\)/g)
 
       for (const match of matches) {
         const linkText = match[1]

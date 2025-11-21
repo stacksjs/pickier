@@ -15,7 +15,7 @@ export const noMultipleSpaceClosedAtxRule: RuleModule = {
       const line = lines[i]
 
       // Check for closed ATX heading with multiple spaces after opening
-      const openMatch = line.match(/^(#{1,6})\s{2,}.+?#{1,6}\s*$/)
+      const openMatch = line.match(/^(#{1,6})\s{2,}(?:\S.*?|[\t\v\f \xA0\u1680\u2000-\u200A\u202F\u205F\u3000\uFEFF])#{1,6}\s*$/)
       if (openMatch) {
         issues.push({
           filePath: ctx.filePath,
@@ -28,7 +28,7 @@ export const noMultipleSpaceClosedAtxRule: RuleModule = {
       }
 
       // Check for multiple spaces before closing hashes
-      const closeMatch = line.match(/^#{1,6}\s+.+?\s{2,}(#{1,6})\s*$/)
+      const closeMatch = line.match(/^#{1,6}\s+(?:\S.*?|[\t\v\f \xA0\u1680\u2000-\u200A\u202F\u205F\u3000\uFEFF])\s{2,}(#{1,6})\s*$/)
       if (closeMatch) {
         const column = line.lastIndexOf(closeMatch[1]) - 1
         issues.push({

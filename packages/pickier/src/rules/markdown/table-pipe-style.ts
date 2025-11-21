@@ -33,7 +33,8 @@ export const tablePipeStyleRule: RuleModule = {
               severity: 'error',
             })
           }
-        } else if (style === 'leading_only') {
+        }
+        else if (style === 'leading_only') {
           if (!hasLeading || hasTrailing) {
             issues.push({
               filePath: ctx.filePath,
@@ -44,7 +45,8 @@ export const tablePipeStyleRule: RuleModule = {
               severity: 'error',
             })
           }
-        } else if (style === 'trailing_only') {
+        }
+        else if (style === 'trailing_only') {
           if (hasLeading || !hasTrailing) {
             issues.push({
               filePath: ctx.filePath,
@@ -55,7 +57,8 @@ export const tablePipeStyleRule: RuleModule = {
               severity: 'error',
             })
           }
-        } else if (style === 'no_leading_or_trailing') {
+        }
+        else if (style === 'no_leading_or_trailing') {
           if (hasLeading || hasTrailing) {
             issues.push({
               filePath: ctx.filePath,

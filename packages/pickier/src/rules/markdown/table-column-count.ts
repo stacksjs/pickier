@@ -31,7 +31,8 @@ export const tableColumnCountRule: RuleModule = {
           inTable = true
           expectedColumns = columnCount
           tableStartLine = i
-        } else if (columnCount !== expectedColumns) {
+        }
+        else if (columnCount !== expectedColumns) {
           issues.push({
             filePath: ctx.filePath,
             line: i + 1,
@@ -41,7 +42,8 @@ export const tableColumnCountRule: RuleModule = {
             severity: 'error',
           })
         }
-      } else if (line.trim().length === 0 || !isTableLine) {
+      }
+      else if (line.trim().length === 0 || !isTableLine) {
         // End of table
         if (inTable) {
           inTable = false

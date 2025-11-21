@@ -108,7 +108,7 @@ export const preferOptionalChainRule: RuleModule = {
           const part3 = andSplit[j + 2].trim()
 
           // Check if part2 starts with part1 and part3 starts with part2
-          if (part2.startsWith(part1 + '.') && part3.startsWith(part2 + '.')) {
+          if (part2.startsWith(`${part1}.`) && part3.startsWith(`${part2}.`)) {
             const actualIdx = originalLine.indexOf(part1)
             issues.push({
               filePath: ctx.filePath,

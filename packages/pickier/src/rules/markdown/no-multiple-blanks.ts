@@ -32,7 +32,8 @@ export const noMultipleBlanksRule: RuleModule = {
             severity: 'error',
           })
         }
-      } else {
+      }
+      else {
         consecutiveBlanks = 0
       }
     }
@@ -53,7 +54,8 @@ export const noMultipleBlanksRule: RuleModule = {
         if (consecutiveBlanks <= maximum) {
           result.push(line)
         }
-      } else {
+      }
+      else {
         consecutiveBlanks = 0
         result.push(line)
       }

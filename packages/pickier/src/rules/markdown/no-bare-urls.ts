@@ -20,7 +20,7 @@ export const noBareUrlsRule: RuleModule = {
       }
 
       // Simple URL pattern (not inside <> or [](url) or `code`)
-      const urlPattern = /(?<!<|`|\()https?:\/\/[^\s<>`)\]]+(?![>\])`])/g
+      const urlPattern = /(?<![<`(])https?:\/\/[^\s<>`)\]]+(?![>\])`])/g
       const matches = line.matchAll(urlPattern)
 
       for (const match of matches) {
@@ -47,7 +47,7 @@ export const noBareUrlsRule: RuleModule = {
       }
 
       // Wrap bare URLs in angle brackets
-      return line.replace(/(?<!<|`|\()https?:\/\/[^\s<>`)\]]+(?![>\])`])/g, '<$&>')
+      return line.replace(/(?<![<`(])https?:\/\/[^\s<>`)\]]+(?![>\])`])/g, '<$&>')
     })
     return fixedLines.join('\n')
   },

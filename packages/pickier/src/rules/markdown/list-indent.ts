@@ -37,10 +37,12 @@ export const listIndentRule: RuleModule = {
               severity: 'error',
             })
           }
-        } else {
+        }
+        else {
           levelIndents.set(level, indent)
         }
-      } else if (line.trim().length === 0) {
+      }
+      else if (line.trim().length === 0) {
         // Blank line might end the list context
         if (inList) {
           const nextNonBlank = lines.slice(i + 1).find(l => l.trim().length > 0)

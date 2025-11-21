@@ -161,7 +161,7 @@ export const noUnsafeAssignmentRule: RuleModule = {
       // Pattern 4: Array/Object destructuring from any
       // const { foo } = anyTypedObject
       // This is harder to detect without type info, so we'll flag common patterns
-      const destructurePattern = /(?:const|let|var)\s+(?:{[^}]+}|\[[^\]]+])\s*=\s*([\w$]+)/
+      const destructurePattern = /(?:const|let|var)\s+(?:\{[^}]+\}|\[[^\]]+\])\s*=\s*([\w$]+)/
       const destructMatch = cleanedLine.match(destructurePattern)
       if (destructMatch) {
         const source = destructMatch[1]

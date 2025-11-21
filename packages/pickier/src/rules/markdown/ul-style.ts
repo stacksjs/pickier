@@ -34,7 +34,8 @@ export const ulStyleRule: RuleModule = {
             message: `Expected asterisk (*) for unordered list, found '${marker}'`,
             severity: 'error',
           })
-        } else if (style === 'dash' && marker !== '-') {
+        }
+        else if (style === 'dash' && marker !== '-') {
           issues.push({
             filePath: ctx.filePath,
             line: i + 1,
@@ -43,7 +44,8 @@ export const ulStyleRule: RuleModule = {
             message: `Expected dash (-) for unordered list, found '${marker}'`,
             severity: 'error',
           })
-        } else if (style === 'plus' && marker !== '+') {
+        }
+        else if (style === 'plus' && marker !== '+') {
           issues.push({
             filePath: ctx.filePath,
             line: i + 1,
@@ -52,10 +54,12 @@ export const ulStyleRule: RuleModule = {
             message: `Expected plus (+) for unordered list, found '${marker}'`,
             severity: 'error',
           })
-        } else if (style === 'consistent') {
+        }
+        else if (style === 'consistent') {
           if (detectedStyle === null) {
             detectedStyle = marker
-          } else if (detectedStyle !== marker) {
+          }
+          else if (detectedStyle !== marker) {
             issues.push({
               filePath: ctx.filePath,
               line: i + 1,
@@ -79,9 +83,15 @@ export const ulStyleRule: RuleModule = {
 
     // Determine target marker
     let targetMarker: '*' | '-' | '+' = '*'
-    if (style === 'asterisk') targetMarker = '*'
-    else if (style === 'dash') targetMarker = '-'
-    else if (style === 'plus') targetMarker = '+'
+    if (style === 'asterisk') {
+      targetMarker = '*'
+    }
+    else if (style === 'dash') {
+      targetMarker = '-'
+    }
+    else if (style === 'plus') {
+      targetMarker = '+'
+    }
     else if (style === 'consistent') {
       // Find first list marker
       for (const line of lines) {

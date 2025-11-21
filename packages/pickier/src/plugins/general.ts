@@ -18,15 +18,17 @@ import { noEmptyPatternRule } from '../rules/general/no-empty-pattern'
 import { noFallthroughRule } from '../rules/general/no-fallthrough'
 import { noIrregularWhitespaceRule } from '../rules/general/no-irregular-whitespace'
 import { noLossOfPrecisionRule } from '../rules/general/no-loss-of-precision'
+import { noNew } from '../rules/general/no-new'
 import { noPromiseExecutorReturnRule } from '../rules/general/no-promise-executor-return'
 import { noRedeclareRule } from '../rules/general/no-redeclare'
+import { noRegexSpaces } from '../rules/general/no-regex-spaces'
 import { noSelfAssignRule } from '../rules/general/no-self-assign'
 import { noSelfCompareRule } from '../rules/general/no-self-compare'
 import { noSparseArraysRule } from '../rules/general/no-sparse-arrays'
 import { noUndefRule } from '../rules/general/no-undef'
-import { noUnusedVarsRule } from '../rules/general/no-unused-vars'
-import { noUnsafeNegationRule } from '../rules/general/no-unsafe-negation'
 import { noUnreachableRule } from '../rules/general/no-unreachable'
+import { noUnsafeNegationRule } from '../rules/general/no-unsafe-negation'
+import { noUnusedVarsRule } from '../rules/general/no-unused-vars'
 import { noUselessCatchRule } from '../rules/general/no-useless-catch'
 import { preferConstRule } from '../rules/general/prefer-const'
 import { preferObjectSpreadRule } from '../rules/general/prefer-object-spread'
@@ -55,6 +57,8 @@ export const generalPlugin: PickierPlugin = {
     'no-fallthrough': noFallthroughRule,
     'no-irregular-whitespace': noIrregularWhitespaceRule,
     'no-loss-of-precision': noLossOfPrecisionRule,
+    'no-new': noNew,
+    'no-regex-spaces': noRegexSpaces,
     'no-promise-executor-return': noPromiseExecutorReturnRule,
     'no-redeclare': noRedeclareRule,
     'no-self-assign': noSelfAssignRule,

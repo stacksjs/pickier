@@ -1,71 +1,184 @@
 # Configuration
 
-Pickier can be configured using a `pickier.config.ts` (or `.js` / `.json`) file in your project root.
+Pickier uses a `pickier.config.ts` file in your project root for configuration. TypeScript, JavaScript, and JSON formats are supported.
 
-## Example (TypeScript)
+## Quick Start
 
 ```ts
-// pickier.config.ts
 import type { PickierConfig } from 'pickier'
 
 const config: PickierConfig = {
   verbose: false,
-  ignores: ['**/node_modules/**', '**/dist/**', '**/build/**', '**/vendor/**', '**/coverage/**'],
+  ignores: ['**/node_modules/**', '**/dist/**', '**/build/**'],
   lint: {
-    extensions: ['ts', 'js', 'html', 'css', 'json', 'jsonc', 'md', 'yaml', 'yml', 'stx'],
+    extensions: ['ts', 'js', 'html', 'css', 'json', 'md'],
     reporter: 'stylish',
-    cache: false,
     maxWarnings: -1,
   },
   format: {
-    extensions: ['ts', 'js', 'html', 'css', 'json', 'jsonc', 'md', 'yaml', 'yml', 'stx'],
     trimTrailingWhitespace: true,
     maxConsecutiveBlankLines: 1,
-    finalNewline: 'one', // 'one' | 'two' | 'none'
+    finalNewline: 'one',
     indent: 2,
-    indentStyle: 'spaces', // 'spaces' | 'tabs'
-    quotes: 'single', // 'single' | 'double'
+    quotes: 'single',
     semi: false,
   },
   rules: {
-    noDebugger: 'error', // 'off' | 'warn' | 'error'
+    noDebugger: 'error',
     noConsole: 'warn',
-    // optional additional checks
-    // noUnusedCapturingGroup: 'warn',
-    // noCondAssign: 'error',
-    // noTemplateCurlyInString: 'warn',
   },
-  // Enable plugin rules (built-ins and custom)
-  // plugins: [myPlugin],
-  // pluginRules: {
-  //   'pickier/sort-objects': ['warn', { type: 'alphabetical', order: 'asc', ignoreCase: true }],
-  //   'style/max-statements-per-line': ['warn', { max: 1 }],
-  //   'regexp/no-super-linear-backtracking': 'error',
-  // },
 }
 
 export default config
 ```
 
-## JSON config
+## Configuration Options
+
+### Core Settings
+
+**verbose**: Enable detailed logging and error context (default: `false`)
+
+```ts
+verbose: true
+```
+
+**ignores**: Glob patterns for files to skip (default: `['**/node_modules/**', '**/dist/**', '**/.git/**']`)
+
+```ts
+ignores: [
+  '**/node_modules/**',
+  '**/dist/**',
+  '**/build/**',
+  '**/*.test.ts',
+  '**/*.bench.ts',
+  '**/*.config.ts',
+]
+```
+
+### Linting
+
+**lint.extensions**: File extensions to lint (default: `['ts', 'js', 'tsx', 'jsx']`)
+
+**lint.reporter**: Output format - `'stylish'`, `'json'`, or `'compact'` (default: `'stylish'`)
+
+**lint.maxWarnings**: Maximum warnings before failing, `-1` to disable (default: `-1`)
+
+```ts
+lint: {
+  extensions: ['ts', 'js', 'html', 'css', 'md'],
+  reporter: 'stylish',
+  maxWarnings: 0,
+}
+```
+
+### Formatting
+
+**format.trimTrailingWhitespace**: Remove trailing whitespace (default: `true`)
+
+**format.maxConsecutiveBlankLines**: Maximum consecutive blank lines (default: `1`)
+
+**format.finalNewline**: Final newline policy - `'one'`, `'two'`, or `'none'` (default: `'one'`)
+
+**format.indent**: Indentation size (default: `2`)
+
+**format.indentStyle**: Indentation type - `'spaces'` or `'tabs'` (default: `'spaces'`)
+
+**format.quotes**: Quote style - `'single'` or `'double'` (default: `'single'`)
+
+**format.semi**: Enforce semicolons - `false` removes unnecessary semicolons (default: `false`)
+
+```ts
+format: {
+  trimTrailingWhitespace: true,
+  maxConsecutiveBlankLines: 1,
+  finalNewline: 'one',
+  indent: 2,
+  indentStyle: 'spaces',
+  quotes: 'single',
+  semi: false,
+}
+```
+
+### Rules
+
+Built-in rules with severity levels: `'off'`, `'warn'`, or `'error'`
+
+```ts
+rules: {
+  noDebugger: 'error',
+  noConsole: 'error',
+  noTemplateCurlyInString: 'error',
+  noCondAssign: 'error',
+}
+```
+
+### Plugin Rules
+
+Enable plugin rules with consistent naming:
+
+```ts
+pluginRules: {
+  'ts/prefer-const': 'error',
+  'style/curly': 'error',
+  'style/if-newline': 'error',
+  'style/brace-style': 'error',
+  'style/max-statements-per-line': 'error',
+  'regexp/no-super-linear-backtracking': 'error',
+  'regexp/no-unused-capturing-group': 'error',
+  'pickier/no-unused-vars': 'error',
+  'pickier/import-dedupe': 'error',
+  'unused-imports/no-unused-vars': 'error',
+  'perfectionist/sort-imports': 'error',
+  'node/prefer-global/buffer': 'error',
+  'node/prefer-global/process': 'error',
+}
+```
+
+## Rule Aliasing
+
+Pickier supports ESLint config aliases for compatibility:
+
+```ts
+'antfu/curly' → 'style/curly'
+'antfu/if-newline' → 'style/if-newline'
+'antfu/no-top-level-await' → 'ts/no-top-level-await'
+```
+
+## Disable Comments
+
+ESLint-style disable comments work in Pickier:
+
+```ts
+// Disable next line
+// eslint-disable-next-line no-console
+console.log('Allowed')
+
+// Disable block
+/* eslint-disable no-console */
+console.log('Allowed')
+console.error('Also allowed')
+/* eslint-enable no-console */
+
+// Pickier prefix also works
+// pickier-disable-next-line no-console
+```
+
+## JSON Configuration
 
 ```json
 {
   "verbose": false,
-  "ignores": ["**/node_modules/**", "**/dist/**", "**/build/**", "**/vendor/**", "**/coverage/**"],
+  "ignores": ["**/node_modules/**", "**/dist/**"],
   "lint": {
-    "extensions": ["ts", "js", "html", "css", "json", "jsonc", "md", "yaml", "yml", "stx"],
+    "extensions": ["ts", "js"],
     "reporter": "stylish",
-    "cache": false,
     "maxWarnings": -1
   },
   "format": {
-    "extensions": ["ts", "js", "html", "css", "json", "jsonc", "md", "yaml", "yml", "stx"],
     "trimTrailingWhitespace": true,
     "maxConsecutiveBlankLines": 1,
     "finalNewline": "one",
     "indent": 2,
-    "indentStyle": "spaces",
     "quotes": "single",
     "semi": false
   },
@@ -76,9 +189,83 @@ export default config
 }
 ```
 
-## Notes
+## Environment Variables
 
-- `--config <path>` can point to any of the supported formats.
-- When `--ext` is not provided on the CLI, Pickier uses `lint.extensions` or `format.extensions` from your config.
-- `ignores` are passed to the file scanner to skip matching paths.
-- When `--ext` is omitted, Pickier uses `lint.extensions` / `format.extensions` from your config. Built-in defaults: `.ts,.js,.html,.css,.json,.jsonc,.md,.yaml,.yml,.stx`.
+- `PICKIER_NO_AUTO_CONFIG=1`: Disable automatic config loading
+- `PICKIER_TRACE=1`: Enable trace logging
+- `PICKIER_FAIL_ON_WARNINGS=1`: Treat warnings as errors
+
+## Complete Example
+
+```ts
+import type { PickierConfig } from 'pickier'
+
+const config: PickierConfig = {
+  verbose: true,
+
+  ignores: [
+    '**/node_modules/**',
+    '**/dist/**',
+    '**/build/**',
+    '**/test/fixtures/**',
+    '**/*.test.ts',
+    '**/*.bench.ts',
+    '**/*.config.ts',
+  ],
+
+  lint: {
+    extensions: ['ts', 'js', 'html', 'css', 'json', 'md'],
+    reporter: 'stylish',
+    maxWarnings: -1,
+  },
+
+  format: {
+    trimTrailingWhitespace: true,
+    maxConsecutiveBlankLines: 1,
+    finalNewline: 'one',
+    indent: 2,
+    quotes: 'single',
+    semi: false,
+  },
+
+  rules: {
+    noDebugger: 'error',
+    noConsole: 'error',
+    noTemplateCurlyInString: 'error',
+    noCondAssign: 'error',
+  },
+
+  pluginRules: {
+    'ts/prefer-const': 'error',
+    'style/curly': 'error',
+    'style/if-newline': 'error',
+    'pickier/no-unused-vars': 'error',
+    'unused-imports/no-unused-vars': 'error',
+    'regexp/no-super-linear-backtracking': 'error',
+    'perfectionist/sort-imports': 'error',
+  },
+}
+
+export default config
+```
+
+## ESLint Migration
+
+Common ESLint rules map to Pickier equivalents:
+
+| ESLint Rule | Pickier Equivalent |
+|-------------|-------------------|
+| `no-debugger` | `noDebugger` |
+| `no-console` | `noConsole` |
+| `no-cond-assign` | `noCondAssign` |
+| `prefer-const` | `ts/prefer-const` |
+| `curly` | `style/curly` |
+| `no-unused-vars` | `unused-imports/no-unused-vars` |
+
+## CLI Override
+
+Use `--config <path>` to specify a config file:
+
+```bash
+pickier run . --config custom.config.ts
+```

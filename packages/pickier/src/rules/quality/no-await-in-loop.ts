@@ -26,7 +26,8 @@ export const noAwaitInLoopRule: RuleModule = {
       if (inLoop) {
         // Count braces
         for (const char of line) {
-          if (char === '{') loopBraceCount++
+          if (char === '{')
+            loopBraceCount++
           if (char === '}') {
             loopBraceCount--
             if (loopBraceCount === 0) {

@@ -3,8 +3,8 @@ import { readFileSync, writeFileSync } from 'node:fs'
 import { isAbsolute, relative, resolve } from 'node:path'
 import process from 'node:process'
 import { Logger } from '@stacksjs/clarity'
-import { glob as tinyGlob } from 'tinyglobby'
 import pLimit from 'p-limit'
+import { glob as tinyGlob } from 'tinyglobby'
 import { detectQuoteIssues, hasIndentIssue } from './format'
 import { formatStylish, formatVerbose } from './formatter'
 import { getAllPlugins } from './plugins'
@@ -308,7 +308,8 @@ function parseDisableDirectives(content: string): DisableDirectives {
     }
 
     // Match block comment disable directives (/* eslint-disable */ or /* pickier-disable */)
-    const blockDisableMatch = t.match(/^\/\*\s*(?:eslint|pickier)-disable(?:\s+([^*]*))?.*\*\//)
+    // eslint-disable-next-line regexp/no-super-linear-backtracking
+    const blockDisableMatch = t.match(/^\/\*\s*(?:eslint|pickier)-disable(?:\s+([^*]+))?\s*\*\//)
     if (blockDisableMatch) {
       const ruleList = blockDisableMatch[1]?.trim()
       if (!ruleList || ruleList === '') {
@@ -340,7 +341,8 @@ function parseDisableDirectives(content: string): DisableDirectives {
     }
 
     // Match block comment enable directives (/* eslint-enable */ or /* pickier-enable */)
-    const blockEnableMatch = t.match(/^\/\*\s*(?:eslint|pickier)-enable(?:\s+([^*]*))?.*\*\//)
+    // eslint-disable-next-line regexp/no-super-linear-backtracking
+    const blockEnableMatch = t.match(/^\/\*\s*(?:eslint|pickier)-enable(?:\s+([^*]+))?\s*\*\//)
     if (blockEnableMatch) {
       const ruleList = blockEnableMatch[1]?.trim()
       if (!ruleList || ruleList === '') {
@@ -409,7 +411,7 @@ function parseDisableDirectives(content: string): DisableDirectives {
 }
 
 // Legacy function for backwards compatibility - now calls parseDisableDirectives
-function parseDisableNextLine(content: string): SuppressMap {
+function _parseDisableNextLine(content: string): SuppressMap {
   return parseDisableDirectives(content).nextLine
 }
 
@@ -571,6 +573,22 @@ export async function applyPlugins(filePath: string, content: string, cfg: Picki
   const rulesConfig: RulesConfigMap = { ...(cfg.pluginRules || {}) as RulesConfigMap }
   if (cfg.rules?.noUnusedCapturingGroup)
     rulesConfig['regexp/no-unused-capturing-group'] = cfg.rules.noUnusedCapturingGroup
+
+  // Rule aliasing: map antfu/ prefix to actual implementations
+  const ruleAliases: Record<string, string> = {
+    'antfu/curly': 'style/curly',
+    'antfu/if-newline': 'style/if-newline',
+    'antfu/no-top-level-await': 'ts/no-top-level-await',
+  }
+
+  // Apply aliases: if antfu/X is configured, map it to the actual rule
+  for (const [alias, target] of Object.entries(ruleAliases)) {
+    if (rulesConfig[alias as keyof RulesConfigMap]) {
+      rulesConfig[target as keyof RulesConfigMap] = rulesConfig[alias as keyof RulesConfigMap]
+      // Don't delete the alias entry in case it's referenced elsewhere
+    }
+  }
+
   // Also support bare rule IDs (without plugin prefix) by mapping to any plugins that define them
   for (const key of Object.keys(cfg.pluginRules || {})) {
     if (!key.includes('/')) {

@@ -31,7 +31,8 @@ export const maxLinesPerFunctionRule: RuleModule = {
       if (inFunction) {
         // Count braces
         for (const char of line) {
-          if (char === '{') braceCount++
+          if (char === '{')
+            braceCount++
           if (char === '}') {
             braceCount--
             if (braceCount === 0) {

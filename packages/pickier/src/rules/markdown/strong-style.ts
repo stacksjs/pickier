@@ -20,7 +20,7 @@ export const strongStyleRule: RuleModule = {
       const line = lines[i]
 
       // Find double asterisk strong
-      const asteriskMatches = line.matchAll(/\*\*([^*]+?)\*\*/g)
+      const asteriskMatches = line.matchAll(/\*\*([^*]+)\*\*/g)
 
       for (const match of asteriskMatches) {
         if (style === 'underscore') {
@@ -32,10 +32,12 @@ export const strongStyleRule: RuleModule = {
             message: 'Expected underscore (__) for strong',
             severity: 'error',
           })
-        } else if (style === 'consistent') {
+        }
+        else if (style === 'consistent') {
           if (detectedStyle === null) {
             detectedStyle = 'asterisk'
-          } else if (detectedStyle === 'underscore') {
+          }
+          else if (detectedStyle === 'underscore') {
             issues.push({
               filePath: ctx.filePath,
               line: i + 1,
@@ -49,7 +51,7 @@ export const strongStyleRule: RuleModule = {
       }
 
       // Find double underscore strong
-      const underscoreMatches = line.matchAll(/__([^_]+?)__/g)
+      const underscoreMatches = line.matchAll(/__([^_]+)__/g)
 
       for (const match of underscoreMatches) {
         if (style === 'asterisk') {
@@ -61,10 +63,12 @@ export const strongStyleRule: RuleModule = {
             message: 'Expected asterisk (**) for strong',
             severity: 'error',
           })
-        } else if (style === 'consistent') {
+        }
+        else if (style === 'consistent') {
           if (detectedStyle === null) {
             detectedStyle = 'underscore'
-          } else if (detectedStyle === 'asterisk') {
+          }
+          else if (detectedStyle === 'asterisk') {
             issues.push({
               filePath: ctx.filePath,
               line: i + 1,
@@ -86,16 +90,21 @@ export const strongStyleRule: RuleModule = {
 
     // Determine target style
     let targetStyle: 'asterisk' | 'underscore' = 'asterisk'
-    if (style === 'asterisk') targetStyle = 'asterisk'
-    else if (style === 'underscore') targetStyle = 'underscore'
+    if (style === 'asterisk') {
+      targetStyle = 'asterisk'
+    }
+    else if (style === 'underscore') {
+      targetStyle = 'underscore'
+    }
     else if (style === 'consistent') {
       // Find first strong marker
-      const asteriskMatch = text.match(/\*\*([^*]+?)\*\*/)
-      const underscoreMatch = text.match(/__([^_]+?)__/)
+      const asteriskMatch = text.match(/\*\*([^*]+)\*\*/)
+      const underscoreMatch = text.match(/__([^_]+)__/)
 
       if (asteriskMatch && (!underscoreMatch || asteriskMatch.index! < underscoreMatch.index!)) {
         targetStyle = 'asterisk'
-      } else if (underscoreMatch) {
+      }
+      else if (underscoreMatch) {
         targetStyle = 'underscore'
       }
     }
@@ -103,10 +112,11 @@ export const strongStyleRule: RuleModule = {
     let fixed = text
     if (targetStyle === 'asterisk') {
       // Convert underscores to asterisks
-      fixed = fixed.replace(/__([^_]+?)__/g, '**$1**')
-    } else {
+      fixed = fixed.replace(/__([^_]+)__/g, '**$1**')
+    }
+    else {
       // Convert asterisks to underscores
-      fixed = fixed.replace(/\*\*([^*]+?)\*\*/g, '__$1__')
+      fixed = fixed.replace(/\*\*([^*]+)\*\*/g, '__$1__')
     }
 
     return fixed

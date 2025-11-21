@@ -26,7 +26,8 @@ export const getterReturnRule: RuleModule = {
           const searchLine = lines[currentLineIndex]
 
           for (const char of searchLine) {
-            if (char === '{') braceCount++
+            if (char === '{')
+              braceCount++
             if (char === '}') {
               braceCount--
               if (braceCount === 0) {
@@ -51,7 +52,8 @@ export const getterReturnRule: RuleModule = {
             foundReturn = true
           }
 
-          if (braceCount === 0) break
+          if (braceCount === 0)
+            break
           currentLineIndex++
         }
       }

@@ -8,6 +8,7 @@ export function createPickierMock(overrides: Partial<any> = {}) {
     formatCode: (text: string) => text,
     lintText: async () => [],
     runLintProgrammatic: async () => ({ errors: 0, warnings: 0, issues: [] }),
+    // eslint-disable-next-line no-console
     runLint: async () => { console.log(JSON.stringify({ errors: 0, warnings: 0, issues: [] })) },
     ...overrides,
   }

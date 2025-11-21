@@ -16,7 +16,7 @@ export const noCaseDeclarationsRule: RuleModule = {
       const line = lines[i]
 
       // Check for case clause
-      if (line.match(/\bcase\s+.*:|default\s*:/)) {
+      if (line.match(/\bcase\s+(?:\S.*)?:|default\s*:/)) {
         inCase = true
         justEnteredCase = true
       }
@@ -25,7 +25,7 @@ export const noCaseDeclarationsRule: RuleModule = {
       }
 
       // If in case and we see a break or another case (but not the current one), reset
-      if (inCase && !justEnteredCase && (line.match(/\bbreak\b/) || line.match(/\bcase\s+.*:/))) {
+      if (inCase && !justEnteredCase && (line.match(/\bbreak\b/) || line.match(/\bcase\s+(?:\S.*)?:/))) {
         inCase = false
       }
 
