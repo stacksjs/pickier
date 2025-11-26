@@ -1,3 +1,50 @@
+[Compare changes](https://github.com/stacksjs/pickier/compare/v0.1.9...v0.1.10)
+
+### 🚀 Features
+
+- Improves file discovery and ignore patterns ([6c8e874](https://github.com/stacksjs/pickier/commit/6c8e874))
+
+### 🧹 Chores
+
+- release v0.1.10 ([bb24f75](https://github.com/stacksjs/pickier/commit/bb24f75))
+- fix type checks ([4ae480a](https://github.com/stacksjs/pickier/commit/4ae480a))
+- lint code ([0da3a73](https://github.com/stacksjs/pickier/commit/0da3a73))
+- wip ([d3ac0a5](https://github.com/stacksjs/pickier/commit/d3ac0a5))
+- update benchmarks and docs ([18e7c48](https://github.com/stacksjs/pickier/commit/18e7c48))
+- update implementations ([f3086d9](https://github.com/stacksjs/pickier/commit/f3086d9))
+- remove vscode publish script ([e183afa](https://github.com/stacksjs/pickier/commit/e183afa))
+
+### 📄 Miscellaneous
+
+- chore : update documentation ([5109545](https://github.com/stacksjs/pickier/commit/5109545))
+
+### Contributors
+
+- Adelino Ngomacha <adelinob335@gmail.com>
+
+[Compare changes](https://github.com/stacksjs/pickier/compare/v0.1.9...HEAD)
+
+### 🚀 Features
+
+- Improves file discovery and ignore patterns ([6c8e874](https://github.com/stacksjs/pickier/commit/6c8e874))
+
+### 🧹 Chores
+
+- fix type checks ([4ae480a](https://github.com/stacksjs/pickier/commit/4ae480a))
+- lint code ([0da3a73](https://github.com/stacksjs/pickier/commit/0da3a73))
+- wip ([d3ac0a5](https://github.com/stacksjs/pickier/commit/d3ac0a5))
+- update benchmarks and docs ([18e7c48](https://github.com/stacksjs/pickier/commit/18e7c48))
+- update implementations ([f3086d9](https://github.com/stacksjs/pickier/commit/f3086d9))
+- remove vscode publish script ([e183afa](https://github.com/stacksjs/pickier/commit/e183afa))
+
+### 📄 Miscellaneous
+
+- chore : update documentation ([5109545](https://github.com/stacksjs/pickier/commit/5109545))
+
+### Contributors
+
+- Adelino Ngomacha <adelinob335@gmail.com>
+
 [Compare changes](https://github.com/stacksjs/pickier/compare/v0.1.8...v0.1.9)
 
 ### 🐛 Bug Fixes
