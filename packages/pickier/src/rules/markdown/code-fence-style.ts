@@ -35,10 +35,12 @@ export const codeFenceStyleRule: RuleModule = {
             message: 'Expected tilde (~~~) code fence',
             severity: 'error',
           })
-        } else if (style === 'consistent') {
+        }
+        else if (style === 'consistent') {
           if (detectedStyle === null) {
             detectedStyle = 'backtick'
-          } else if (detectedStyle === 'tilde') {
+          }
+          else if (detectedStyle === 'tilde') {
             issues.push({
               filePath: ctx.filePath,
               line: i + 1,
@@ -49,7 +51,8 @@ export const codeFenceStyleRule: RuleModule = {
             })
           }
         }
-      } else if (isTilde) {
+      }
+      else if (isTilde) {
         if (style === 'backtick') {
           issues.push({
             filePath: ctx.filePath,
@@ -59,10 +62,12 @@ export const codeFenceStyleRule: RuleModule = {
             message: 'Expected backtick (```) code fence',
             severity: 'error',
           })
-        } else if (style === 'consistent') {
+        }
+        else if (style === 'consistent') {
           if (detectedStyle === null) {
             detectedStyle = 'tilde'
-          } else if (detectedStyle === 'backtick') {
+          }
+          else if (detectedStyle === 'backtick') {
             issues.push({
               filePath: ctx.filePath,
               line: i + 1,
@@ -86,15 +91,20 @@ export const codeFenceStyleRule: RuleModule = {
 
     // Determine target fence style
     let targetStyle: 'backtick' | 'tilde' = 'backtick'
-    if (style === 'backtick') targetStyle = 'backtick'
-    else if (style === 'tilde') targetStyle = 'tilde'
+    if (style === 'backtick') {
+      targetStyle = 'backtick'
+    }
+    else if (style === 'tilde') {
+      targetStyle = 'tilde'
+    }
     else if (style === 'consistent') {
       // Find first fence
       for (const line of lines) {
         if (/^`{3,}/.test(line)) {
           targetStyle = 'backtick'
           break
-        } else if (/^~{3,}/.test(line)) {
+        }
+        else if (/^~{3,}/.test(line)) {
           targetStyle = 'tilde'
           break
         }
@@ -105,12 +115,13 @@ export const codeFenceStyleRule: RuleModule = {
       if (targetStyle === 'backtick') {
         // Convert tildes to backticks
         return line.replace(/^(~{3,})(.*)$/, (match, tildes, rest) => {
-          return '```' + rest
+          return `\`\`\`${rest}`
         })
-      } else {
+      }
+      else {
         // Convert backticks to tildes
         return line.replace(/^(`{3,})(.*)$/, (match, backticks, rest) => {
-          return '~~~' + rest
+          return `~~~${rest}`
         })
       }
     })

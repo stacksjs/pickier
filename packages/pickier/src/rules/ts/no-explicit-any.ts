@@ -50,7 +50,7 @@ export const noExplicitAnyRule: RuleModule = {
       }
 
       // Remove strings to avoid false positives
-      let cleanedLine = line.replace(/(['"`])(?:(?!\1)[^\\]|\\.)*?\1/g, '""')
+      const cleanedLine = line.replace(/(['"`])(?:(?!\1)[^\\]|\\.)*?\1/g, '""')
 
       // Look for 'any' type annotations
       // Match patterns like:

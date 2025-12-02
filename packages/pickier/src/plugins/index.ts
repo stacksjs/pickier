@@ -2,11 +2,14 @@ import type { PickierPlugin } from '../types'
 import { eslintPlugin } from './eslint'
 import { generalPlugin } from './general'
 import { markdownPlugin } from './markdown'
+import { nodePlugin } from './node'
+import { perfectionistPlugin } from './perfectionist'
 import { pickierPlugin } from './pickier'
 import { qualityPlugin } from './quality'
 import { regexpPlugin } from './regexp'
 import { stylePlugin } from './style'
 import { tsPlugin } from './ts'
+import { unusedImportsPlugin } from './unused-imports'
 
 export function getAllPlugins(): PickierPlugin[] {
   return [
@@ -18,5 +21,8 @@ export function getAllPlugins(): PickierPlugin[] {
     regexpPlugin, // regexp/ prefix for regex rules
     tsPlugin, // ts/ prefix for TypeScript rules
     markdownPlugin, // markdown/ prefix for markdown rules
+    nodePlugin, // node/ prefix for Node.js-specific rules
+    unusedImportsPlugin, // unused-imports/ prefix for compatibility
+    perfectionistPlugin, // perfectionist/ prefix for compatibility
   ]
 }

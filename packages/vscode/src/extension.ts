@@ -1,11 +1,11 @@
 import * as vscode from 'vscode'
+import { PickierCodeLensProvider } from './codelens'
 import { organizeImports, restartExtension, showOutputChannel } from './commands'
 import { clearConfigCache, disposeConfigWatcher, getPickierConfig, watchConfigFile } from './config'
 import { lintPathsToDiagnostics, PickierDiagnosticProvider } from './diagnostics'
 import { PickierFormattingProvider } from './formatter'
-import { PickierStatusBar } from './status-bar'
 import { PickierHoverProvider } from './hover'
-import { PickierCodeLensProvider } from './codelens'
+import { PickierStatusBar } from './status-bar'
 
 let diagnosticCollection: vscode.DiagnosticCollection
 let statusBarItem: PickierStatusBar

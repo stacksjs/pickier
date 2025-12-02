@@ -37,7 +37,8 @@ export const blanksAroundListsRule: RuleModule = {
             severity: 'error',
           })
         }
-      } else if (!isListItem && inList && line.trim().length > 0) {
+      }
+      else if (!isListItem && inList && line.trim().length > 0) {
         // End of list (non-blank, non-list line)
         inList = false
 
@@ -74,13 +75,15 @@ export const blanksAroundListsRule: RuleModule = {
           result.push('')
         }
         inList = true
-      } else if (!isListItem && line.trim().length > 0 && inList) {
+      }
+      else if (!isListItem && line.trim().length > 0 && inList) {
         // End of list - add blank line before next content
         inList = false
         if (result.length > 0) {
           result.push('')
         }
-      } else if (!isListItem && line.trim().length === 0) {
+      }
+      else if (!isListItem && line.trim().length === 0) {
         // Blank line might end list
         const nextLine = i + 1 < lines.length ? lines[i + 1] : ''
         const nextIsListItem = /^(\s*)([*\-+]|\d+\.)\s+/.test(nextLine)

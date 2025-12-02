@@ -1,6 +1,6 @@
-import { existsSync } from 'node:fs'
-import { dirname, extname, join, resolve } from 'node:path'
 import type { RuleModule } from '../../types'
+import { existsSync } from 'node:fs'
+import { dirname, join, resolve } from 'node:path'
 
 export const noUnresolvedRule: RuleModule = {
   meta: {
@@ -18,7 +18,7 @@ export const noUnresolvedRule: RuleModule = {
 
       // Match import statements
       const importMatches = [
-        ...line.matchAll(/\bimport\s+.*?\s+from\s+['"]([^'"]+)['"]/g),
+        ...line.matchAll(/\bimport(?:\s{2,}|\s+\S.*?(?:[\n\r\u2028\u2029]\s*|[\t\v\f \xA0\u1680\u2000-\u200A\u202F\u205F\u3000\uFEFF]))from\s+['"]([^'"]+)['"]/g),
         ...line.matchAll(/\bimport\s*\(\s*['"]([^'"]+)['"]\s*\)/g),
         ...line.matchAll(/\brequire\s*\(\s*['"]([^'"]+)['"]\s*\)/g),
       ]

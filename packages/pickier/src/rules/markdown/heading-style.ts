@@ -37,10 +37,12 @@ export const headingStyleRule: RuleModule = {
             message: 'Expected setext style heading',
             severity: 'error',
           })
-        } else if (style === 'consistent') {
+        }
+        else if (style === 'consistent') {
           if (detectedStyle === null) {
             detectedStyle = 'atx'
-          } else if (detectedStyle === 'setext') {
+          }
+          else if (detectedStyle === 'setext') {
             issues.push({
               filePath: ctx.filePath,
               line: i + 1,
@@ -51,7 +53,8 @@ export const headingStyleRule: RuleModule = {
             })
           }
         }
-      } else if (setextMatch) {
+      }
+      else if (setextMatch) {
         if (style === 'atx') {
           issues.push({
             filePath: ctx.filePath,
@@ -61,10 +64,12 @@ export const headingStyleRule: RuleModule = {
             message: 'Expected atx style heading',
             severity: 'error',
           })
-        } else if (style === 'consistent') {
+        }
+        else if (style === 'consistent') {
           if (detectedStyle === null) {
             detectedStyle = 'setext'
-          } else if (detectedStyle === 'atx') {
+          }
+          else if (detectedStyle === 'atx') {
             issues.push({
               filePath: ctx.filePath,
               line: i + 1,

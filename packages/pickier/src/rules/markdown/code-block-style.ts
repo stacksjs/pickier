@@ -23,7 +23,7 @@ export const codeBlockStyleRule: RuleModule = {
       const isFenced = /^(`{3,}|~{3,})/.test(line)
 
       // Check for indented code block (4 spaces or tab)
-      const isIndented = /^(    |\t)/.test(line) && line.trim().length > 0
+      const isIndented = /^( {4}|\t)/.test(line) && line.trim().length > 0
 
       if (isFenced) {
         if (style === 'indented') {
@@ -35,10 +35,12 @@ export const codeBlockStyleRule: RuleModule = {
             message: 'Expected indented code block style',
             severity: 'error',
           })
-        } else if (style === 'consistent') {
+        }
+        else if (style === 'consistent') {
           if (detectedStyle === null) {
             detectedStyle = 'fenced'
-          } else if (detectedStyle === 'indented') {
+          }
+          else if (detectedStyle === 'indented') {
             issues.push({
               filePath: ctx.filePath,
               line: i + 1,
@@ -49,7 +51,8 @@ export const codeBlockStyleRule: RuleModule = {
             })
           }
         }
-      } else if (isIndented) {
+      }
+      else if (isIndented) {
         // Need to verify it's actually a code block, not just indented text in a list
         const prevLine = i > 0 ? lines[i - 1] : ''
         const isAfterBlankLine = prevLine.trim().length === 0 || i === 0
@@ -63,10 +66,12 @@ export const codeBlockStyleRule: RuleModule = {
             message: 'Expected fenced code block style',
             severity: 'error',
           })
-        } else if (isAfterBlankLine && style === 'consistent') {
+        }
+        else if (isAfterBlankLine && style === 'consistent') {
           if (detectedStyle === null) {
             detectedStyle = 'indented'
-          } else if (detectedStyle === 'fenced') {
+          }
+          else if (detectedStyle === 'fenced') {
             issues.push({
               filePath: ctx.filePath,
               line: i + 1,

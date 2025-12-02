@@ -27,7 +27,6 @@ warn   2:1  noConsole   Unexpected console call
 warn   3:20 quotes      Inconsistent quote style
 warn   3:1  sort-named-imports  Named imports are not sorted
 
-
 ✖ 4 problems (1 error, 3 warnings)
   1 error and 0 warnings potentially fixable with the `--fix` option.
 ```
@@ -50,7 +49,7 @@ Exit code: 0
 ```
 (No output when clean)
 
-### With Fixable Issues  
+### With Fixable Issues
 ```bash
 ✖ 12 problems (0 errors, 12 warnings)
   0 errors and 1 warning potentially fixable with the `--fix` option.

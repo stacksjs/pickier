@@ -3,8 +3,8 @@ import { readFileSync, writeFileSync } from 'node:fs'
 import { isAbsolute, relative, resolve } from 'node:path'
 import process from 'node:process'
 import { Logger } from '@stacksjs/clarity'
-import { glob as tinyGlob } from 'tinyglobby'
 import pLimit from 'p-limit'
+import { glob as tinyGlob } from 'tinyglobby'
 import { detectQuoteIssues, hasIndentIssue } from './format'
 import { formatStylish, formatVerbose } from './formatter'
 import { getAllPlugins } from './plugins'
@@ -92,9 +92,42 @@ export async function runLintProgrammatic(
     return !absBase.startsWith(process.cwd())
   })
 
-  const universalIgnores = ['**/node_modules/**', '**/dist/**', '**/build/**', '**/.git/**']
+  // Universal ignore patterns that should apply everywhere
+  const universalIgnores = [
+    '**/node_modules/**',
+    '**/dist/**',
+    '**/build/**',
+    '**/.git/**',
+    '**/.next/**',
+    '**/.nuxt/**',
+    '**/.output/**',
+    '**/.vercel/**',
+    '**/.netlify/**',
+    '**/.cache/**',
+    '**/.turbo/**',
+    '**/.vscode/**',
+    '**/.idea/**',
+    '**/coverage/**',
+    '**/.nyc_output/**',
+    '**/tmp/**',
+    '**/temp/**',
+    '**/.tmp/**',
+    '**/.temp/**',
+    '**/vendor/**',
+    '**/target/**', // Rust
+    '**/zig-cache/**', // Zig
+    '**/zig-out/**', // Zig
+    '**/.zig-cache/**', // Zig
+    '**/__pycache__/**', // Python
+    '**/.pytest_cache/**', // Python
+    '**/venv/**', // Python
+    '**/.venv/**', // Python
+    '**/out/**',
+    '**/.DS_Store',
+    '**/Thumbs.db',
+  ]
   const globIgnores = isGlobbingOutsideProject
-    ? cfg.ignores.filter(pattern => universalIgnores.includes(pattern))
+    ? universalIgnores // Use ALL universal ignores when outside project
     : cfg.ignores
 
   let entries: string[] = []
@@ -127,7 +160,7 @@ export async function runLintProgrammatic(
         for (const it of items) {
           const full = join(dir, it)
           const st = statSync(full)
-          if (shouldIgnorePath(full, cfg.ignores))
+          if (shouldIgnorePath(full, globIgnores))
             continue
           if (st.isDirectory())
             stack.push(full)
@@ -169,7 +202,7 @@ export async function runLintProgrammatic(
       cntNodeModules++
       continue
     }
-    if (shouldIgnorePath(f, cfg.ignores)) {
+    if (shouldIgnorePath(f, globIgnores)) {
       cntIgnored++
       continue
     }
@@ -308,7 +341,8 @@ function parseDisableDirectives(content: string): DisableDirectives {
     }
 
     // Match block comment disable directives (/* eslint-disable */ or /* pickier-disable */)
-    const blockDisableMatch = t.match(/^\/\*\s*(?:eslint|pickier)-disable(?:\s+([^*]*))?.*\*\//)
+    // eslint-disable-next-line regexp/no-super-linear-backtracking
+    const blockDisableMatch = t.match(/^\/\*\s*(?:eslint|pickier)-disable(?:\s+([^*]+))?\s*\*\//)
     if (blockDisableMatch) {
       const ruleList = blockDisableMatch[1]?.trim()
       if (!ruleList || ruleList === '') {
@@ -340,7 +374,8 @@ function parseDisableDirectives(content: string): DisableDirectives {
     }
 
     // Match block comment enable directives (/* eslint-enable */ or /* pickier-enable */)
-    const blockEnableMatch = t.match(/^\/\*\s*(?:eslint|pickier)-enable(?:\s+([^*]*))?.*\*\//)
+    // eslint-disable-next-line regexp/no-super-linear-backtracking
+    const blockEnableMatch = t.match(/^\/\*\s*(?:eslint|pickier)-enable(?:\s+([^*]+))?\s*\*\//)
     if (blockEnableMatch) {
       const ruleList = blockEnableMatch[1]?.trim()
       if (!ruleList || ruleList === '') {
@@ -409,7 +444,7 @@ function parseDisableDirectives(content: string): DisableDirectives {
 }
 
 // Legacy function for backwards compatibility - now calls parseDisableDirectives
-function parseDisableNextLine(content: string): SuppressMap {
+function _parseDisableNextLine(content: string): SuppressMap {
   return parseDisableDirectives(content).nextLine
 }
 
@@ -571,6 +606,22 @@ export async function applyPlugins(filePath: string, content: string, cfg: Picki
   const rulesConfig: RulesConfigMap = { ...(cfg.pluginRules || {}) as RulesConfigMap }
   if (cfg.rules?.noUnusedCapturingGroup)
     rulesConfig['regexp/no-unused-capturing-group'] = cfg.rules.noUnusedCapturingGroup
+
+  // Rule aliasing: map antfu/ prefix to actual implementations
+  const ruleAliases: Record<string, string> = {
+    'antfu/curly': 'style/curly',
+    'antfu/if-newline': 'style/if-newline',
+    'antfu/no-top-level-await': 'ts/no-top-level-await',
+  }
+
+  // Apply aliases: if antfu/X is configured, map it to the actual rule
+  for (const [alias, target] of Object.entries(ruleAliases)) {
+    if (rulesConfig[alias as keyof RulesConfigMap]) {
+      rulesConfig[target as keyof RulesConfigMap] = rulesConfig[alias as keyof RulesConfigMap]
+      // Don't delete the alias entry in case it's referenced elsewhere
+    }
+  }
+
   // Also support bare rule IDs (without plugin prefix) by mapping to any plugins that define them
   for (const key of Object.keys(cfg.pluginRules || {})) {
     if (!key.includes('/')) {
@@ -1185,20 +1236,31 @@ export function scanContent(filePath: string, content: string, cfg: PickierConfi
 
 export async function runLint(globs: string[], options: LintOptions): Promise<number> {
   trace('runLint:start', { globs, options })
+  const enableDiagnostics = process.env.PICKIER_DIAGNOSTICS === '1'
+  if (enableDiagnostics)
+    logger.info('[pickier:diagnostics] Starting lint process...')
   try {
+    if (enableDiagnostics)
+      logger.info('[pickier:diagnostics] Loading config...')
     const cfg = await loadConfigFromPath(options.config)
     trace('config:loaded', { reporter: cfg.lint.reporter, ext: cfg.lint.extensions.join(',') })
 
     const raw = globs.length ? globs : ['.']
     const patterns = expandPatterns(raw)
     trace('patterns', patterns)
+    if (enableDiagnostics)
+      logger.info(`[pickier:diagnostics] Patterns to search: ${patterns.join(', ')}`)
     const extCsv = options.ext || cfg.lint.extensions.join(',')
     const extSet = new Set<string>(extCsv.split(',').map((s: string) => {
       const t = s.trim()
       return t.startsWith('.') ? t : `.${t}`
     }))
+    if (enableDiagnostics)
+      logger.info(`[pickier:diagnostics] File extensions: ${Array.from(extSet).join(', ')}`)
 
     const timeoutMs = Number(process.env.PICKIER_TIMEOUT_MS || '8000')
+    if (enableDiagnostics)
+      logger.info(`[pickier:diagnostics] Glob timeout: ${timeoutMs}ms`)
 
     // Filter ignore patterns based on whether we're globbing inside or outside the project
     // Universal ignores (like **/node_modules/**, **/dist/**) always apply
@@ -1210,15 +1272,54 @@ export async function runLint(globs: string[], options: LintOptions): Promise<nu
     })
 
     // Universal ignore patterns that should apply everywhere
-    const universalIgnores = ['**/node_modules/**', '**/dist/**', '**/build/**', '**/.git/**']
+    const universalIgnores = [
+      '**/node_modules/**',
+      '**/dist/**',
+      '**/build/**',
+      '**/.git/**',
+      '**/.next/**',
+      '**/.nuxt/**',
+      '**/.output/**',
+      '**/.vercel/**',
+      '**/.netlify/**',
+      '**/.cache/**',
+      '**/.turbo/**',
+      '**/.vscode/**',
+      '**/.idea/**',
+      '**/coverage/**',
+      '**/.nyc_output/**',
+      '**/tmp/**',
+      '**/temp/**',
+      '**/.tmp/**',
+      '**/.temp/**',
+      '**/vendor/**',
+      '**/target/**', // Rust
+      '**/zig-cache/**', // Zig
+      '**/zig-out/**', // Zig
+      '**/.zig-cache/**', // Zig
+      '**/__pycache__/**', // Python
+      '**/.pytest_cache/**', // Python
+      '**/venv/**', // Python
+      '**/.venv/**', // Python
+      '**/out/**',
+      '**/.DS_Store',
+      '**/Thumbs.db',
+    ]
     const globIgnores = isGlobbingOutsideProject
-      ? cfg.ignores.filter(pattern => universalIgnores.includes(pattern))
+      ? universalIgnores // Use ALL universal ignores when outside project
       : cfg.ignores
+    if (enableDiagnostics) {
+      logger.info(`[pickier:diagnostics] Globbing outside project: ${isGlobbingOutsideProject}, ignore patterns: ${globIgnores.length}`)
+      if (isGlobbingOutsideProject)
+        logger.info(`[pickier:diagnostics] Using universal ignores: ${universalIgnores.slice(0, 5).join(', ')}... (${universalIgnores.length} total)`)
+    }
 
     // Fallbacks to avoid globby hangs: handle explicit file paths and simple directory scans
     let entries: string[] = []
     // Fast path: if a single concrete file (no glob magic) is provided, just use it directly
     const nonGlobSingle = patterns.length === 1 && !/[*?[\]{}()!]/.test(patterns[0])
+    if (enableDiagnostics)
+      logger.info(`[pickier:diagnostics] Starting file discovery... (nonGlobSingle: ${nonGlobSingle})`)
     if (nonGlobSingle) {
       try {
         const { statSync } = await import('node:fs')
@@ -1236,18 +1337,24 @@ export async function runLint(globs: string[], options: LintOptions): Promise<nu
     const simpleDirPattern = patterns.length === 1 && /\*\*\/*\*$/.test(patterns[0])
     if (!entries.length && simpleDirPattern) {
       const base = patterns[0].replace(/\/?\*\*\/*\*\*?$/, '')
+      if (enableDiagnostics)
+        logger.info(`[pickier:diagnostics] Using fast directory scan for: ${base}`)
       try {
         const { readdirSync, statSync } = await import('node:fs')
         const { join } = await import('node:path')
         const rootBase = isAbsolute(base) ? base : resolve(process.cwd(), base)
         const stack: string[] = [rootBase]
+        let dirCount = 0
         while (stack.length) {
           const dir = stack.pop()!
+          dirCount++
+          if (enableDiagnostics && dirCount % 100 === 0)
+            logger.info(`[pickier:diagnostics] Scanned ${dirCount} directories, ${entries.length} files found so far...`)
           const items = readdirSync(dir)
           for (const it of items) {
             const full = join(dir, it)
             const st = statSync(full)
-            if (shouldIgnorePath(full, cfg.ignores))
+            if (shouldIgnorePath(full, globIgnores))
               continue
             if (st.isDirectory())
               stack.push(full)
@@ -1255,8 +1362,12 @@ export async function runLint(globs: string[], options: LintOptions): Promise<nu
               entries.push(full)
           }
         }
+        if (enableDiagnostics)
+          logger.info(`[pickier:diagnostics] Fast scan complete: ${dirCount} directories, ${entries.length} total files`)
       }
-      catch {
+      catch (e) {
+        if (enableDiagnostics)
+          logger.info(`[pickier:diagnostics] Fast scan failed: ${(e as any)?.message}, falling back to tinyglobby`)
         // If fallback fails, use tinyglobby with timeout
         entries = await withTimeout(tinyGlob(patterns, {
           dot: false,
@@ -1267,16 +1378,37 @@ export async function runLint(globs: string[], options: LintOptions): Promise<nu
       }
     }
     else if (!entries.length) {
+      if (enableDiagnostics)
+        logger.info(`[pickier:diagnostics] Using tinyglobby with timeout ${timeoutMs}ms...`)
       entries = await withTimeout(tinyGlob(patterns, {
         dot: false,
         ignore: globIgnores,
         onlyFiles: true,
         absolute: true,
       }), timeoutMs, 'tinyGlob')
+      if (enableDiagnostics)
+        logger.info(`[pickier:diagnostics] tinyglobby found ${entries.length} files`)
     }
 
     trace('globbed entries', entries.length)
+    if (enableDiagnostics)
+      logger.info(`[pickier:diagnostics] File discovery complete: ${entries.length} files found`)
+
+    // Safety check: warn if file count is suspiciously high
+    if (entries.length > 10000) {
+      logger.warn(`[pickier:warn] Found ${entries.length} files. This seems unusually high and may cause memory issues.`)
+      logger.warn(`[pickier:warn] Consider checking your ignore patterns or being more specific with your glob pattern.`)
+      logger.warn(`[pickier:warn] Common culprits: node_modules, build directories, cache folders, or vendor dependencies.`)
+      if (entries.length > 100000) {
+        logger.error(`[pickier:error] File count exceeds 100,000 (${entries.length}). This will likely cause out-of-memory errors.`)
+        logger.error(`[pickier:error] Aborting to prevent crash. Please refine your glob pattern or ignore patterns.`)
+        return 1
+      }
+    }
+
     // filter with trace counters
+    if (enableDiagnostics)
+      logger.info(`[pickier:diagnostics] Filtering ${entries.length} files by extension and ignore patterns...`)
     let cntTotal = 0
     let cntIncluded = 0
     let cntNodeModules = 0
@@ -1285,12 +1417,14 @@ export async function runLint(globs: string[], options: LintOptions): Promise<nu
     const files: string[] = []
     for (const f of entries) {
       cntTotal++
+      if (enableDiagnostics && cntTotal % 1000 === 0)
+        logger.info(`[pickier:diagnostics] Filtering progress: ${cntTotal}/${entries.length} files checked, ${cntIncluded} included...`)
       const p = f.replace(/\\/g, '/')
       if (p.includes('/node_modules/')) {
         cntNodeModules++
         continue
       }
-      if (shouldIgnorePath(f, cfg.ignores)) {
+      if (shouldIgnorePath(f, globIgnores)) {
         cntIgnored++
         continue
       }
@@ -1303,12 +1437,39 @@ export async function runLint(globs: string[], options: LintOptions): Promise<nu
     }
     trace('filter:cli', { total: cntTotal, included: cntIncluded, node_modules: cntNodeModules, ignored: cntIgnored, wrongExt: cntWrongExt })
     trace('filtered files', files.length)
+    if (enableDiagnostics) {
+      logger.info(`[pickier:diagnostics] Filtering complete:`)
+      logger.info(`[pickier:diagnostics]   Total files found: ${cntTotal}`)
+      logger.info(`[pickier:diagnostics]   Files to lint: ${cntIncluded}`)
+      logger.info(`[pickier:diagnostics]   Excluded (node_modules): ${cntNodeModules}`)
+      logger.info(`[pickier:diagnostics]   Excluded (ignored): ${cntIgnored}`)
+      logger.info(`[pickier:diagnostics]   Excluded (wrong extension): ${cntWrongExt}`)
+    }
+
+    // Safety check after filtering
+    if (files.length > 5000) {
+      logger.warn(`[pickier:warn] After filtering, ${files.length} files will be linted. This may take a while and use significant memory.`)
+      if (files.length > 50000) {
+        logger.error(`[pickier:error] ${files.length} files to lint exceeds safe limit (50,000). This will likely cause out-of-memory errors.`)
+        logger.error(`[pickier:error] Aborting to prevent crash. Please be more specific with your glob pattern.`)
+        logger.error(`[pickier:error] Example: Instead of '../stx', try '../stx/src' or '../stx/packages/core'`)
+        return 1
+      }
+    }
 
     // OPTIMIZATION: Parallel file processing with concurrency limit
     const concurrency = Number(process.env.PICKIER_CONCURRENCY) || 8
     const limit = pLimit(concurrency)
+    if (enableDiagnostics)
+      logger.info(`[pickier:diagnostics] Starting to process ${files.length} files with concurrency ${concurrency}...`)
 
+    let processedCount = 0
     const processFile = async (file: string): Promise<LintIssue[]> => {
+      if (enableDiagnostics) {
+        processedCount++
+        if (processedCount === 1 || processedCount % 10 === 0 || processedCount === files.length)
+          logger.info(`[pickier:diagnostics] Processing file ${processedCount}/${files.length}: ${relative(process.cwd(), file)}`)
+      }
       trace('scan start', relative(process.cwd(), file))
       const src = readFileSync(file, 'utf8')
 
@@ -1385,10 +1546,14 @@ export async function runLint(globs: string[], options: LintOptions): Promise<nu
 
     const issueArrays = await Promise.all(files.map(file => limit(() => processFile(file))))
     const allIssues = issueArrays.flat()
+    if (enableDiagnostics)
+      logger.info(`[pickier:diagnostics] Processing complete! Found ${allIssues.length} issues total`)
 
     const errors = allIssues.filter(i => i.severity === 'error').length
     const warnings = allIssues.filter(i => i.severity === 'warning').length
     trace('issues:summary', { errors, warnings })
+    if (enableDiagnostics)
+      logger.info(`[pickier:diagnostics] Errors: ${errors}, Warnings: ${warnings}`)
 
     const reporter = options.reporter || cfg.lint.reporter
     // Determine verbose mode with proper precedence: CLI option > config > default

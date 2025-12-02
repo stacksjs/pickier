@@ -37,10 +37,12 @@ export const linkImageStyleRule: RuleModule = {
             message: 'Expected reference style link',
             severity: 'error',
           })
-        } else if (style === 'consistent') {
+        }
+        else if (style === 'consistent') {
           if (detectedStyle === null) {
             detectedStyle = 'inline'
-          } else if (detectedStyle === 'reference') {
+          }
+          else if (detectedStyle === 'reference') {
             issues.push({
               filePath: ctx.filePath,
               line: i + 1,
@@ -66,10 +68,12 @@ export const linkImageStyleRule: RuleModule = {
             message: 'Expected inline style link',
             severity: 'error',
           })
-        } else if (style === 'consistent') {
+        }
+        else if (style === 'consistent') {
           if (detectedStyle === null) {
             detectedStyle = 'reference'
-          } else if (detectedStyle === 'inline') {
+          }
+          else if (detectedStyle === 'inline') {
             issues.push({
               filePath: ctx.filePath,
               line: i + 1,

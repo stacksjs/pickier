@@ -29,7 +29,8 @@ export const noDuplicateHeadingRule: RuleModule = {
             message: `Duplicate heading "${content}" (first occurrence on line ${headings.get(content)})`,
             severity: 'error',
           })
-        } else {
+        }
+        else {
           headings.set(content, i + 1)
         }
       }
@@ -48,7 +49,8 @@ export const noDuplicateHeadingRule: RuleModule = {
             message: `Duplicate heading "${content}" (first occurrence on line ${headings.get(content)})`,
             severity: 'error',
           })
-        } else {
+        }
+        else {
           headings.set(content, i + 1)
         }
       }

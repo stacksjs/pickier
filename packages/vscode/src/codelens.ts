@@ -49,7 +49,7 @@ export class PickierCodeLensProvider implements vscode.CodeLensProvider {
     return codeLenses
   }
 
-  private createNoIssuesLens(document: vscode.TextDocument): vscode.CodeLens {
+  private createNoIssuesLens(_document: vscode.TextDocument): vscode.CodeLens {
     const range = new vscode.Range(0, 0, 0, 0)
     const lens = new vscode.CodeLens(range)
 
@@ -110,7 +110,7 @@ export class PickierCodeLensProvider implements vscode.CodeLensProvider {
     return lens
   }
 
-  private createOrganizeImportsLens(document: vscode.TextDocument): vscode.CodeLens {
+  private createOrganizeImportsLens(_document: vscode.TextDocument): vscode.CodeLens {
     const range = new vscode.Range(0, 0, 0, 0)
     const lens = new vscode.CodeLens(range)
 

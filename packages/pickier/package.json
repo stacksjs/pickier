@@ -1,7 +1,7 @@
 {
   "name": "pickier",
   "type": "module",
-  "version": "0.1.9",
+  "version": "0.1.10",
   "description": "Format, lint and more in a fraction of seconds.",
   "author": "Chris Breuer <chris@stacksjs.org>",
   "license": "MIT",
@@ -70,11 +70,11 @@
     "test:watch": "PICKIER_NO_AUTO_CONFIG=1 bun test --watch"
   },
   "dependencies": {
-    "@stacksjs/clapp": "^0.1.16",
+    "@stacksjs/clapp": "^0.2.0",
     "p-limit": "^7.2.0",
-    "tinyglobby": "^0.2.14"
+    "tinyglobby": "^0.2.15"
   },
   "devDependencies": {
-    "bunfig": "^0.10.1"
+    "bunfig": "^0.15.6"
   }
 }

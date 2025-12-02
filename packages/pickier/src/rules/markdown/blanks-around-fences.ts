@@ -74,7 +74,8 @@ export const blanksAroundFencesRule: RuleModule = {
             result.push('')
           }
           inFence = true
-        } else {
+        }
+        else {
           // Closing fence
           inFence = false
         }

@@ -31,7 +31,8 @@ export const singleTitleRule: RuleModule = {
       if (isH1) {
         if (firstH1Line === -1) {
           firstH1Line = i + 1
-        } else {
+        }
+        else {
           issues.push({
             filePath: ctx.filePath,
             line: i + 1,

@@ -60,7 +60,7 @@ export const noMisusedPromisesRule: RuleModule = {
         const call = ifMatch[2]
 
         // Check if it looks like an async function call
-        if (/(?:async|Async|fetch|Fetch|load|Load|get|Get|save|Save)/.test(call)) {
+        if (/async|Async|fetch|Fetch|load|Load|get|Get|save|Save/.test(call)) {
           // Make sure it's not awaited
           const beforeIf = cleanedLine.slice(0, cleanedLine.indexOf(ifMatch[0]))
           const insideIf = cleanedLine.slice(cleanedLine.indexOf('if (') + 4)
@@ -113,7 +113,7 @@ export const noMisusedPromisesRule: RuleModule = {
 
         // Check if it's in a ternary condition
         const beforeWider = cleanedLine.slice(Math.max(0, callIdx - 20), callIdx)
-        if (/\?\s*$/.test(before) || /\?\s*[^:]*$/.test(beforeWider)) {
+        if (/\?\s*$/.test(before) || /\?[^:]*$/.test(beforeWider)) {
           if (!/\bawait\s*$/.test(before)) {
             const actualIdx = originalLine.indexOf(call, Math.max(0, callIdx - 5))
             issues.push({

@@ -40,7 +40,7 @@ export const singleTrailingNewlineRule: RuleModule = {
   },
   fix: (text) => {
     // Remove all trailing newlines, then add exactly one
-    let fixed = text.replace(/[\r\n]+$/, '')
+    const fixed = text.replace(/[\r\n]+$/, '')
     return `${fixed}\n`
   },
 }

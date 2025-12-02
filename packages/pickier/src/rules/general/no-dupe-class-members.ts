@@ -26,7 +26,8 @@ export const noDupeClassMembersRule: RuleModule = {
       if (inClass) {
         // Count braces
         for (const char of line) {
-          if (char === '{') braceCount++
+          if (char === '{')
+            braceCount++
           if (char === '}') {
             braceCount--
             if (braceCount === 0) {
@@ -37,8 +38,8 @@ export const noDupeClassMembersRule: RuleModule = {
 
         // Match method or property names (including getters, setters, and constructors)
         const memberMatches = [
-          ...line.matchAll(/^\s*(?:public|private|protected|static|readonly|async)?\s*(?:get|set)?\s*(\w+)\s*\(/g),
-          ...line.matchAll(/^\s*(?:public|private|protected|static|readonly)?\s*(\w+)\s*[:=]/g),
+          ...line.matchAll(/^\s*(?:(?:public|private|protected|static|readonly|async)\s*)?(?:get|set)?\s*(\w+)\s*\(/g),
+          ...line.matchAll(/^\s*(?:(?:public|private|protected|static|readonly)\s*)?(\w+)\s*[:=]/g),
         ]
 
         for (const match of memberMatches) {

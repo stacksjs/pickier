@@ -22,7 +22,8 @@ export const commandsShowOutputRule: RuleModule = {
         if (!inCodeBlock) {
           inCodeBlock = true
           codeBlockStartLine = i
-        } else {
+        }
+        else {
           inCodeBlock = false
         }
         continue

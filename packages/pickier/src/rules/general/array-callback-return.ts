@@ -37,8 +37,8 @@ export const arrayCallbackReturnRule: RuleModule = {
 
         // Try to find the callback function - look for arrow function or function keyword
         const restOfLine = line.slice(startIndex)
-        const arrowMatch = restOfLine.match(/^\s*(?:\(([^)]*)\)|([a-zA-Z_$][a-zA-Z0-9_$]*))\s*=>/)
-        const funcMatch = restOfLine.match(/^\s*function\s*(?:[a-zA-Z_$][a-zA-Z0-9_$]*)?\s*\(/)
+        const arrowMatch = restOfLine.match(/^\s*(?:\(([^)]*)\)|([a-z_$][\w$]*))\s*=>/i)
+        const funcMatch = restOfLine.match(/^\s*function\s*(?:[a-zA-Z_$][\w$]*\s*)?\(/)
 
         if (arrowMatch) {
           // Arrow function - check if it has a block body
@@ -59,7 +59,8 @@ export const arrayCallbackReturnRule: RuleModule = {
 
               for (let j = 0; j < searchLine.length; j++) {
                 const char = searchLine[j]
-                if (char === '{') braceCount++
+                if (char === '{')
+                  braceCount++
                 if (char === '}') {
                   braceCount--
                   if (braceCount === 0) {
@@ -84,7 +85,8 @@ export const arrayCallbackReturnRule: RuleModule = {
                 foundReturn = true
               }
 
-              if (braceCount === 0) break
+              if (braceCount === 0)
+                break
               currentLineIndex++
               searchText = lines[currentLineIndex] || ''
             }
@@ -133,7 +135,8 @@ export const arrayCallbackReturnRule: RuleModule = {
               foundReturn = true
             }
 
-            if (braceCount === 0 && foundOpeningBrace) break
+            if (braceCount === 0 && foundOpeningBrace)
+              break
             currentLineIndex++
           }
         }

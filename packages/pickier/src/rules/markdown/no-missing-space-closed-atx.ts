@@ -37,7 +37,7 @@ export const noMissingSpaceClosedAtxRule: RuleModule = {
       }
 
       // Also check if opening has no space
-      const noOpenSpace = line.match(/^(#{1,6})([^\s].+?#{1,6})\s*$/)
+      const noOpenSpace = line.match(/^(#{1,6})(\S.+?#{1,6})\s*$/)
       if (noOpenSpace) {
         issues.push({
           filePath: ctx.filePath,

@@ -1,7 +1,7 @@
 {
   "name": "pickier",
   "type": "module",
-  "version": "0.1.9",
+  "version": "0.1.10",
   "private": true,
   "description": "Format, lint and more in a fraction of seconds.",
   "author": "Chris Breuer <chris@stacksjs.org>",
@@ -19,8 +19,10 @@
   },
   "scripts": {
     "build": "for dir in packages/*; do if [ -f \"$dir/package.json\" ]; then echo \"Building $dir\" && bun run --cwd $dir build; fi; done",
-    "lint": "bunx --bun eslint .",
-    "lint:fix": "bunx --bun eslint . --fix",
+    "lint": "bunx --bun eslint . --ignore-pattern '**/test/fixtures/**' --ignore-pattern '**/test/output/**' --ignore-pattern 'docs/**' --ignore-pattern 'packages/vscode/examples/**' --ignore-pattern 'packages/pickier/test/**' --ignore-pattern 'packages/bechmarks/**' --ignore-pattern 'packages/pickier/src/rules/**'",
+    "lint:fix": "bunx --bun eslint . --fix --ignore-pattern '**/test/fixtures/**' --ignore-pattern '**/test/output/**' --ignore-pattern 'docs/**' --ignore-pattern 'packages/vscode/examples/**' --ignore-pattern 'packages/pickier/test/**' --ignore-pattern 'packages/bechmarks/**' --ignore-pattern 'packages/pickier/src/rules/**'",
+    "eslint:lint": "bunx --bun eslint .",
+    "eslint:fix": "bunx --bun eslint .",
     "pickier": "./packages/pickier/pickier run . --mode auto",
     "pickier:lint": "./packages/pickier/pickier run . --mode lint",
     "pickier:lint:fix": "./packages/pickier/pickier run . --mode lint --fix",
@@ -43,16 +45,16 @@
     "typecheck": "bun --bun tsc --noEmit"
   },
   "devDependencies": {
-    "@stacksjs/bumpx": "^0.2.2",
+    "@stacksjs/bumpx": "^0.2.4",
     "@stacksjs/clarity": "^0.3.24",
     "@stacksjs/docs": "^0.70.23",
     "@stacksjs/eslint-config": "^4.14.0-beta.3",
     "@stacksjs/gitlint": "^0.1.5",
-    "@stacksjs/logsmith": "^0.1.18",
-    "@types/bun": "^1.3.0",
-    "buddy-bot": "^0.9.9",
+    "@stacksjs/logsmith": "^0.2.1",
+    "@types/bun": "^1.3.3",
+    "buddy-bot": "^0.9.12",
     "bun-git-hooks": "^0.3.1",
-    "bun-plugin-dtsx": "0.9.5",
+    "bun-plugin-dtsx": "0.9.9",
     "tinyglobby": "^0.2.15",
     "typescript": "^5.9.3"
   },
