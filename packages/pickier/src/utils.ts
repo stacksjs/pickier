@@ -1,8 +1,77 @@
-import type { PickierConfig } from './types'
+import type { PickierConfig, RulesConfigMap } from './types'
 import { readFileSync } from 'node:fs'
 import { extname, isAbsolute, resolve } from 'node:path'
 import process from 'node:process'
 import { defaultConfig } from './config'
+
+/**
+ * Maximum number of fixer passes to run.
+ * This prevents infinite loops when fixers keep modifying content.
+ */
+export const MAX_FIXER_PASSES = 5
+
+/**
+ * Universal ignore patterns that should apply everywhere.
+ * These are always excluded regardless of project-specific config.
+ */
+export const UNIVERSAL_IGNORES = [
+  '**/node_modules/**',
+  '**/dist/**',
+  '**/build/**',
+  '**/.git/**',
+  '**/.next/**',
+  '**/.nuxt/**',
+  '**/.output/**',
+  '**/.vercel/**',
+  '**/.netlify/**',
+  '**/.cache/**',
+  '**/.turbo/**',
+  '**/.vscode/**',
+  '**/.idea/**',
+  '**/coverage/**',
+  '**/.nyc_output/**',
+  '**/tmp/**',
+  '**/temp/**',
+  '**/.tmp/**',
+  '**/.temp/**',
+  '**/vendor/**',
+  '**/target/**', // Rust
+  '**/zig-cache/**', // Zig
+  '**/zig-out/**', // Zig
+  '**/.zig-cache/**', // Zig
+  '**/__pycache__/**', // Python
+  '**/.pytest_cache/**', // Python
+  '**/venv/**', // Python
+  '**/.venv/**', // Python
+  '**/out/**',
+  '**/.DS_Store',
+  '**/Thumbs.db',
+] as const
+
+/**
+ * Parse a rule configuration value and return its settings.
+ * Handles both string format ('error', 'warn', 'off') and array format (['error', options]).
+ */
+export function getRuleSetting(rulesConfig: RulesConfigMap, ruleId: string): { enabled: boolean, severity?: 'error' | 'warning', options?: any } {
+  const raw = rulesConfig[ruleId as keyof RulesConfigMap] as any
+  let sev: 'error' | 'warning' | undefined
+  let opts: any
+  if (typeof raw === 'string') {
+    if (raw === 'error')
+      sev = 'error'
+    else if (raw === 'warn' || raw === 'warning')
+      sev = 'warning'
+  }
+  else if (Array.isArray(raw) && typeof raw[0] === 'string') {
+    const s = raw[0]
+    if (s === 'error')
+      sev = 'error'
+    else if (s === 'warn' || s === 'warning')
+      sev = 'warning'
+    opts = raw[1]
+  }
+  return { enabled: !!sev, severity: sev, options: opts }
+}
 
 /**
  * Colorize console output (simple ANSI colors)
@@ -67,7 +136,8 @@ export async function loadConfigFromPath(pathLike: string | undefined): Promise<
   if (!pathLike) {
     // Skip auto-loading in test environment
     if (process.env.PICKIER_NO_AUTO_CONFIG === '1') {
-      return defaultConfig
+      // Return a copy to avoid mutation of shared defaultConfig
+      return mergeConfig(defaultConfig, {})
     }
 
     // Try to auto-load bunfig config if it exists in the project root
@@ -78,13 +148,15 @@ export async function loadConfigFromPath(pathLike: string | undefined): Promise<
       if (existsSync(configPath)) {
         // Load the bunfig-merged config
         const { config } = await import('./config')
-        return config
+        // Return a copy to avoid mutation of shared config
+        return mergeConfig(config, {})
       }
     }
     catch {
       // If bunfig loading fails, fall back to defaultConfig
     }
-    return defaultConfig
+    // Return a copy to avoid mutation of shared defaultConfig
+    return mergeConfig(defaultConfig, {})
   }
 
   const abs = isAbsolute(pathLike) ? pathLike : resolve(process.cwd(), pathLike)

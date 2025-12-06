@@ -6,7 +6,7 @@ import { Logger } from '@stacksjs/clarity'
 import { glob as tinyGlob } from 'tinyglobby'
 import { formatCode } from './format'
 import { getAllPlugins } from './plugins'
-import { colors, expandPatterns, loadConfigFromPath, shouldIgnorePath } from './utils'
+import { colors, expandPatterns, loadConfigFromPath, MAX_FIXER_PASSES, shouldIgnorePath } from './utils'
 
 const logger = new Logger('pickier', {
   showTags: false,
@@ -43,9 +43,8 @@ export function applyPluginFixes(filePath: string, content: string, cfg: Pickier
   let current = content
   let changed = true
   let passes = 0
-  const maxPasses = 3
 
-  while (changed && passes < maxPasses) {
+  while (changed && passes < MAX_FIXER_PASSES) {
     changed = false
     passes++
     for (const plugin of pluginDefs) {
