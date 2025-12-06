@@ -8,15 +8,14 @@ import { glob as tinyGlob } from 'tinyglobby'
 import { detectQuoteIssues, hasIndentIssue } from './format'
 import { formatStylish, formatVerbose } from './formatter'
 import { getAllPlugins } from './plugins'
-import { colors, expandPatterns, getRuleSetting, isCodeFile, loadConfigFromPath, MAX_FIXER_PASSES, shouldIgnorePath, UNIVERSAL_IGNORES } from './utils'
+import { colors, ENV, expandPatterns, getRuleSetting, isCodeFile, loadConfigFromPath, MAX_FIXER_PASSES, shouldIgnorePath, UNIVERSAL_IGNORES } from './utils'
 
 const logger = new Logger('pickier:lint', {
   showTags: false,
 })
 
 function trace(...args: any[]) {
-  if (process.env.PICKIER_TRACE === '1')
-
+  if (ENV.TRACE)
     logger.error('[pickier:trace]', args)
 }
 
@@ -83,7 +82,7 @@ export async function runLintProgrammatic(
     return t.startsWith('.') ? t : `.${t}`
   }))
 
-  const timeoutMs = Number(process.env.PICKIER_TIMEOUT_MS || '8000')
+  const timeoutMs = ENV.TIMEOUT_MS
 
   // Filter ignore patterns based on whether we're globbing inside or outside the project
   const isGlobbingOutsideProject = patterns.some((p) => {
@@ -182,7 +181,7 @@ export async function runLintProgrammatic(
   trace('filter:programmatic', { total: cntTotal, included: cntIncluded, node_modules: cntNodeModules, ignored: cntIgnored, wrongExt: cntWrongExt })
 
   // OPTIMIZATION: Parallel file processing with concurrency limit
-  const concurrency = Number(process.env.PICKIER_CONCURRENCY) || 8
+  const concurrency = ENV.CONCURRENCY
   const limit = pLimit(concurrency)
 
   const processFile = async (file: string): Promise<LintIssue[]> => {
@@ -627,7 +626,7 @@ export async function applyPlugins(filePath: string, content: string, cfg: Picki
       }
       try {
         trace('rule:start', fullRuleId)
-        const ruleTimeoutMs = Number(process.env.PICKIER_RULE_TIMEOUT_MS || '5000')
+        const ruleTimeoutMs = ENV.RULE_TIMEOUT_MS
         const ctx: RuleContext = { ...baseCtx, options: setting.options }
         const out = await withTimeout(Promise.resolve().then(() => (rule as any).check(content, ctx)), ruleTimeoutMs, `rule:${fullRuleId}`)
         trace('rule:end', fullRuleId, Array.isArray(out) ? out.length : 0)
@@ -1235,7 +1234,7 @@ export function scanContent(filePath: string, content: string, cfg: PickierConfi
 
 export async function runLint(globs: string[], options: LintOptions): Promise<number> {
   trace('runLint:start', { globs, options })
-  const enableDiagnostics = process.env.PICKIER_DIAGNOSTICS === '1'
+  const enableDiagnostics = ENV.DIAGNOSTICS
   if (enableDiagnostics)
     logger.info('[pickier:diagnostics] Starting lint process...')
   try {
@@ -1257,7 +1256,7 @@ export async function runLint(globs: string[], options: LintOptions): Promise<nu
     if (enableDiagnostics)
       logger.info(`[pickier:diagnostics] File extensions: ${Array.from(extSet).join(', ')}`)
 
-    const timeoutMs = Number(process.env.PICKIER_TIMEOUT_MS || '8000')
+    const timeoutMs = ENV.TIMEOUT_MS
     if (enableDiagnostics)
       logger.info(`[pickier:diagnostics] Glob timeout: ${timeoutMs}ms`)
 
@@ -1423,7 +1422,7 @@ export async function runLint(globs: string[], options: LintOptions): Promise<nu
     }
 
     // OPTIMIZATION: Parallel file processing with concurrency limit
-    const concurrency = Number(process.env.PICKIER_CONCURRENCY) || 8
+    const concurrency = ENV.CONCURRENCY
     const limit = pLimit(concurrency)
     if (enableDiagnostics)
       logger.info(`[pickier:diagnostics] Starting to process ${files.length} files with concurrency ${concurrency}...`)
@@ -1599,7 +1598,7 @@ export async function runLint(globs: string[], options: LintOptions): Promise<nu
     }
 
     const maxWarnings = options.maxWarnings ?? cfg.lint.maxWarnings
-    const failOnWarnings = process.env.PICKIER_FAIL_ON_WARNINGS === '1'
+    const failOnWarnings = ENV.FAIL_ON_WARNINGS
     if (errors > 0) {
       trace('runLint:end', 1)
       return 1

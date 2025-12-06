@@ -11,6 +11,41 @@ import { defaultConfig } from './config'
 export const MAX_FIXER_PASSES = 5
 
 /**
+ * Environment variable configuration with defaults.
+ * Centralized to avoid scattered parsing and provide documentation.
+ */
+export const ENV = {
+  /** Enable verbose trace logging. Set PICKIER_TRACE=1 to enable. */
+  get TRACE(): boolean {
+    return process.env.PICKIER_TRACE === '1'
+  },
+  /** Glob timeout in milliseconds. Default: 8000ms */
+  get TIMEOUT_MS(): number {
+    return Number(process.env.PICKIER_TIMEOUT_MS || '8000')
+  },
+  /** Per-rule timeout in milliseconds. Default: 5000ms */
+  get RULE_TIMEOUT_MS(): number {
+    return Number(process.env.PICKIER_RULE_TIMEOUT_MS || '5000')
+  },
+  /** Parallel file processing concurrency. Default: 8 */
+  get CONCURRENCY(): number {
+    return Number(process.env.PICKIER_CONCURRENCY) || 8
+  },
+  /** Enable diagnostics mode. Set PICKIER_DIAGNOSTICS=1 to enable. */
+  get DIAGNOSTICS(): boolean {
+    return process.env.PICKIER_DIAGNOSTICS === '1'
+  },
+  /** Treat warnings as errors. Set PICKIER_FAIL_ON_WARNINGS=1 to enable. */
+  get FAIL_ON_WARNINGS(): boolean {
+    return process.env.PICKIER_FAIL_ON_WARNINGS === '1'
+  },
+  /** Disable auto-loading of config. Set PICKIER_NO_AUTO_CONFIG=1 to disable. */
+  get NO_AUTO_CONFIG(): boolean {
+    return process.env.PICKIER_NO_AUTO_CONFIG === '1'
+  },
+} as const
+
+/**
  * Universal ignore patterns that should apply everywhere.
  * These are always excluded regardless of project-specific config.
  */
@@ -135,7 +170,7 @@ export function mergeConfig(base: PickierConfig, override: Partial<PickierConfig
 export async function loadConfigFromPath(pathLike: string | undefined): Promise<PickierConfig> {
   if (!pathLike) {
     // Skip auto-loading in test environment
-    if (process.env.PICKIER_NO_AUTO_CONFIG === '1') {
+    if (ENV.NO_AUTO_CONFIG) {
       // Return a copy to avoid mutation of shared defaultConfig
       return mergeConfig(defaultConfig, {})
     }
