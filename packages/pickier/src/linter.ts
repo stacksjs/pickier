@@ -8,15 +8,14 @@ import { glob as tinyGlob } from 'tinyglobby'
 import { detectQuoteIssues, hasIndentIssue } from './format'
 import { formatStylish, formatVerbose } from './formatter'
 import { getAllPlugins } from './plugins'
-import { colors, expandPatterns, isCodeFile, loadConfigFromPath, shouldIgnorePath } from './utils'
+import { colors, ENV, expandPatterns, getRuleSetting, isCodeFile, loadConfigFromPath, MAX_FIXER_PASSES, shouldIgnorePath, UNIVERSAL_IGNORES } from './utils'
 
 const logger = new Logger('pickier:lint', {
   showTags: false,
 })
 
 function trace(...args: any[]) {
-  if (process.env.PICKIER_TRACE === '1')
-
+  if (ENV.TRACE)
     logger.error('[pickier:trace]', args)
 }
 
@@ -83,7 +82,7 @@ export async function runLintProgrammatic(
     return t.startsWith('.') ? t : `.${t}`
   }))
 
-  const timeoutMs = Number(process.env.PICKIER_TIMEOUT_MS || '8000')
+  const timeoutMs = ENV.TIMEOUT_MS
 
   // Filter ignore patterns based on whether we're globbing inside or outside the project
   const isGlobbingOutsideProject = patterns.some((p) => {
@@ -92,42 +91,8 @@ export async function runLintProgrammatic(
     return !absBase.startsWith(process.cwd())
   })
 
-  // Universal ignore patterns that should apply everywhere
-  const universalIgnores = [
-    '**/node_modules/**',
-    '**/dist/**',
-    '**/build/**',
-    '**/.git/**',
-    '**/.next/**',
-    '**/.nuxt/**',
-    '**/.output/**',
-    '**/.vercel/**',
-    '**/.netlify/**',
-    '**/.cache/**',
-    '**/.turbo/**',
-    '**/.vscode/**',
-    '**/.idea/**',
-    '**/coverage/**',
-    '**/.nyc_output/**',
-    '**/tmp/**',
-    '**/temp/**',
-    '**/.tmp/**',
-    '**/.temp/**',
-    '**/vendor/**',
-    '**/target/**', // Rust
-    '**/zig-cache/**', // Zig
-    '**/zig-out/**', // Zig
-    '**/.zig-cache/**', // Zig
-    '**/__pycache__/**', // Python
-    '**/.pytest_cache/**', // Python
-    '**/venv/**', // Python
-    '**/.venv/**', // Python
-    '**/out/**',
-    '**/.DS_Store',
-    '**/Thumbs.db',
-  ]
   const globIgnores = isGlobbingOutsideProject
-    ? universalIgnores // Use ALL universal ignores when outside project
+    ? [...UNIVERSAL_IGNORES] // Use ALL universal ignores when outside project
     : cfg.ignores
 
   let entries: string[] = []
@@ -216,7 +181,7 @@ export async function runLintProgrammatic(
   trace('filter:programmatic', { total: cntTotal, included: cntIncluded, node_modules: cntNodeModules, ignored: cntIgnored, wrongExt: cntWrongExt })
 
   // OPTIMIZATION: Parallel file processing with concurrency limit
-  const concurrency = Number(process.env.PICKIER_CONCURRENCY) || 8
+  const concurrency = ENV.CONCURRENCY
   const limit = pLimit(concurrency)
 
   const processFile = async (file: string): Promise<LintIssue[]> => {
@@ -633,34 +598,13 @@ export async function applyPlugins(filePath: string, content: string, cfg: Picki
     }
   }
 
-  function getRuleSetting(ruleId: string): { enabled: boolean, severity?: 'error' | 'warning', options?: any } {
-    const raw = rulesConfig[ruleId as keyof RulesConfigMap] as any
-    let sev: 'error' | 'warning' | undefined
-    let opts: any
-    if (typeof raw === 'string') {
-      if (raw === 'error')
-        sev = 'error'
-      else if (raw === 'warn' || raw === 'warning')
-        sev = 'warning'
-    }
-    else if (Array.isArray(raw) && typeof raw[0] === 'string') {
-      const s = raw[0]
-      if (s === 'error')
-        sev = 'error'
-      else if (s === 'warn' || s === 'warning')
-        sev = 'warning'
-      opts = raw[1]
-    }
-    return { enabled: !!sev, severity: sev, options: opts }
-  }
-
   const baseCtx: RuleContext = { filePath, config: cfg }
 
   for (const plugin of pluginDefs) {
     const r = plugin.rules
     for (const ruleName in r) {
       const fullRuleId = `${plugin.name}/${ruleName}`
-      const setting = getRuleSetting(fullRuleId)
+      const setting = getRuleSetting(rulesConfig, fullRuleId)
       if (!setting.enabled)
         continue
       const rule = r[ruleName]!
@@ -682,7 +626,7 @@ export async function applyPlugins(filePath: string, content: string, cfg: Picki
       }
       try {
         trace('rule:start', fullRuleId)
-        const ruleTimeoutMs = Number(process.env.PICKIER_RULE_TIMEOUT_MS || '5000')
+        const ruleTimeoutMs = ENV.RULE_TIMEOUT_MS
         const ctx: RuleContext = { ...baseCtx, options: setting.options }
         const out = await withTimeout(Promise.resolve().then(() => (rule as any).check(content, ctx)), ruleTimeoutMs, `rule:${fullRuleId}`)
         trace('rule:end', fullRuleId, Array.isArray(out) ? out.length : 0)
@@ -734,26 +678,16 @@ function applyPluginFixes(filePath: string, content: string, cfg: PickierConfig)
     }
   }
 
-  const getRuleSetting = (ruleId: string): { enabled: boolean, options?: any } => {
-    const raw = rulesConfig[ruleId as keyof RulesConfigMap] as any
-    if (typeof raw === 'string')
-      return { enabled: raw === 'error' || raw === 'warn' || raw === 'warning' }
-    if (Array.isArray(raw) && typeof raw[0] === 'string')
-      return { enabled: raw[0] === 'error' || raw[0] === 'warn' || raw[0] === 'warning', options: raw[1] }
-    return { enabled: false }
-  }
-
   const baseCtx: RuleContext = { filePath, config: cfg }
   let out = content
   let changed = true
   let passes = 0
-  const maxPasses = 5
-  while (changed && passes++ < maxPasses) {
+  while (changed && passes++ < MAX_FIXER_PASSES) {
     changed = false
     for (const plugin of pluginDefs) {
       for (const ruleName in plugin.rules) {
         const fullRuleId = `${plugin.name}/${ruleName}`
-        const setting = getRuleSetting(fullRuleId)
+        const setting = getRuleSetting(rulesConfig, fullRuleId)
         if (!setting.enabled)
           continue
         const rule = plugin.rules[ruleName]!
@@ -894,56 +828,120 @@ function stripComments(line: string): string {
 }
 
 // Build a set of line numbers that are entirely inside comments
+// Uses a proper state machine to handle strings, block comments, and line comments correctly
 function getCommentLines(content: string): Set<number> {
   const commentLines = new Set<number>()
-  const lines = content.split(/\r?\n/)
-  let inBlockComment = false
 
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i]
-    const lineNo = i + 1
-    const trimmed = line.trim()
+  // Track state while parsing
+  type State = 'code' | 'string-single' | 'string-double' | 'string-template' | 'line-comment' | 'block-comment'
+  let state: State = 'code'
+  let lineNo = 1
+  let lineHasCode = false // Track if current line has any non-comment code
+  let lineStartedInBlockComment = false // Track if line started inside a block comment
 
-    // If we're inside a block comment from previous lines
-    if (inBlockComment) {
-      commentLines.add(lineNo)
+  for (let i = 0; i < content.length; i++) {
+    const ch = content[i]
+    const next = content[i + 1]
+    const prev = i > 0 ? content[i - 1] : ''
 
-      // Check if block comment ends on this line
-      if (line.includes('*/')) {
-        inBlockComment = false
-      }
-      continue
-    }
-
-    // Check for single-line comment (entire line is a comment)
-    if (trimmed.startsWith('//')) {
-      commentLines.add(lineNo)
-      continue
-    }
-
-    // Check for block comment start
-    // First, remove any single-line comment from consideration
-    const beforeSingleComment = line.split('//')[0]
-    const blockStartIdx = beforeSingleComment.indexOf('/*')
-
-    if (blockStartIdx !== -1) {
-      // There's a block comment on this line
-      const beforeBlock = beforeSingleComment.substring(0, blockStartIdx).trim()
-      const afterBlockStart = beforeSingleComment.substring(blockStartIdx)
-      const blockEndIdx = afterBlockStart.indexOf('*/')
-
-      // Check if this line has only the block comment (no code before it)
-      if (beforeBlock === '') {
+    // Handle newlines - finalize line state
+    if (ch === '\n') {
+      // A line is a "comment line" if:
+      // 1. It started in a block comment and stayed there, OR
+      // 2. It has no code (only whitespace/comments)
+      if (lineStartedInBlockComment && state === 'block-comment') {
         commentLines.add(lineNo)
-
-        // Check if block comment ends on the same line
-        if (blockEndIdx === -1) {
-          // Block comment continues to next lines
-          inBlockComment = true
-        }
       }
-      // If there's code before the block comment, we don't mark the line as a comment
+      else if (!lineHasCode && state !== 'block-comment') {
+        // Line had no code and isn't continuing a block comment to next line
+        // This handles lines that are entirely // comments or whitespace
+      }
+      else if (!lineHasCode) {
+        commentLines.add(lineNo)
+      }
+
+      // Reset for next line
+      lineNo++
+      lineHasCode = false
+      lineStartedInBlockComment = (state === 'block-comment')
+
+      // Line comments end at newline
+      if (state === 'line-comment') {
+        state = 'code'
+      }
+      continue
     }
+
+    // Skip escape sequences in strings
+    if ((state === 'string-single' || state === 'string-double' || state === 'string-template') && prev === '\\') {
+      continue
+    }
+
+    // State transitions
+    switch (state) {
+      case 'code':
+        if (ch === '/' && next === '/') {
+          state = 'line-comment'
+          i++ // skip next char
+        }
+        else if (ch === '/' && next === '*') {
+          state = 'block-comment'
+          i++ // skip next char
+        }
+        else if (ch === '\'') {
+          state = 'string-single'
+          lineHasCode = true
+        }
+        else if (ch === '"') {
+          state = 'string-double'
+          lineHasCode = true
+        }
+        else if (ch === '`') {
+          state = 'string-template'
+          lineHasCode = true
+        }
+        else if (!/\s/.test(ch)) {
+          lineHasCode = true
+        }
+        break
+
+      case 'string-single':
+        if (ch === '\'') {
+          state = 'code'
+        }
+        break
+
+      case 'string-double':
+        if (ch === '"') {
+          state = 'code'
+        }
+        break
+
+      case 'string-template':
+        if (ch === '`') {
+          state = 'code'
+        }
+        break
+
+      case 'line-comment':
+        // Stay in line comment until newline (handled above)
+        break
+
+      case 'block-comment':
+        if (ch === '*' && next === '/') {
+          state = 'code'
+          i++ // skip next char
+        }
+        break
+    }
+  }
+
+  // Handle last line (no trailing newline)
+  if (lineStartedInBlockComment && state === 'block-comment') {
+    commentLines.add(lineNo)
+  }
+  else if (!lineHasCode && state === 'block-comment') {
+    commentLines.add(lineNo)
   }
 
   return commentLines
@@ -1236,7 +1234,7 @@ export function scanContent(filePath: string, content: string, cfg: PickierConfi
 
 export async function runLint(globs: string[], options: LintOptions): Promise<number> {
   trace('runLint:start', { globs, options })
-  const enableDiagnostics = process.env.PICKIER_DIAGNOSTICS === '1'
+  const enableDiagnostics = ENV.DIAGNOSTICS
   if (enableDiagnostics)
     logger.info('[pickier:diagnostics] Starting lint process...')
   try {
@@ -1258,7 +1256,7 @@ export async function runLint(globs: string[], options: LintOptions): Promise<nu
     if (enableDiagnostics)
       logger.info(`[pickier:diagnostics] File extensions: ${Array.from(extSet).join(', ')}`)
 
-    const timeoutMs = Number(process.env.PICKIER_TIMEOUT_MS || '8000')
+    const timeoutMs = ENV.TIMEOUT_MS
     if (enableDiagnostics)
       logger.info(`[pickier:diagnostics] Glob timeout: ${timeoutMs}ms`)
 
@@ -1271,47 +1269,13 @@ export async function runLint(globs: string[], options: LintOptions): Promise<nu
       return !absBase.startsWith(process.cwd())
     })
 
-    // Universal ignore patterns that should apply everywhere
-    const universalIgnores = [
-      '**/node_modules/**',
-      '**/dist/**',
-      '**/build/**',
-      '**/.git/**',
-      '**/.next/**',
-      '**/.nuxt/**',
-      '**/.output/**',
-      '**/.vercel/**',
-      '**/.netlify/**',
-      '**/.cache/**',
-      '**/.turbo/**',
-      '**/.vscode/**',
-      '**/.idea/**',
-      '**/coverage/**',
-      '**/.nyc_output/**',
-      '**/tmp/**',
-      '**/temp/**',
-      '**/.tmp/**',
-      '**/.temp/**',
-      '**/vendor/**',
-      '**/target/**', // Rust
-      '**/zig-cache/**', // Zig
-      '**/zig-out/**', // Zig
-      '**/.zig-cache/**', // Zig
-      '**/__pycache__/**', // Python
-      '**/.pytest_cache/**', // Python
-      '**/venv/**', // Python
-      '**/.venv/**', // Python
-      '**/out/**',
-      '**/.DS_Store',
-      '**/Thumbs.db',
-    ]
     const globIgnores = isGlobbingOutsideProject
-      ? universalIgnores // Use ALL universal ignores when outside project
+      ? [...UNIVERSAL_IGNORES] // Use ALL universal ignores when outside project
       : cfg.ignores
     if (enableDiagnostics) {
       logger.info(`[pickier:diagnostics] Globbing outside project: ${isGlobbingOutsideProject}, ignore patterns: ${globIgnores.length}`)
       if (isGlobbingOutsideProject)
-        logger.info(`[pickier:diagnostics] Using universal ignores: ${universalIgnores.slice(0, 5).join(', ')}... (${universalIgnores.length} total)`)
+        logger.info(`[pickier:diagnostics] Using universal ignores: ${UNIVERSAL_IGNORES.slice(0, 5).join(', ')}... (${UNIVERSAL_IGNORES.length} total)`)
     }
 
     // Fallbacks to avoid globby hangs: handle explicit file paths and simple directory scans
@@ -1458,7 +1422,7 @@ export async function runLint(globs: string[], options: LintOptions): Promise<nu
     }
 
     // OPTIMIZATION: Parallel file processing with concurrency limit
-    const concurrency = Number(process.env.PICKIER_CONCURRENCY) || 8
+    const concurrency = ENV.CONCURRENCY
     const limit = pLimit(concurrency)
     if (enableDiagnostics)
       logger.info(`[pickier:diagnostics] Starting to process ${files.length} files with concurrency ${concurrency}...`)
@@ -1634,7 +1598,7 @@ export async function runLint(globs: string[], options: LintOptions): Promise<nu
     }
 
     const maxWarnings = options.maxWarnings ?? cfg.lint.maxWarnings
-    const failOnWarnings = process.env.PICKIER_FAIL_ON_WARNINGS === '1'
+    const failOnWarnings = ENV.FAIL_ON_WARNINGS
     if (errors > 0) {
       trace('runLint:end', 1)
       return 1
