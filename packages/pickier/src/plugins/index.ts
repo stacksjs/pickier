@@ -1,6 +1,7 @@
 import type { PickierPlugin } from '../types'
 import { eslintPlugin } from './eslint'
 import { generalPlugin } from './general'
+import { lockfilePlugin } from './lockfile'
 import { markdownPlugin } from './markdown'
 import { nodePlugin } from './node'
 import { perfectionistPlugin } from './perfectionist'
@@ -22,6 +23,7 @@ export function getAllPlugins(): PickierPlugin[] {
     tsPlugin, // ts/ prefix for TypeScript rules
     markdownPlugin, // markdown/ prefix for markdown rules
     nodePlugin, // node/ prefix for Node.js-specific rules
+    lockfilePlugin, // lockfile/ prefix for lockfile security rules
     unusedImportsPlugin, // unused-imports/ prefix for compatibility
     perfectionistPlugin, // perfectionist/ prefix for compatibility
   ]

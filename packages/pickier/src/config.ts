@@ -25,13 +25,13 @@ export const defaultConfig: PickierConfig = {
     '**/*.spec.ts',
   ],
   lint: {
-    extensions: ['ts', 'js', 'html', 'css', 'json', 'jsonc', 'md', 'yaml', 'yml', 'stx'],
+    extensions: ['ts', 'js', 'html', 'css', 'json', 'jsonc', 'md', 'yaml', 'yml', 'stx', 'lock'],
     reporter: 'stylish',
     cache: false,
     maxWarnings: -1,
   },
   format: {
-    extensions: ['ts', 'js', 'html', 'css', 'json', 'jsonc', 'md', 'yaml', 'yml', 'stx'],
+    extensions: ['ts', 'js', 'html', 'css', 'json', 'jsonc', 'md', 'yaml', 'yml', 'stx', 'lock'],
     trimTrailingWhitespace: true,
     maxConsecutiveBlankLines: 1,
     finalNewline: 'one',
@@ -113,6 +113,12 @@ export const defaultConfig: PickierConfig = {
     'markdown/table-pipe-style': 'warn',
     'markdown/table-column-count': 'error',
     'markdown/table-column-style': 'warn',
+    // Lockfile security rules
+    'lockfile/validate-host': ['warn', { allowedHosts: ['npm', 'yarn'] }],
+    'lockfile/validate-https': 'error',
+    'lockfile/validate-integrity': ['warn', { requiredAlgorithm: 'sha512' }],
+    'lockfile/validate-package-names': 'error',
+    'lockfile/validate-scheme': ['error', { allowedSchemes: ['https:', 'git+https:', 'git+ssh:'] }],
   },
   verbose: true,
 }
