@@ -24,7 +24,7 @@ export interface LintIssue {
   help?: string
 }
 
-export type Extension = 'ts' | 'js' | 'html' | 'css' | 'json' | 'jsonc' | 'md' | 'yaml' | 'yml' | 'stx'
+export type Extension = 'ts' | 'js' | 'html' | 'css' | 'json' | 'jsonc' | 'md' | 'yaml' | 'yml' | 'stx' | 'lock'
 
 export interface PickierLintConfig {
   extensions: Extension[]
