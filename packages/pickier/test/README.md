@@ -4,8 +4,7 @@ This directory contains all tests for the Pickier package, organized into logica
 
 ## Directory Structure
 
-```
-test/
+```test/
 ├── core/              # Core functionality & utilities
 │   ├── ast.test.ts
 │   ├── utils.test.ts
@@ -50,15 +49,12 @@ test/
 │
 ├── fixtures/          # Test fixtures
 ├── output/            # Test output files
-└── helpers.ts         # Shared test utilities
-```
+└── helpers.ts         # Shared test utilities```## Running Tests
 
-## Running Tests
+Tests can be run from**anywhere**in the monorepo thanks to proper workspace configuration.```bash
 
-Tests can be run from **anywhere** in the monorepo thanks to proper workspace configuration.
-
-```bash
 # From monorepo root (~/Code/pickier)
+
 bun test                    # Run all pickier tests
 bun run test:format         # Run format tests only
 bun run test:lint           # Run lint tests only
@@ -68,6 +64,7 @@ bun run test:core           # Run core tests only
 bun run test:watch          # Run tests in watch mode
 
 # From package directory (~/Code/pickier/packages/pickier)
+
 bun test                    # Run all tests
 bun test test/format        # Run tests for specific category
 bun test test/lint
@@ -76,37 +73,31 @@ bun test test/plugin
 bun test test/core
 
 # Run tests for specific subcategory
+
 bun test test/rules/sort
 bun test test/rules/style
 bun test test/format/imports
 
 # Run with coverage
+
 bun test --coverage
-```
 
-## Test Helpers
+```## Test Helpers
 
-The `helpers.ts` file provides common utilities to reduce code duplication:
-
-```typescript
+The`helpers.ts`file provides common utilities to reduce code duplication:```typescript
 import { formatHelpers, lintHelpers, ruleHelpers } from './helpers'
 
 // Create temp directories for testing
 const tempDir = formatHelpers.createTempDir()
-```
 
-## Adding New Tests
+```## Adding New Tests
 
-1. **Determine the category** - Is it format, lint, rules, plugin, or core?
-2. **Choose the right subcategory** - For rules, determine if it's sort, style, quality, imports, typescript, or regexp
-3. **Follow naming conventions** - Use descriptive names that match the pattern
-4. **Use test helpers** - Import and use helpers from `helpers.ts` to reduce duplication
-5. **Update imports** - Ensure relative paths to `src/` are correct based on nesting level
+1.**Determine the category**- Is it format, lint, rules, plugin, or core?
+2.**Choose the right subcategory**- For rules, determine if it's sort, style, quality, imports, typescript, or regexp
+3.**Follow naming conventions**- Use descriptive names that match the pattern
+4.**Use test helpers**- Import and use helpers from`helpers.ts`to reduce duplication
+5.**Update imports**- Ensure relative paths to`src/`are correct based on nesting level
 
 ## Test File Naming
 
-- **Format tests**: `format-{feature}.test.ts`
-- **Lint tests**: `lint-{feature}.test.ts`
-- **Rule tests**: `rules-{rule-name}.test.ts`
-- **Plugin tests**: `plugin-{feature}.test.ts`
-- **Core tests**: `{feature}.test.ts`
+-**Format tests**:`format-{feature}.test.ts`-**Lint tests**:`lint-{feature}.test.ts`-**Rule tests**:`rules-{rule-name}.test.ts`-**Plugin tests**:`plugin-{feature}.test.ts`-**Core tests**:`{feature}.test.ts`

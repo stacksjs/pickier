@@ -15,7 +15,6 @@
 
 // Issue 1: debugger (auto-fixable)
 function test1() {
-  debugger
 }
 
 // Issue 2: unused variable (not auto-fixable, but shows in count)

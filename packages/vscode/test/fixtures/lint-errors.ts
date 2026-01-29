@@ -1,5 +1,4 @@
 // File with multiple lint errors for testing
-debugger
 console.log('test')
 
 if (x = 1) {

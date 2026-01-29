@@ -27,7 +27,6 @@
 // Hover: See help about removing debugger
 // Code action: Fix, Disable line, Disable file, View docs
 function section1a() {
-  debugger
 }
 
 // Issue 2: console.log (WARNING, not auto-fixed by default)
@@ -96,7 +95,6 @@ function section3a() {
 
 // Issue 9: Multiple issues in one function
 function section4a() {
-  debugger  // ERROR: debugger
   const unused = 'value'  // ERROR: unused var
   let x = 10  // ERROR: prefer-const
   console.log(x)  // WARNING: console
@@ -107,7 +105,6 @@ function section4a() {
 // Issue 10: Nested issues
 function section4b() {
   if (true) {
-    debugger
     const temp = 'unused'
     let y = 20
     return y

@@ -97,6 +97,7 @@ group('AST - Tree Traversal', () => {
 
   bench('Babel AST walk (medium)', async () => {
     const babel = await import('@babel/parser')
+    // @ts-expect-error -- no type declarations for @babel/traverse
     const traverse = (await import('@babel/traverse')).default
     const ast = await parseWithBabel(fixtureContent.medium)
 

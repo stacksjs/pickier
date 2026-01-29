@@ -14,7 +14,6 @@
 
 // Error 1: debugger statement
 function errorExample1() {
-  debugger  // ❌ ERROR
 }
 
 // Error 2: unused variable (configured as error)

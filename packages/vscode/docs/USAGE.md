@@ -13,30 +13,31 @@ The Pickier VS Code extension provides fast formatting and linting capabilities 
 
 ### Formatting
 
-- **Format Document**: Format the entire active document
-- **Format Selection**: Format only the selected text
-- **Format on Save**: Automatically format files when saved (configurable)
+-**Format Document**: Format the entire active document
+-**Format Selection**: Format only the selected text
+-**Format on Save**: Automatically format files when saved (configurable)
 
 ### Linting
 
-- **Lint Document**: Check the current document for issues
-- **Lint Workspace**: Check all files in the workspace
-- **Lint on Save**: Automatically lint files when saved (enabled by default)
+-**Lint Document**: Check the current document for issues
+-**Lint Workspace**: Check all files in the workspace
+-**Lint on Save**: Automatically lint files when saved (enabled by default)
 
 ### Real-time Feedback
 
-- **Status Bar Integration**: Shows Pickier status in the status bar
-- **Diagnostic Integration**: Displays lint issues inline with squiggly underlines
-- **Output Channel**: Detailed logging of operations and errors
+-**Status Bar Integration**: Shows Pickier status in the status bar
+-**Diagnostic Integration**: Displays lint issues inline with squiggly underlines
+-**Output Channel**: Detailed logging of operations and errors
 
 ## Commands
 
 Access these commands via the Command Palette (Ctrl+Shift+P / Cmd+Shift+P):
 
-- `Pickier: Format Document` - Format the current document
-- `Pickier: Format Selection` - Format the selected text
-- `Pickier: Lint Document` - Lint the current document
-- `Pickier: Lint Workspace` - Lint all files in the workspace
+- `Pickier: Format Document`- Format the current document
+
+-`Pickier: Format Selection`- Format the selected text
+-`Pickier: Lint Document`- Lint the current document
+-`Pickier: Lint Workspace`- Lint all files in the workspace
 
 ## Configuration
 
@@ -46,15 +47,14 @@ Configure Pickier through VS Code settings. Go to File > Preferences > Settings 
 
 | Setting | Type | Default | Description |
 |---------|------|---------|-------------|
-| `pickier.enable` | boolean | `true` | Enable/disable the Pickier extension |
-| `pickier.configPath` | string | `""` | Path to Pickier config file (relative to workspace root) |
-| `pickier.formatOnSave` | boolean | `false` | Format files automatically on save |
-| `pickier.lintOnSave` | boolean | `true` | Lint files automatically on save |
-| `pickier.showOutputChannel` | boolean | `false` | Show Pickier output channel for debugging |
+|`pickier.enable`| boolean |`true`| Enable/disable the Pickier extension |
+|`pickier.configPath`| string |`""`| Path to Pickier config file (relative to workspace root) |
+|`pickier.formatOnSave`| boolean |`false`| Format files automatically on save |
+|`pickier.lintOnSave`| boolean |`true`| Lint files automatically on save |
+|`pickier.showOutputChannel`| boolean |`false`| Show Pickier output channel for debugging |
 
-### Example Settings (settings.json)
+### Example Settings (settings.json)```json
 
-```json
 {
   "pickier.enable": true,
   "pickier.formatOnSave": true,
@@ -62,13 +62,10 @@ Configure Pickier through VS Code settings. Go to File > Preferences > Settings 
   "pickier.configPath": "pickier.config.ts",
   "pickier.showOutputChannel": false
 }
-```
 
-## Pickier Configuration File
+```## Pickier Configuration File
 
-Create a `pickier.config.ts` file in your workspace root to customize Pickier behavior:
-
-```typescript
+Create a`pickier.config.ts`file in your workspace root to customize Pickier behavior:```typescript
 import type { PickierConfig } from 'pickier'
 
 const config: PickierConfig = {
@@ -100,28 +97,15 @@ const config: PickierConfig = {
 }
 
 export default config
-```
-
-## Supported File Types
+```## Supported File Types
 
 Pickier supports the following file extensions:
 
-- **TypeScript**: `.ts`, `.tsx`
-- **JavaScript**: `.js`, `.jsx`
-- **JSON**: `.json`
-- **JSON with Comments**: `.jsonc`
-- **HTML**: `.html`
-- **CSS**: `.css`
-- **Markdown**: `.md`
-- **YAML**: `.yaml`, `.yml`
-
-## Integration with Other Extensions
+-**TypeScript**:`.ts`, `.tsx`-**JavaScript**:`.js`, `.jsx`-**JSON**:`.json`-**JSON with Comments**:`.jsonc`-**HTML**:`.html`-**CSS**:`.css`-**Markdown**:`.md`-**YAML**:`.yaml`, `.yml`## Integration with Other Extensions
 
 ### Disable Conflicting Formatters
 
-To avoid conflicts with other formatting extensions, you may want to disable them for file types that Pickier handles:
-
-```json
+To avoid conflicts with other formatting extensions, you may want to disable them for file types that Pickier handles:```json
 {
   "[typescript]": {
     "editor.defaultFormatter": "pickier.vscode"
@@ -133,9 +117,8 @@ To avoid conflicts with other formatting extensions, you may want to disable the
     "editor.defaultFormatter": "pickier.vscode"
   }
 }
-```
 
-### Working with ESLint/Prettier
+```### Working with ESLint/Prettier
 
 Pickier can work alongside ESLint and Prettier, but you may want to configure them to avoid overlapping rules:
 
@@ -151,9 +134,7 @@ You can assign custom keyboard shortcuts to Pickier commands:
 2. Search for "Pickier"
 3. Assign shortcuts to the commands you use most
 
-Example keybindings.json:
-
-```json
+Example keybindings.json:```json
 [
   {
     "key": "ctrl+shift+f",
@@ -166,23 +147,20 @@ Example keybindings.json:
     "when": "editorTextFocus"
   }
 ]
-```
-
-## Troubleshooting
+```## Troubleshooting
 
 ### Common Issues
 
-1. **Extension not activating**: Ensure you're working with supported file types
-2. **Formatting not working**: Check that Pickier is enabled in settings
-3. **Linting issues not showing**: Verify `pickier.lintOnSave` is enabled
-4. **Performance issues**: Try enabling `pickier.showOutputChannel` to debug
+1.**Extension not activating**: Ensure you're working with supported file types
+2.**Formatting not working**: Check that Pickier is enabled in settings
+3.**Linting issues not showing**: Verify`pickier.lintOnSave`is enabled
+4.**Performance issues**: Try enabling`pickier.showOutputChannel`to debug
 
 ### Debug Mode
 
 Enable the output channel to see detailed logs:
 
-1. Set `pickier.showOutputChannel` to `true`
-2. Open View > Output
+1. Set`pickier.showOutputChannel`to`true`2. Open View > Output
 3. Select "Pickier" from the dropdown
 4. Perform actions to see debug information
 
@@ -191,7 +169,7 @@ Enable the output channel to see detailed logs:
 If your configuration file isn't being loaded:
 
 1. Ensure it's in the workspace root
-2. Check the file name matches `pickier.configPath` setting
+2. Check the file name matches`pickier.configPath` setting
 3. Verify the configuration syntax is correct
 4. Check the output channel for error messages
 
@@ -199,10 +177,10 @@ If your configuration file isn't being loaded:
 
 Pickier is designed to be fast:
 
-- **Native Speed**: Built with Bun for maximum performance
-- **Minimal Dependencies**: Lightweight architecture
-- **Incremental Processing**: Only processes changed files
-- **Efficient Caching**: Reuses results when possible
+-**Native Speed**: Built with Bun for maximum performance
+-**Minimal Dependencies**: Lightweight architecture
+-**Incremental Processing**: Only processes changed files
+-**Efficient Caching**: Reuses results when possible
 
 ## Contributing
 

@@ -14,7 +14,6 @@
 
 // Auto-fix 1: debugger removal
 function autoFix1() {
-  debugger  // ✨ Can be auto-removed
 }
 
 // Auto-fix 2: prefer-const

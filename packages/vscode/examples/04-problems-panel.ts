@@ -13,7 +13,6 @@
 // In Problems panel, click this issue
 // Help text: "Remove debugger statements before committing code..."
 function problem1() {
-  debugger
   return 1
 }
 

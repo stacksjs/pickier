@@ -129,9 +129,9 @@ let _config: PickierConfig | null = null
 export async function getConfig(): Promise<PickierConfig> {
   if (!_config) {
     _config = await loadConfig({
-  name: 'pickier',
-  defaultConfig,
-})
+      name: 'pickier',
+      defaultConfig,
+    })
   }
   return _config
 }

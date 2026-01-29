@@ -1,31 +1,33 @@
-<p align="center"><img src="https://github.com/stacksjs/rpx/blob/main/.github/art/cover.jpg?raw=true" alt="Social Card of this repo"></p>
+<p align="center"><img src="<https://github.com/stacksjs/rpx/blob/main/.github/art/cover.jpg?raw=true"> alt="Social Card of this repo"></p>
 
 # A Better Developer Experience
 
 Pickier is a fast formatter and linter that helps you keep your codebase clean and consistent.
 
-- **Fast**: Bun runtime + `fast-glob` scanning
-- **Simple**: one CLI, two core commands: `lint` and `format`
-- **Smart**: import management, JSON/tsconfig sorting, whitespace normalization
-- **Configurable**: quotes, indent, final newlines, semicolons, rules, and plugins
+-**Fast**: Bun runtime + `fast-glob`scanning
+-**Simple**: one CLI, two core commands:`lint`and`format`-**Smart**: import management, JSON/tsconfig sorting, whitespace normalization
+-**Configurable**: quotes, indent, final newlines, semicolons, rules, and plugins
 
-## Quickstart
+## Quickstart```bash
 
-```bash
 # add to your project (dev dependency)
+
 bun add -d pickier
+
 # pnpm add -D pickier
+
 # npm i -D pickier
+
 # yarn add -D pickier
-```
 
-Run Pickier from your project root:
+```Run Pickier from your project root:```bash
 
-```bash
 # check formatting without modifying files
+
 pickier format . --check
 
 # lint with auto-fix for debugger statements
+
 pickier lint src --fix
 ```
 

@@ -3,7 +3,6 @@
 
 function testFunction() {
   // ISSUE: debugger statement
-  debugger
 
   // ISSUE: console.log call
   console.log('Debug message')
@@ -18,7 +17,6 @@ function testFunction() {
 
   // ISSUE: debugger in conditional
   if (x > 0) {
-    debugger
   }
 
   // ISSUE: console.info

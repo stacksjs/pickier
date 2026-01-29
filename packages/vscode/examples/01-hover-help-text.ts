@@ -13,7 +13,6 @@
 
 // Hover over 'debugger' - see help text about removing it
 function example1() {
-  debugger
   return 'test'
 }
 

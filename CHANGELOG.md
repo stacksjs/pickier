@@ -290,7 +290,7 @@
 
 ### 🚀 Enhancements
 
-- Add `bun-plugin-dts-auto` ([c0c487b](https://github.com/stacksjs/ts-starter/commit/c0c487b))
+- Add `bun-plugin-dts-auto`([c0c487b](https://github.com/stacksjs/ts-starter/commit/c0c487b))
 
 ### ❤️ Contributors
 
@@ -315,8 +315,8 @@
 
 ### 🚀 Enhancements
 
-- Add `noFallthroughCasesInSwitch` ([b9cfa30](https://github.com/stacksjs/ts-starter/commit/b9cfa30))
-- Add `verbatimModuleSyntax` ([c495d17](https://github.com/stacksjs/ts-starter/commit/c495d17))
+- Add`noFallthroughCasesInSwitch`([b9cfa30](https://github.com/stacksjs/ts-starter/commit/b9cfa30))
+- Add`verbatimModuleSyntax`([c495d17](https://github.com/stacksjs/ts-starter/commit/c495d17))
 - Several updates ([f703179](https://github.com/stacksjs/ts-starter/commit/f703179))
 
 ### 🩹 Fixes
@@ -326,9 +326,9 @@
 ### 🏡 Chore
 
 - Adjust badge links ([432aff7](https://github.com/stacksjs/ts-starter/commit/432aff7))
-- Add `runs-on` options ([9a5b97f](https://github.com/stacksjs/ts-starter/commit/9a5b97f))
+- Add`runs-on`options ([9a5b97f](https://github.com/stacksjs/ts-starter/commit/9a5b97f))
 - Cache node_modules ([ba2f6ce](https://github.com/stacksjs/ts-starter/commit/ba2f6ce))
-- Use `ubuntu-latest` for now ([1add684](https://github.com/stacksjs/ts-starter/commit/1add684))
+- Use`ubuntu-latest`for now ([1add684](https://github.com/stacksjs/ts-starter/commit/1add684))
 - Minor updates ([1007cff](https://github.com/stacksjs/ts-starter/commit/1007cff))
 - Lint ([d531bdc](https://github.com/stacksjs/ts-starter/commit/d531bdc))
 - Remove bunx usage ([e1a5575](https://github.com/stacksjs/ts-starter/commit/e1a5575))
@@ -402,7 +402,7 @@
 - Minor updates ([78dc522](https://github.com/stacksjs/ts-starter/commit/78dc522))
 - Housekeeping ([e1cba3b](https://github.com/stacksjs/ts-starter/commit/e1cba3b))
 - Additional housekeeping ([f5dc625](https://github.com/stacksjs/ts-starter/commit/f5dc625))
-- Add `.gitattributes` ([7080f8c](https://github.com/stacksjs/ts-starter/commit/7080f8c))
+- Add`.gitattributes`([7080f8c](https://github.com/stacksjs/ts-starter/commit/7080f8c))
 - Adjust deps ([cc71b42](https://github.com/stacksjs/ts-starter/commit/cc71b42))
 - Adjust wording ([3bc54b3](https://github.com/stacksjs/ts-starter/commit/3bc54b3))
 - Adjust readme cover ([e6acbb2](https://github.com/stacksjs/ts-starter/commit/e6acbb2))
@@ -426,7 +426,7 @@
 - Minor updates ([78dc522](https://github.com/stacksjs/ts-starter/commit/78dc522))
 - Housekeeping ([e1cba3b](https://github.com/stacksjs/ts-starter/commit/e1cba3b))
 - Additional housekeeping ([f5dc625](https://github.com/stacksjs/ts-starter/commit/f5dc625))
-- Add `.gitattributes` ([7080f8c](https://github.com/stacksjs/ts-starter/commit/7080f8c))
+- Add`.gitattributes` ([7080f8c](https://github.com/stacksjs/ts-starter/commit/7080f8c))
 - Adjust deps ([cc71b42](https://github.com/stacksjs/ts-starter/commit/cc71b42))
 - Adjust wording ([3bc54b3](https://github.com/stacksjs/ts-starter/commit/3bc54b3))
 - Adjust readme cover ([e6acbb2](https://github.com/stacksjs/ts-starter/commit/e6acbb2))

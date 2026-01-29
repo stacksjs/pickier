@@ -19,7 +19,6 @@
 // - Disable no-debugger for entire file
 // - View documentation
 function test1() {
-  debugger
 }
 
 // Test 2: Try code actions on 'let'

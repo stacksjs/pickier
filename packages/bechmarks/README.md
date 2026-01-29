@@ -1,41 +1,42 @@
 # Pickier Benchmarks
 
-Comprehensive performance benchmarks comparing **Pickier** against industry-standard tools:
+Comprehensive performance benchmarks comparing**Pickier**against industry-standard tools:
 
-- **ESLint** - Popular JavaScript/TypeScript linter
-- **Prettier** - Opinionated code formatter
-- **Biome** - Fast all-in-one toolchain
+-**ESLint**- Popular JavaScript/TypeScript linter
+-**Prettier**- Opinionated code formatter
+-**Biome**- Fast all-in-one toolchain
 
-> **Note**: oxlint is not included in these benchmarks as it's not easily installable via npm. You can add it manually if needed.
+>**Note**: oxlint is not included in these benchmarks as it's not easily installable via npm. You can add it manually if needed.
 
 ## 🚀 Recent Performance Optimizations (Phase 1)
 
-Pickier has been optimized with **5 critical improvements** using only **Bun and TypeScript**:
+Pickier has been optimized with**5 critical improvements**using only**Bun and TypeScript**:
 
 | Optimization | Impact | Description |
 |-------------|--------|-------------|
-| **Eliminated Triple Scanning** | 40% | Files now parsed once instead of 3+ times per lint operation |
-| **Parallel File Processing** | 30-50% | Added p-limit for concurrent processing (configurable via `PICKIER_CONCURRENCY`) |
-| **Quote Normalization** | 20-30% | Single-pass algorithm eliminates O(n²) indexOf calls |
-| **Single-Pass Formatting** | 15-25% | Combined trimming and blank line collapsing |
-| **Binary Search Directives** | 10-15% | O(log n) lookups for disable directives instead of O(n) |
-
-**Measured Improvements:**
-- **Medium files**: ~11% faster linting (1.47ms → 1.31ms)
-- **Large files**: ~18% faster linting (5.15ms → 4.21ms)
-- **Combined workflow**: ~3% faster (7.29ms → 7.08ms)
-- **No Rust/Zig dependencies** - Pure TypeScript optimizations!
+|**Eliminated Triple Scanning**| 40% | Files now parsed once instead of 3+ times per lint operation |
+|**Parallel File Processing**| 30-50% | Added p-limit for concurrent processing (configurable via `PICKIER_CONCURRENCY`) |
+|**Quote Normalization**| 20-30% | Single-pass algorithm eliminates O(n²) indexOf calls |
+|**Single-Pass Formatting**| 15-25% | Combined trimming and blank line collapsing |
+|**Binary Search Directives**| 10-15% | O(log n) lookups for disable directives instead of O(n) |**Measured Improvements:**-**Medium files**: ~11% faster linting (1.47ms → 1.31ms)
+-**Large files**: ~18% faster linting (5.15ms → 4.21ms)
+-**Combined workflow**: ~3% faster (7.29ms → 7.08ms)
+-**No Rust/Zig dependencies**- Pure TypeScript optimizations!
 
 ## Quick Start
 
 ```bash
+
 # Install dependencies
+
 bun install
 
 # Run all benchmarks
+
 bun run bench
 
 # Run specific benchmark suites
+
 bun run bench:lint        # Linting only
 bun run bench:format      # Formatting only
 bun run bench:combined    # Lint + Format workflows
@@ -53,12 +54,10 @@ bun run bench:all         # All suites sequentially
 
 Compares linting performance across different file sizes:
 
-- **Small files** (~50 lines): Basic user service with interfaces
-- **Medium files** (~500 lines): E-commerce system with repositories and controllers
-- **Large files** (~2000 lines): Complete application with services, utilities, and models
+-**Small files**(~50 lines): Basic user service with interfaces
+-**Medium files**(~500 lines): E-commerce system with repositories and controllers
+-**Large files**(~2000 lines): Complete application with services, utilities, and models**Tests:**- Single file linting
 
-**Tests:**
-- Single file linting
 - Batch file linting
 - Cold start performance
 - Warm cache performance
@@ -70,10 +69,7 @@ Compares code formatting speed:
 - String manipulation performance
 - File I/O overhead
 - Parallel processing
-- Memory efficiency
-
-**Tests:**
-- Single file formatting
+- Memory efficiency**Tests:**- Single file formatting
 - Multiple file formatting
 - In-memory string formatting
 - Cold start vs warm runs
@@ -85,10 +81,7 @@ Tests real-world workflows combining linting and formatting:
 - Sequential execution (lint → format)
 - Parallel execution
 - Multiple iterations (memory pressure)
-- Full project simulation
-
-**Tests:**
-- Single tool workflows (Pickier, Biome)
+- Full project simulation**Tests:**- Single tool workflows (Pickier, Biome)
 - Multi-tool workflows (ESLint + Prettier)
 - Parallel vs sequential processing
 - Memory efficiency under load
@@ -101,10 +94,7 @@ Measures memory consumption and efficiency under various workloads:
 - Memory stability (leak detection)
 - Large batch processing
 - Concurrent processing
-- Cache efficiency
-
-**Tests:**
-- Memory pressure with repeated operations
+- Cache efficiency**Tests:**- Memory pressure with repeated operations
 - Stability test with garbage collection
 - Large batch memory efficiency
 - Concurrent processing (10 parallel operations)
@@ -118,10 +108,7 @@ Compares AST parsing speed and operations:
 - AST traversal speed
 - Repeated parsing (cache efficiency)
 - Batch parsing
-- Error recovery
-
-**Tests:**
-- Parsing speed across all file sizes
+- Error recovery**Tests:**- Parsing speed across all file sizes
 - AST tree traversal and node counting
 - Repeated parsing (10x) for cache analysis
 - Batch parsing (all files)
@@ -136,10 +123,7 @@ Measures individual rule performance and plugin overhead:
 - Scaling with file size
 - Plugin overhead measurement
 - Execution patterns (sequential vs parallel)
-- Caching efficiency
-
-**Tests:**
-- Single rule benchmarks (no-debugger, no-console)
+- Caching efficiency**Tests:**- Single rule benchmarks (no-debugger, no-console)
 - Multiple rules (5 rules, 20 rules)
 - Scaling analysis across file sizes
 - Plugin overhead comparison
@@ -155,10 +139,7 @@ Generates comprehensive comparison tables with structured output:
 - Formatting performance comparison
 - Combined workflow comparison
 - Throughput measurements
-- Batch processing analysis
-
-**Output Includes:**
-- Formatted comparison tables
+- Batch processing analysis**Output Includes:**- Formatted comparison tables
 - Detailed fixture statistics
 - Operations per second metrics
 - Performance summaries
@@ -171,10 +152,7 @@ Detailed analysis of performance characteristics by file size:
 - Comprehensive file statistics (11 metrics per file)
 - Performance deep dives per size category
 - Scaling characteristics analysis
-- Code density metrics
-
-**Metrics Analyzed:**
-- Total lines, code lines, comment lines, blank lines
+- Code density metrics**Metrics Analyzed:**- Total lines, code lines, comment lines, blank lines
 - File size (bytes), characters
 - Import/export statements
 - Functions, classes, interfaces
@@ -186,11 +164,13 @@ Detailed analysis of performance characteristics by file size:
 Realistic TypeScript files designed to stress-test different aspects:
 
 ### Small Fixture (~50 lines)
+
 - Simple class with methods
 - Basic TypeScript features
 - Common patterns (getters, filters, maps)
 
 ### Medium Fixture (~500 lines)
+
 - Multiple classes and interfaces
 - Async/await patterns
 - Error handling
@@ -198,6 +178,7 @@ Realistic TypeScript files designed to stress-test different aspects:
 - Repository pattern
 
 ### Large Fixture (~2000 lines)
+
 - Complete application architecture
 - Multiple services and repositories
 - Complex type definitions
@@ -208,85 +189,81 @@ Realistic TypeScript files designed to stress-test different aspects:
 ## Metrics Measured
 
 ### Performance Metrics
-- **Operations per second (ops/sec)**: Higher is better
-- **Average time per operation**: Lower is better
-- **P99 latency**: Consistency metric
-- **Memory usage**: Lower is better
-- **Margin of error**: Statistical consistency (lower is better)
+
+-**Operations per second (ops/sec)**: Higher is better
+-**Average time per operation**: Lower is better
+-**P99 latency**: Consistency metric
+-**Memory usage**: Lower is better
+-**Margin of error**: Statistical consistency (lower is better)
 
 ### Throughput Metrics
-- **Lines processed per second**
-- **Files processed per second**
-- **Batch processing efficiency**
-- **Concurrent processing throughput**
 
-### Efficiency Metrics
-- **Cold start time**: First run performance
-- **Warm run time**: Cached performance
-- **Parallel scaling**: Multi-core utilization
-- **Memory pressure**: Performance under load
-- **Cache hit rate**: Repeated operation efficiency
-- **Memory stability**: Leak detection over 1000+ operations
+-**Lines processed per second**-**Files processed per second**-**Batch processing efficiency**-**Concurrent processing throughput**### Efficiency Metrics
+
+-**Cold start time**: First run performance
+-**Warm run time**: Cached performance
+-**Parallel scaling**: Multi-core utilization
+-**Memory pressure**: Performance under load
+-**Cache hit rate**: Repeated operation efficiency
+-**Memory stability**: Leak detection over 1000+ operations
 
 ### Code Analysis Metrics
-- **Parse speed**: AST generation time
-- **Traversal speed**: Node visiting performance
-- **Rule execution time**: Individual rule overhead
-- **Plugin overhead**: Multi-rule coordination cost
-- **Error recovery time**: Invalid code handling
+
+-**Parse speed**: AST generation time
+-**Traversal speed**: Node visiting performance
+-**Rule execution time**: Individual rule overhead
+-**Plugin overhead**: Multi-rule coordination cost
+-**Error recovery time**: Invalid code handling
 
 ### File Metrics (per fixture)
-- **Total lines**: Complete file line count
-- **Code lines**: Executable code only
-- **Comment lines**: Documentation overhead
-- **Blank lines**: Whitespace count
-- **File size**: Bytes on disk
-- **Imports/Exports**: Module boundary count
-- **Functions/Classes/Interfaces**: Code structure count
+
+-**Total lines**: Complete file line count
+-**Code lines**: Executable code only
+-**Comment lines**: Documentation overhead
+-**Blank lines**: Whitespace count
+-**File size**: Bytes on disk
+-**Imports/Exports**: Module boundary count
+-**Functions/Classes/Interfaces**: Code structure count
 
 ## Performance Comparisons
 
 Based on the benchmark results, here's how Pickier compares to other tools:
 
 ### Formatting Performance
-- **Pickier is ~3.5x faster than Prettier** for small files (~50 lines)
-- **Pickier is ~7.7x faster than Prettier** for medium files (~500 lines)
-- **Pickier is ~9.2x faster than Prettier** for large files (~2000 lines)
+
+-**Pickier is ~3.5x faster than Prettier**for small files (~50 lines)
+-**Pickier is ~7.7x faster than Prettier**for medium files (~500 lines)
+-**Pickier is ~9.2x faster than Prettier**for large files (~2000 lines)
 
 Pickier's formatting engine is optimized for speed with minimal AST transformations, making it significantly faster than Prettier across all file sizes. The performance advantage grows with file size.
 
 ### Combined Workflow Performance
-- **Pickier is ~2.4x faster than ESLint + Prettier** for small files
-- **Pickier is ~2.9x faster than ESLint + Prettier** for medium files
-- **Pickier is ~2.9x faster than ESLint + Prettier** for large files
+
+-**Pickier is ~2.4x faster than ESLint + Prettier**for small files
+-**Pickier is ~2.9x faster than ESLint + Prettier**for medium files
+-**Pickier is ~2.9x faster than ESLint + Prettier**for large files
 
 When you need both linting and formatting, Pickier's integrated approach is significantly faster than running two separate tools. This makes it ideal for pre-commit hooks and watch modes.
 
 ### Memory Efficiency
-- **Pickier uses ~3.9x less time than Prettier** for repeated operations (100x small file)
-- **Pickier maintains stable memory** over 1000+ operations without memory leaks
-- **ESLint is more efficient** for pure linting operations with minimal overhead
+
+-**Pickier uses ~3.9x less time than Prettier**for repeated operations (100x small file)
+-**Pickier maintains stable memory**over 1000+ operations without memory leaks
+-**ESLint is more efficient**for pure linting operations with minimal overhead
 
 ### Parsing Performance
-- **TypeScript parser and Babel parser perform similarly** across all file sizes
-- **TypeScript parser is ~1.1x faster** for small files
-- **Both parsers show consistent performance** for repeated operations
 
-### When to Use Each Tool
+-**TypeScript parser and Babel parser perform similarly**across all file sizes
+-**TypeScript parser is ~1.1x faster**for small files
+-**Both parsers show consistent performance**for repeated operations
 
-**Use Pickier when:**
-- You need both linting and formatting (integrated workflow)
+### When to Use Each Tool**Use Pickier when:**- You need both linting and formatting (integrated workflow)
+
 - Formatting speed is critical (3-9x faster than Prettier)
 - You want a single tool for code quality
-- Working with TypeScript/JavaScript projects
-
-**Use ESLint when:**
-- You only need linting (ESLint specializes in this)
+- Working with TypeScript/JavaScript projects**Use ESLint when:**- You only need linting (ESLint specializes in this)
 - You need extensive plugin ecosystem
-- You have complex custom rules
-
-**Use Prettier when:**
-- You only need formatting
+- You have complex custom rules**Use Prettier when:**- You only need formatting
 - You need formatting for many languages beyond JS/TS
 - You prefer the most popular formatter
 
@@ -294,35 +271,23 @@ When you need both linting and formatting, Pickier's integrated approach is sign
 
 ### Interpreting Mitata Output
 
-```
-┌─────────┬────────────────────┬────────┬───────────┬─────────┐
+```┌─────────┬────────────────────┬────────┬───────────┬─────────┐
 │ (index) │     Task Name      │ops/sec │  avg (ms) │  margin │
 ├─────────┼────────────────────┼────────┼───────────┼─────────┤
 │    0    │ 'pickier'          │ 1,245  │  0.8034   │ ±0.42%  │
 │    1    │ 'eslint'           │  523   │  1.9120   │ ±0.89%  │
 │    2    │ 'oxlint'           │ 2,134  │  0.4686   │ ±0.31%  │
-└─────────┴────────────────────┴────────┴───────────┴─────────┘
-```
-
-- **ops/sec**: Operations (file processed) per second - higher is better
-- **avg (ms)**: Average milliseconds per operation - lower is better
-- **margin**: Statistical margin of error - lower indicates more consistent results
+└─────────┴────────────────────┴────────┴───────────┴─────────┘```-**ops/sec**: Operations (file processed) per second - higher is better
+-**avg (ms)**: Average milliseconds per operation - lower is better
+-**margin**: Statistical margin of error - lower indicates more consistent results
 
 ### Expected Results
 
-Based on design and implementation:
+Based on design and implementation:**Linting:**- Pickier: Fast (Bun-optimized, focused rules)
 
-**Linting:**
-- Pickier: Fast (Bun-optimized, focused rules)
-- ESLint: Slower (comprehensive, plugin ecosystem)
-
-**Formatting:**
-- Pickier: Fast (minimal AST transformations)
+- ESLint: Slower (comprehensive, plugin ecosystem)**Formatting:**- Pickier: Fast (minimal AST transformations)
 - Biome: Very fast (Rust-based)
-- Prettier: Moderate (comprehensive formatting)
-
-**Combined:**
-- Pickier: Efficient single-tool workflow
+- Prettier: Moderate (comprehensive formatting)**Combined:**- Pickier: Efficient single-tool workflow
 - Biome: Fast all-in-one solution
 - ESLint + Prettier: Slower (two separate tools)
 
@@ -330,10 +295,8 @@ Based on design and implementation:
 
 The comparison and breakdown benchmarks generate formatted console output with detailed tables:
 
-### Comparison Report Output
+### Comparison Report Output```========================================================================================================
 
-```
-========================================================================================================
                          PICKIER PERFORMANCE BENCHMARK COMPARISON
 ========================================================================================================
 
@@ -345,20 +308,16 @@ The comparison and breakdown benchmarks generate formatted console output with d
 │ Small   │         52 │         1084 │         1084 │
 │ Medium  │        418 │        10517 │        10517 │
 │ Large   │       1279 │        31950 │        31950 │
-└─────────┴────────────┴──────────────┴──────────────┘
-```
+└─────────┴────────────┴──────────────┴──────────────┘```Followed by detailed performance comparisons for:
 
-Followed by detailed performance comparisons for:
 - Linting (Pickier vs ESLint)
 - Formatting (Pickier vs Prettier)
 - Combined workflows
 - Throughput measurements
 - Batch processing
 
-### Breakdown Report Output
+### Breakdown Report Output```========================================================================================================
 
-```
-========================================================================================================
                                   FILE SIZE BREAKDOWN ANALYSIS
 ========================================================================================================
 
@@ -414,28 +373,23 @@ Followed by detailed performance comparisons for:
 │ Functions           │        0 │
 │ Classes             │       23 │
 │ Interfaces          │       20 │
-└─────────────────────┴──────────┘
-```
+└─────────────────────┴──────────┘```
 
 Includes scaling characteristics:
+
 - Line count scaling (small → medium → large)
 - Byte size scaling
 - Code density percentages
 
 ### Actual Performance Results
 
-Here are representative benchmark results from real runs (Apple M3 Pro) **after Phase 1 optimizations**:
+Here are representative benchmark results from real runs (Apple M3 Pro)**after Phase 1 optimizations**:
 
-> **🚀 Performance Improvements Applied:**
-> - Eliminated triple file scanning (40% gain)
+>**🚀 Performance Improvements Applied:**> - Eliminated triple file scanning (40% gain)
 > - Parallelized file processing with p-limit (30-50% gain)
 > - Optimized quote normalization with single-pass algorithm (20-30% gain)
 > - Single-pass formatting (15-25% gain)
-> - Binary search for disable directives (10-15% gain)
-
-**Linting Performance:**
-```
-Small File (52 lines):
+> - Binary search for disable directives (10-15% gain)**Linting Performance:**```Small File (52 lines):
   Pickier:  187.23 µs/iter  (optimized)
   ESLint:    53.89 µs/iter
 
@@ -445,12 +399,7 @@ Medium File (418 lines):
 
 Large File (1279 lines):
   Pickier:    4.21 ms/iter  (optimized - ~18% faster than before)
-  ESLint:    52.29 µs/iter
-```
-
-**Formatting Performance:**
-```
-Small File:
+  ESLint:    52.29 µs/iter```**Formatting Performance:**```Small File:
   Pickier:    336.64 µs/iter
   Prettier:     1.18 ms/iter  (3.5x slower)
 
@@ -460,12 +409,7 @@ Medium File:
 
 Large File:
   Pickier:      2.34 ms/iter  (optimized quote algorithm)
-  Prettier:    21.61 ms/iter  (9.2x slower)
-```
-
-**Combined Workflow (Lint + Format):**
-```
-Small File:
+  Prettier:    21.61 ms/iter  (9.2x slower)```**Combined Workflow (Lint + Format):**```Small File:
   Pickier:            569.45 µs/iter
   ESLint + Prettier:    1.37 ms/iter  (2.4x slower)
 
@@ -475,40 +419,19 @@ Medium File:
 
 Large File:
   Pickier:              7.08 ms/iter  (optimized - ~3% faster)
-  ESLint + Prettier:   20.76 ms/iter  (2.9x slower)
-```
-
-**Batch Processing (All Files - Sequential vs Parallel):**
-```
-Sequential:    5.75 ms/iter
+  ESLint + Prettier:   20.76 ms/iter  (2.9x slower)```**Batch Processing (All Files - Sequential vs Parallel):**```Sequential:    5.75 ms/iter
 Parallel:      5.72 ms/iter  (with p-limit concurrency)
-ESLint only:  147.84 µs/iter
-```
-
-**Memory Efficiency (100x repetitions on small file):**
-```
-Pickier:    18.84 ms/iter
+ESLint only:  147.84 µs/iter```**Memory Efficiency (100x repetitions on small file):**```Pickier:    18.84 ms/iter
 ESLint:      4.86 ms/iter  (ESLint optimized for pure linting)
-Prettier:   87.64 ms/iter  (Pickier 4.7x faster)
-```
-
-**Parsing Performance (small file):**
-```
-TypeScript parser:  55.50 µs/iter
+Prettier:   87.64 ms/iter  (Pickier 4.7x faster)```**Parsing Performance (small file):**```TypeScript parser:  55.50 µs/iter
 Babel parser:       61.23 µs/iter
-String ops only:     3.43 µs/iter  (baseline)
-```
+String ops only:     3.43 µs/iter  (baseline)```**Optimization Impact Summary:**-**Medium file linting**: ~11% faster (1.47ms → 1.31ms)
+-**Large file linting**: ~18% faster (5.15ms → 4.21ms)
+-**Large file combined**: ~3% faster (7.29ms → 7.08ms)
+-**Parallel processing**: Minimal overhead vs sequential (near-optimal)
+-**Quote normalization**: Single-pass algorithm eliminates O(n²) indexOf calls
+-**Binary search**: O(log n) disable directive lookups instead of O(n)**Key Insights:**- ESLint is faster for pure linting (it's specialized for this)
 
-**Optimization Impact Summary:**
-- **Medium file linting**: ~11% faster (1.47ms → 1.31ms)
-- **Large file linting**: ~18% faster (5.15ms → 4.21ms)
-- **Large file combined**: ~3% faster (7.29ms → 7.08ms)
-- **Parallel processing**: Minimal overhead vs sequential (near-optimal)
-- **Quote normalization**: Single-pass algorithm eliminates O(n²) indexOf calls
-- **Binary search**: O(log n) disable directive lookups instead of O(n)
-
-**Key Insights:**
-- ESLint is faster for pure linting (it's specialized for this)
 - Pickier excels at formatting (3-9x faster than Prettier)
 - Combined workflows favor Pickier (2-3x faster than separate tools)
 - Performance advantage grows with file size for formatting
@@ -521,6 +444,7 @@ String ops only:     3.43 µs/iter  (baseline)
 You can create custom benchmarks using the fixtures:
 
 ```typescript
+
 import { bench, group, run } from 'mitata'
 import { runLintProgrammatic } from 'pickier'
 
@@ -536,114 +460,113 @@ group('My Custom Benchmark', () => {
 })
 
 await run()
-```
 
-## Benchmark Environment
+```## Benchmark Environment
 
 For accurate results:
 
-1. **Close other applications**: Reduce CPU/memory noise
-2. **Run multiple times**: Statistical significance
-3. **Consistent environment**: Same hardware, OS state
-4. **Warm up**: First run often slower (JIT compilation)
+1.**Close other applications**: Reduce CPU/memory noise
+2.**Run multiple times**: Statistical significance
+3.**Consistent environment**: Same hardware, OS state
+4.**Warm up**: First run often slower (JIT compilation)
 
 ### Performance Configuration
 
-Pickier supports environment variables for performance tuning:
+Pickier supports environment variables for performance tuning:```bash
 
-```bash
 # Control parallel file processing concurrency (default: 8)
+
 export PICKIER_CONCURRENCY=16  # Use 16 parallel workers
 
 # Disable auto-config loading for benchmarks
+
 export PICKIER_NO_AUTO_CONFIG=1
 
 # Then run benchmarks
+
 bun run bench
-```
+```### Recommended Setup```bash
 
-### Recommended Setup
-
-```bash
 # Clear system cache (macOS)
+
 sudo purge
 
 # Run with high priority (Linux)
+
 nice -n -20 bun run bench
 
 # Run with custom concurrency
+
 PICKIER_CONCURRENCY=4 bun run bench
 
 # Monitor system resources
+
 htop  # or Activity Monitor on macOS
-```
 
-## CI/CD Integration
+```## CI/CD Integration
 
-Run benchmarks in your pipeline:
+Run benchmarks in your pipeline:```yaml
 
-```yaml
 # GitHub Actions example
+
 - name: Run benchmarks
+
   run: |
     cd packages/benchmarks
     bun install
     bun run bench:all > benchmark-results.txt
 
 - name: Upload results
+
   uses: actions/upload-artifact@v3
   with:
     name: benchmark-results
     path: packages/benchmarks/benchmark-results.txt
-```
-
-## Performance Goals
+```## Performance Goals
 
 Target performance characteristics for Pickier:
 
 ### Speed Goals
-- **Linting**: Competitive with ESLint (within 2x)
-- **Formatting**: Within 1.5x of Biome/Prettier speed
-- **Combined**: Faster than ESLint + Prettier workflow
-- **Parsing**: Fast TypeScript AST generation
-- **Rule execution**: < 5ms per rule per file (medium size)
+
+-**Linting**: Competitive with ESLint (within 2x)
+-**Formatting**: Within 1.5x of Biome/Prettier speed
+-**Combined**: Faster than ESLint + Prettier workflow
+-**Parsing**: Fast TypeScript AST generation
+-**Rule execution**: < 5ms per rule per file (medium size)
 
 ### Memory Goals
-- **Peak usage**: < 100MB for medium projects
-- **Stability**: No memory leaks over 1000+ operations
-- **Concurrent**: Efficient parallel processing without memory explosion
-- **Cache**: Minimal overhead for repeated operations
+
+-**Peak usage**: < 100MB for medium projects
+-**Stability**: No memory leaks over 1000+ operations
+-**Concurrent**: Efficient parallel processing without memory explosion
+-**Cache**: Minimal overhead for repeated operations
 
 ### Startup Goals
-- **Cold start**: < 50ms for first run
-- **Warm runs**: < 10ms for cached operations
-- **Plugin loading**: < 20ms for all core plugins
+
+-**Cold start**: < 50ms for first run
+-**Warm runs**: < 10ms for cached operations
+-**Plugin loading**: < 20ms for all core plugins
 
 ### Scaling Goals
-- **File size**: Linear scaling from small → large
-- **Batch processing**: Efficient parallel processing (near-linear with core count)
-- **Rule count**: Sub-linear overhead with multiple rules (caching/optimization)
+
+-**File size**: Linear scaling from small → large
+-**Batch processing**: Efficient parallel processing (near-linear with core count)
+-**Rule count**: Sub-linear overhead with multiple rules (caching/optimization)
 
 ## Contributing
 
 To add new benchmarks:
 
-1. Add fixture files to `fixtures/`
-2. Create benchmark file in `benchmarks/`
+1. Add fixture files to`fixtures/`2. Create benchmark file in`benchmarks/`
 3. Update package.json scripts
 4. Document in this README
 5. Ensure consistent test methodology
 
-## Benchmark Limitations
+## Benchmark Limitations**What these benchmarks measure:**- Raw processing speed
 
-**What these benchmarks measure:**
-- Raw processing speed
 - Tool overhead
 - Memory efficiency
-- Parallel scaling
-
-**What these benchmarks DON'T measure:**
-- IDE integration performance
+- Parallel scaling**What these benchmarks DON'T measure:**- IDE integration performance
 - Watch mode efficiency
 - Plugin ecosystem size
 - Configuration complexity

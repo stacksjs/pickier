@@ -21,16 +21,12 @@ export default {
     noDebugger: 'error',
   },
 } satisfies PickierConfig
-```
-
-The `satisfies` keyword ensures your configuration is valid while preserving the exact types. This catches typos and invalid values before you even run Pickier.
+```The`satisfies`keyword ensures your configuration is valid while preserving the exact types. This catches typos and invalid values before you even run Pickier.
 
 ### JavaScript Configuration
 
-If TypeScript isn't available in your project, you can use JavaScript:
-
-```js
-/** @type {import('pickier').PickierConfig} */
+If TypeScript isn't available in your project, you can use JavaScript:```js
+/**@type {import('pickier').PickierConfig}*/
 export default {
   lint: {
     extensions: ['js', 'jsx'],
@@ -39,15 +35,12 @@ export default {
     noDebugger: 'error',
   },
 }
-```
 
-The JSDoc comment provides type hints in editors that support it.
+```The JSDoc comment provides type hints in editors that support it.
 
 ### JSON Configuration
 
-For simpler projects or when you prefer JSON:
-
-```json
+For simpler projects or when you prefer JSON:```json
 {
   "lint": {
     "extensions": ["ts", "tsx"]
@@ -56,9 +49,7 @@ For simpler projects or when you prefer JSON:
     "noDebugger": "error"
   }
 }
-```
-
-Name it `.pickierrc.json` and place it at your project root.
+```Name it`.pickierrc.json`and place it at your project root.
 
 ## Understanding Rule Severity
 
@@ -66,9 +57,7 @@ Rules in Pickier can have three severity levels, and choosing the right one depe
 
 ### Error Level
 
-Use `'error'` for rules that catch actual bugs or prevent broken code from being committed. These will fail CI builds and prevent commits if you have pre-commit hooks set up:
-
-```ts
+Use`'error'`for rules that catch actual bugs or prevent broken code from being committed. These will fail CI builds and prevent commits if you have pre-commit hooks set up:```ts
 export default {
   rules: {
     noDebugger: 'error',
@@ -78,15 +67,12 @@ export default {
     'pickier/no-unused-vars': 'error',
   },
 }
-```
 
-Errors show up with red underlines in VS Code and are counted separately from warnings in the output.
+```Errors show up with red underlines in VS Code and are counted separately from warnings in the output.
 
 ### Warning Level
 
-Use `'warn'` for style preferences and best practices that won't break your code but should be addressed eventually:
-
-```ts
+Use`'warn'`for style preferences and best practices that won't break your code but should be addressed eventually:```ts
 export default {
   rules: {
     noConsole: 'warn',
@@ -95,31 +81,24 @@ export default {
     'pickier/prefer-template': 'warn',
   },
 }
-```
-
-Warnings show up with yellow underlines and won't fail your build by default (though you can change this with the `PICKIER_FAIL_ON_WARNINGS=1` environment variable).
+```Warnings show up with yellow underlines and won't fail your build by default (though you can change this with the`PICKIER_FAIL_ON_WARNINGS=1`environment variable).
 
 ### Off Level
 
-Use `'off'` to completely disable a rule. This is useful when a rule doesn't fit your project or conflicts with your team's coding style:
-
-```ts
+Use`'off'`to completely disable a rule. This is useful when a rule doesn't fit your project or conflicts with your team's coding style:```ts
 export default {
   rules: {
     noConsole: 'off',
   },
 }
-```
 
-## Glob Patterns and Ignoring Files
+```## Glob Patterns and Ignoring Files
 
 Pickier uses glob patterns to determine which files to lint and which to ignore. Understanding these patterns helps you fine-tune what gets checked.
 
 ### Basic Ignore Patterns
 
-The `ignores` array accepts glob patterns that match files to skip:
-
-```ts
+The`ignores`array accepts glob patterns that match files to skip:```ts
 export default {
   ignores: [
     '**/node_modules/**',
@@ -143,16 +122,14 @@ export default {
     '**/*.test.ts',
     '**/*.spec.ts',
     '**/fixtures/**',
-    '**/__tests__/**',
+    '**/**tests**/**',
     '**/legacy-code/**',
     '**/*.generated.ts',
   ],
 }
-```
+```### Negation Patterns
 
-### Negation Patterns
-
-Sometimes you want to ignore most files but include a few exceptions. Use negation patterns (starting with `!`) to override previous ignores:
+Sometimes you want to ignore most files but include a few exceptions. Use negation patterns (starting with`!`) to override previous ignores:
 
 ```ts
 export default {
@@ -161,9 +138,7 @@ export default {
     '!**/vendor/our-package/**',
   ],
 }
-```
-
-This ignores everything in vendor directories except the our-package subdirectory.
+```This ignores everything in vendor directories except the our-package subdirectory.
 
 ## Plugin Configuration
 
@@ -171,9 +146,7 @@ Plugins extend Pickier with additional rules. Understanding how to configure the
 
 ### Enabling Plugin Rules
 
-Plugin rules use a namespaced format with the plugin name followed by the rule name:
-
-```ts
+Plugin rules use a namespaced format with the plugin name followed by the rule name:```ts
 export default {
   pluginRules: {
     'pickier/no-unused-vars': 'error',
@@ -182,22 +155,17 @@ export default {
     'regexp/no-super-linear-backtracking': 'error',
   },
 }
-```
 
-### Using Short Names
+```### Using Short Names
 
-For convenience, you can use bare rule names without the plugin prefix for pickier's own rules:
-
-```ts
+For convenience, you can use bare rule names without the plugin prefix for pickier's own rules:```ts
 export default {
   pluginRules: {
     'no-unused-vars': 'error',
     'prefer-const': 'error',
   },
 }
-```
-
-Pickier automatically expands these to `pickier/no-unused-vars` and `pickier/prefer-const`.
+```Pickier automatically expands these to`pickier/no-unused-vars`and`pickier/prefer-const`.
 
 ### Configuring Sort Rules
 
@@ -210,9 +178,7 @@ export default {
     'pickier/sort-named-imports': 'warn',
   },
 }
-```
-
-Start with warnings to see the impact, then increase to errors once your codebase is sorted.
+```Start with warnings to see the impact, then increase to errors once your codebase is sorted.
 
 ## Format Options
 
@@ -220,46 +186,36 @@ Format options control how Pickier transforms your code when applying fixes.
 
 ### Quote Style
 
-Choose between single and double quotes throughout your codebase:
-
-```ts
+Choose between single and double quotes throughout your codebase:```ts
 export default {
   format: {
     quotes: 'single',
   },
 }
-```
 
-This affects both the `quotes` rule and how other fixes format strings. Pickier respects JSON files and always uses double quotes there.
+```This affects both the`quotes`rule and how other fixes format strings. Pickier respects JSON files and always uses double quotes there.
 
 ### Indentation
 
-Control both the size and type of indentation:
-
-```ts
+Control both the size and type of indentation:```ts
 export default {
   format: {
     indent: 2,
     indentStyle: 'spaces',
   },
 }
-```
-
-The combination of these settings determines how Pickier formats your code. Popular choices are 2 spaces, 4 spaces, or tabs.
+```The combination of these settings determines how Pickier formats your code. Popular choices are 2 spaces, 4 spaces, or tabs.
 
 ### Semicolons
 
-Control whether to use semicolons or let ASI (Automatic Semicolon Insertion) handle them:
-
-```ts
+Control whether to use semicolons or let ASI (Automatic Semicolon Insertion) handle them:```ts
 export default {
   format: {
     semi: false,
   },
 }
-```
 
-Setting to `false` removes unnecessary semicolons while keeping required ones (like in for loops).
+```Setting to`false`removes unnecessary semicolons while keeping required ones (like in for loops).
 
 ## Environment-Specific Configuration
 
@@ -267,9 +223,7 @@ Different environments often need different rules. Here's how to handle that.
 
 ### Multiple Configuration Files
 
-Create different configs for different environments:
-
-```ts
+Create different configs for different environments:```ts
 export default {
   lint: {
     extensions: ['ts', 'tsx', 'js', 'jsx'],
@@ -279,21 +233,16 @@ export default {
     noConsole: process.env.NODE_ENV === 'production' ? 'error' : 'off',
   },
 }
-```
-
-This allows console.log during development but errors in production.
+```This allows console.log during development but errors in production.
 
 ### VS Code Workspace Configuration
 
-Point VS Code to different configs per workspace:
-
-```json
+Point VS Code to different configs per workspace:```json
 {
   "pickier.configPath": "configs/pickier.development.ts"
 }
-```
 
-This is useful in monorepos where different packages have different needs.
+```This is useful in monorepos where different packages have different needs.
 
 ## Performance Optimization
 
@@ -301,23 +250,17 @@ For large codebases, these optimizations can make Pickier significantly faster.
 
 ### Limiting File Extensions
 
-Only lint the file types you actually use:
-
-```ts
+Only lint the file types you actually use:```ts
 export default {
   lint: {
     extensions: ['ts', 'tsx'],
   },
 }
-```
-
-Removing unnecessary extensions means Pickier processes fewer files.
+```Removing unnecessary extensions means Pickier processes fewer files.
 
 ### Strategic Ignores
 
-Ignore large vendor directories or generated code:
-
-```ts
+Ignore large vendor directories or generated code:```ts
 export default {
   ignores: [
     '**/node_modules/**',
@@ -327,23 +270,18 @@ export default {
     '**/*.bundle.js',
   ],
 }
-```
 
-Each ignored directory means thousands of files Pickier doesn't need to process.
+```Each ignored directory means thousands of files Pickier doesn't need to process.
 
 ### Disabling Expensive Rules
 
-Some rules require more computation than others. If performance is critical, consider disabling the most expensive ones in development:
-
-```ts
+Some rules require more computation than others. If performance is critical, consider disabling the most expensive ones in development:```ts
 export default {
   pluginRules: {
     'regexp/no-super-linear-backtracking': process.env.CI ? 'error' : 'off',
   },
 }
-```
-
-This keeps CI builds strict while making local development faster.
+```This keeps CI builds strict while making local development faster.
 
 ## Team Configuration
 
@@ -351,9 +289,7 @@ When working in a team, consistency is key. These practices help everyone stay o
 
 ### Shared Configuration
 
-Create a base configuration that all team members use:
-
-```ts
+Create a base configuration that all team members use:```ts
 import type { PickierConfig } from 'pickier'
 
 export const teamConfig: PickierConfig = {
@@ -373,13 +309,10 @@ export const teamConfig: PickierConfig = {
 }
 
 export default teamConfig
-```
 
-### Extending Configuration
+```### Extending Configuration
 
-Individual developers can extend the base config for their specific needs:
-
-```ts
+Individual developers can extend the base config for their specific needs:```ts
 import { teamConfig } from './pickier.team.config'
 
 export default {
@@ -389,20 +322,15 @@ export default {
     'pickier/sort-imports': 'warn',
   },
 }
-```
-
-This preserves team standards while allowing personal preferences.
+```This preserves team standards while allowing personal preferences.
 
 ### Git Hooks
 
-Enforce rules before code is committed:
-
-```bash
+Enforce rules before code is committed:```bash
 npx husky install
 npx husky add .husky/pre-commit "npx pickier run . --mode lint --fix"
-```
 
-This ensures all committed code meets your standards.
+```This ensures all committed code meets your standards.
 
 ## Monorepo Configuration
 
@@ -410,10 +338,10 @@ In monorepos, different packages often need different configurations.
 
 ### Package-Specific Configs
 
-Each package can have its own `pickier.config.ts`:
+Each package can have its own`pickier.config.ts`:
 
-```
-monorepo/
+```monorepo/
+
 ├── packages/
 │   ├── web/
 │   │   └── pickier.config.ts
@@ -421,16 +349,11 @@ monorepo/
 │   │   └── pickier.config.ts
 │   └── shared/
 │       └── pickier.config.ts
-└── pickier.config.ts
-```
-
-Pickier uses the closest config file it finds.
+└── pickier.config.ts```Pickier uses the closest config file it finds.
 
 ### Shared Base Config
 
-Create a shared base config that packages extend:
-
-```ts
+Create a shared base config that packages extend:```ts
 import type { PickierConfig } from 'pickier'
 
 export const baseConfig: PickierConfig = {
@@ -441,11 +364,9 @@ export const baseConfig: PickierConfig = {
     'pickier/no-unused-vars': 'error',
   },
 }
-```
 
-Then in each package:
+```Then in each package:```ts
 
-```ts
 import { baseConfig } from '../../pickier.base.config'
 
 export default {
@@ -454,15 +375,13 @@ export default {
     extensions: ['ts', 'tsx'],
   },
 }
-```
 
-## Continuous Integration
+```## Continuous Integration
 
 Make Pickier part of your CI pipeline to catch issues before they reach production.
 
-### GitHub Actions
+### GitHub Actions```yaml
 
-```yaml
 name: Lint
 on: [push, pull_request]
 
@@ -470,41 +389,34 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
+
       - uses: actions/checkout@v3
       - uses: oven-sh/setup-bun@v1
       - run: bun install
       - run: bun run pickier run . --mode lint
-```
 
-### Fail on Warnings
+```### Fail on Warnings
 
-By default, Pickier only fails on errors. To also fail on warnings in CI:
+By default, Pickier only fails on errors. To also fail on warnings in CI:```yaml
 
-```yaml
 - run: PICKIER_FAIL_ON_WARNINGS=1 bun run pickier run . --mode lint
-```
 
-### Verbose Output in CI
+```### Verbose Output in CI
 
-Get detailed output in CI for easier debugging:
-
-```ts
+Get detailed output in CI for easier debugging:```ts
 export default {
   lint: {
     verbose: process.env.CI === 'true',
   },
 }
-```
 
-## Best Practices
+```## Best Practices
 
 After working with many teams, these patterns have proven most effective.
 
 ### Start Conservative
 
-Begin with fewer rules enabled and gradually add more:
-
-```ts
+Begin with fewer rules enabled and gradually add more:```ts
 export default {
   rules: {
     noDebugger: 'error',
@@ -513,29 +425,29 @@ export default {
     'pickier/no-unused-vars': 'warn',
   },
 }
-```
 
-This prevents overwhelming your team with hundreds of violations.
+```This prevents overwhelming your team with hundreds of violations.
 
 ### Use Warnings First
 
-When adding new rules, start with `'warn'`:
+When adding new rules, start with`'warn'`:
 
 ```ts
+
 export default {
   pluginRules: {
     'pickier/prefer-const': 'warn',
   },
 }
-```
 
-After violations are fixed, promote to `'error'`.
+```After violations are fixed, promote to`'error'`.
 
 ### Document Your Decisions
 
 Add comments explaining why rules are configured a certain way:
 
 ```ts
+
 export default {
   rules: {
     noConsole: 'off',
@@ -544,6 +456,7 @@ export default {
     'pickier/prefer-template': 'warn',
   },
 }
+
 ```
 
 This helps future maintainers understand the reasoning.

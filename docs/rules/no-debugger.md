@@ -1,25 +1,17 @@
 # noDebugger
 
-Flags `debugger` statements.
+Flags `debugger`statements.
 
 - Category: Core
-- Default: `error`
+- Default:`error`Behavior:
 
-Behavior:
+- Lint: reports each`debugger`line with configured severity
+- Lint with`--fix`: removes lines containing only `debugger`statements
 
-- Lint: reports each `debugger` line with configured severity
-- Lint with `--fix`: removes lines containing only `debugger` statements
-
-Config:
-
-```ts
+Config:```ts
 rules: { noDebugger: 'error' } // 'off' | 'warn' | 'error'
-```
 
-Example:
-
-```ts
-debugger
+```Example:```ts
 ```
 
 Fix (`--fix`): line is removed.
@@ -30,21 +22,15 @@ Violation and autofix:
 
 ```ts
 function work() {
-  debugger
   doStuff()
 }
-```
-
-After `pickier lint . --fix`:
+```After`pickier lint . --fix`:
 
 ```ts
 function work() {
   doStuff()
 }
-```
+```## Best practices
 
-## Best practices
-
-- Keep severity at `error` to prevent shipping `debugger`
-- Use `--fix` locally before committing
-- Add a pre-commit hook to run `pickier lint --fix` to automatically remove stray `debugger` lines
+- Keep severity at`error`to prevent shipping`debugger`- Use`--fix`locally before committing
+- Add a pre-commit hook to run`pickier lint --fix`to automatically remove stray`debugger` lines

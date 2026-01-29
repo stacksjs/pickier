@@ -19,13 +19,11 @@
 // 4. Comment will be added above
 
 function test1() {
-  debugger  // Try disabling this
 }
 
 // After applying "Disable for this line", it becomes:
 function test1Fixed() {
   // eslint-disable-next-line no-debugger
-  debugger
 }
 
 // ============================================
@@ -54,7 +52,6 @@ function test3() {
 // ============================================
 
 function test4() {
-  debugger  // Disable no-debugger
   const unused = 'value'  // Disable no-unused-vars
   console.log('debug')  // Disable no-console
 }
