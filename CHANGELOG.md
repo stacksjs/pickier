@@ -1,3 +1,48 @@
+[Compare changes](https://github.com/pickier/pickier/compare/v0.1.10...v0.1.11)
+
+### 🧹 Chores
+
+- release v0.1.11 ([ead8561](https://github.com/pickier/pickier/commit/ead8561)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- wip ([864522f](https://github.com/pickier/pickier/commit/864522f)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- wip ([7185a5a](https://github.com/pickier/pickier/commit/7185a5a)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- wip ([ecb502f](https://github.com/pickier/pickier/commit/ecb502f)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- wip ([b360b12](https://github.com/pickier/pickier/commit/b360b12)) _(by Glenn Michael Torregosa <gtorregosa@gmail.com>)_
+- wip ([1419487](https://github.com/pickier/pickier/commit/1419487)) _(by Chris <chrisbreuer93@gmail.com>)_
+- wip ([9508d37](https://github.com/pickier/pickier/commit/9508d37)) _(by Chris <chrisbreuer93@gmail.com>)_
+- wip ([87a3671](https://github.com/pickier/pickier/commit/87a3671)) _(by Chris <chrisbreuer93@gmail.com>)_
+- wip ([2a86b43](https://github.com/pickier/pickier/commit/2a86b43)) _(by Chris <chrisbreuer93@gmail.com>)_
+- **deps**: update dependency prettier to ^3.7.4 (#1319) ([1f8d434](https://github.com/pickier/pickier/commit/1f8d434)) _(by [renovate[bot] <29139614+renovate[bot]@users.noreply.github.com>](https://github.com/renovate[bot]))_ ([#1319](https://github.com/pickier/pickier/issues/1319), [#1319](https://github.com/pickier/pickier/issues/1319))
+- **deps**: update all non-major dependencies (#489) ([3f37a1e](https://github.com/pickier/pickier/commit/3f37a1e)) _(by [renovate[bot] <29139614+renovate[bot]@users.noreply.github.com>](https://github.com/renovate[bot]))_ ([#489](https://github.com/pickier/pickier/issues/489), [#489](https://github.com/pickier/pickier/issues/489))
+
+### Contributors
+
+- _Chris <chrisbreuer93@gmail.com>_
+- _Glenn Michael Torregosa <gtorregosa@gmail.com>_
+- _[renovate[bot] <29139614+renovate[bot]@users.noreply.github.com>](https://github.com/renovate[bot])_
+- _glennmichael123 <gtorregosa@gmail.com>_
+
+[Compare changes](https://github.com/pickier/pickier/compare/v0.1.10...HEAD)
+
+### 🧹 Chores
+
+- wip ([864522f](https://github.com/pickier/pickier/commit/864522f)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- wip ([7185a5a](https://github.com/pickier/pickier/commit/7185a5a)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- wip ([ecb502f](https://github.com/pickier/pickier/commit/ecb502f)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- wip ([b360b12](https://github.com/pickier/pickier/commit/b360b12)) _(by Glenn Michael Torregosa <gtorregosa@gmail.com>)_
+- wip ([1419487](https://github.com/pickier/pickier/commit/1419487)) _(by Chris <chrisbreuer93@gmail.com>)_
+- wip ([9508d37](https://github.com/pickier/pickier/commit/9508d37)) _(by Chris <chrisbreuer93@gmail.com>)_
+- wip ([87a3671](https://github.com/pickier/pickier/commit/87a3671)) _(by Chris <chrisbreuer93@gmail.com>)_
+- wip ([2a86b43](https://github.com/pickier/pickier/commit/2a86b43)) _(by Chris <chrisbreuer93@gmail.com>)_
+- **deps**: update dependency prettier to ^3.7.4 (#1319) ([1f8d434](https://github.com/pickier/pickier/commit/1f8d434)) _(by [renovate[bot] <29139614+renovate[bot]@users.noreply.github.com>](https://github.com/renovate[bot]))_ ([#1319](https://github.com/pickier/pickier/issues/1319), [#1319](https://github.com/pickier/pickier/issues/1319))
+- **deps**: update all non-major dependencies (#489) ([3f37a1e](https://github.com/pickier/pickier/commit/3f37a1e)) _(by [renovate[bot] <29139614+renovate[bot]@users.noreply.github.com>](https://github.com/renovate[bot]))_ ([#489](https://github.com/pickier/pickier/issues/489), [#489](https://github.com/pickier/pickier/issues/489))
+
+### Contributors
+
+- _Chris <chrisbreuer93@gmail.com>_
+- _Glenn Michael Torregosa <gtorregosa@gmail.com>_
+- _[renovate[bot] <29139614+renovate[bot]@users.noreply.github.com>](https://github.com/renovate[bot])_
+- _glennmichael123 <gtorregosa@gmail.com>_
+
 [Compare changes](https://github.com/stacksjs/pickier/compare/v0.1.9...v0.1.10)
 
 ### 🚀 Features
