@@ -1,5 +1,5 @@
 // Medium TypeScript file for benchmarking (~500 lines)
-// @ts-expect-error -- no type declarations for express
+// @ts-ignore -- no type declarations for express
 import type { NextFunction, Request, Response } from 'express'
 
 export interface Product {
