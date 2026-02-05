@@ -2,8 +2,6 @@ import type { BunPressOptions } from '@stacksjs/bunpress'
 
 export default {
   verbose: false,
-  docsDir: './docs',
-  outDir: './dist',
 
   nav: [
     { text: 'Home', link: '/' },
@@ -115,4 +113,4 @@ export default {
   robots: {
     enabled: true,
   },
-} satisfies BunPressOptions
+} satisfies BunPressOptions as BunPressOptions
