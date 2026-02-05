@@ -10,7 +10,7 @@ export default {
     { text: 'Rules', link: '/rules/' },
     { text: 'CLI', link: '/cli' },
     { text: 'API', link: '/api/' },
-    { text: 'GitHub', link: 'https://github.com/stacksjs/pickier' },
+    { text: 'GitHub', link: 'https://github.com/pickier/pickier' },
   ],
 
   markdown: {

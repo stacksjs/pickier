@@ -184,7 +184,7 @@ Pickier is designed to be fast:
 
 ## Contributing
 
-Found a bug or have a feature request? Please check our [GitHub repository](https://github.com/stacksjs/pickier) and open an issue or pull request.
+Found a bug or have a feature request? Please check our [GitHub repository](https://github.com/pickier/pickier) and open an issue or pull request.
 
 ## License
 

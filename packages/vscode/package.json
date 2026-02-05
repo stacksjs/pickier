@@ -6,14 +6,14 @@
   "version": "0.1.11",
   "description": "Format, lint and more in a fraction of seconds with Pickier",
   "license": "MIT",
-  "homepage": "https://github.com/stacksjs/pickier#readme",
+  "homepage": "https://github.com/pickier/pickier#readme",
   "repository": {
     "type": "git",
-    "url": "https://github.com/stacksjs/pickier.git",
+    "url": "https://github.com/pickier/pickier.git",
     "directory": "packages/vscode"
   },
   "bugs": {
-    "url": "https://github.com/stacksjs/pickier/issues"
+    "url": "https://github.com/pickier/pickier/issues"
   },
   "keywords": [
     "formatter",

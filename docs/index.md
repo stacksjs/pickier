@@ -16,7 +16,7 @@ hero:
     - theme: alt
 
       text: View on GitHub
-      link: <https://github.com/stacksjs/pickier>
+      link: <https://github.com/pickier/pickier>
 
 features:
 

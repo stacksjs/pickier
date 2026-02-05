@@ -94,7 +94,7 @@ export default {
 
 ## Issues & Feedback
 
-Report issues at: <https://github.com/stacksjs/pickier/issues>
+Report issues at: <https://github.com/pickier/pickier/issues>
 
 ## License
 

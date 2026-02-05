@@ -6,13 +6,13 @@
   "description": "Format, lint and more in a fraction of seconds.",
   "author": "Chris Breuer <chris@stacksjs.org>",
   "license": "MIT",
-  "homepage": "https://github.com/stacksjs/pickier#readme",
+  "homepage": "https://github.com/pickier/pickier#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/stacksjs/pickier.git"
+    "url": "git+https://github.com/pickier/pickier.git"
   },
   "bugs": {
-    "url": "https://github.com/stacksjs/pickier/issues"
+    "url": "https://github.com/pickier/pickier/issues"
   },
   "bin": {
     "pickier": "packages/pickier/pickier"

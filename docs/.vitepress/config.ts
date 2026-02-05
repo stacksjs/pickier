@@ -48,7 +48,7 @@ export default withPwa(
 
       ['meta', { property: 'og:site_name', content: 'Pickier' }],
       ['meta', { property: 'og:image', content: '/images/og-image.png' }],
-      ['meta', { property: 'og:url', content: 'https://github.com/stacksjs/pickier' }],
+      ['meta', { property: 'og:url', content: 'https://github.com/pickier/pickier' }],
       // ['script', { 'src': 'https://cdn.usefathom.com/script.js', 'data-site': '', 'data-spa': 'auto', 'defer': '' }],
       ...analyticsHead,
     ],
@@ -65,7 +65,7 @@ export default withPwa(
       nav: [
         {
           text: 'Changelog',
-          link: 'https://github.com/stacksjs/pickier/blob/main/CHANGELOG.md',
+          link: 'https://github.com/pickier/pickier/blob/main/CHANGELOG.md',
         },
         {
           text: 'Resources',
@@ -161,7 +161,7 @@ export default withPwa(
       },
 
       editLink: {
-        pattern: 'https://github.com/stacksjs/pickier/edit/main/docs/:path',
+        pattern: 'https://github.com/pickier/pickier/edit/main/docs/:path',
         text: 'Edit this page on GitHub',
       },
 
@@ -173,7 +173,7 @@ export default withPwa(
       socialLinks: [
         { icon: 'twitter', link: 'https://twitter.com/stacksjs' },
         { icon: 'bluesky', link: 'https://bsky.app/profile/chris-breuer.me' },
-        { icon: 'github', link: 'https://github.com/stacksjs/pickier' },
+        { icon: 'github', link: 'https://github.com/pickier/pickier' },
         { icon: 'discord', link: 'https://discord.gg/stacksjs' },
       ],
 

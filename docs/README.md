@@ -154,7 +154,7 @@ The VS Code extension includes example files demonstrating every feature. Open t
 
 ### Community
 
-Found a bug or have a feature request? Visit the [GitHub repository](https://github.com/stacksjs/pickier) to file an issue or contribute.
+Found a bug or have a feature request? Visit the [GitHub repository](https://github.com/pickier/pickier) to file an issue or contribute.
 
 ## What's Next
 

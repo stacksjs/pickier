@@ -367,15 +367,15 @@ We would like to extend our thanks to the following sponsors for funding Stacks 
 
 ## License
 
-The MIT License (MIT). Please see [LICENSE](https://github.com/stacksjs/pickier/tree/main/LICENSE.md) for more information.
+The MIT License (MIT). Please see [LICENSE](https://github.com/pickier/pickier/tree/main/LICENSE.md) for more information.
 
 Made with 💙
 
 <!-- Badges -->
 [npm-version-src]: <https://img.shields.io/npm/v/pickier?style=flat-square>
 [npm-version-href]: <https://npmjs.com/package/pickier>
-[github-actions-src]: <https://img.shields.io/github/actions/workflow/status/stacksjs/pickier/ci.yml?style=flat-square&branch=main>
-[github-actions-href]: <https://github.com/stacksjs/pickier/actions?query=workflow%3Aci>
+[github-actions-src]: <https://img.shields.io/github/actions/workflow/status/pickier/pickier/ci.yml?style=flat-square&branch=main>
+[github-actions-href]: <https://github.com/pickier/pickier/actions?query=workflow%3Aci>
 
-<!-- [codecov-src]: <https://img.shields.io/codecov/c/gh/stacksjs/pickier/main?style=flat-square>
-[codecov-href]: <https://codecov.io/gh/stacksjs/pickier> -->
+<!-- [codecov-src]: <https://img.shields.io/codecov/c/gh/pickier/pickier/main?style=flat-square>
+[codecov-href]: <https://codecov.io/gh/pickier/pickier> -->

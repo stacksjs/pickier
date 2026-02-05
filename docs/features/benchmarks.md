@@ -74,7 +74,7 @@ bun run bench:linters
 
 ```**Pickier**- Matches ESLint rules plus additional style/quality rules
 
-- See [pickier.config.ts](https://github.com/stacksjs/pickier/blob/main/pickier.config.ts)**Biome**- Recommended rule set
+- See [pickier.config.ts](https://github.com/pickier/pickier/blob/main/pickier.config.ts)**Biome**- Recommended rule set
 - CLI: `bunx @biomejs/biome lint`**oxlint**- Default rule set
 - CLI: `bunx oxlint`**Prettier**- Parser: TypeScript
 - Semi: false

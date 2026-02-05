@@ -575,7 +575,7 @@ To add new benchmarks:
 ## Resources
 
 - [Mitata Documentation](https://github.com/evanwashere/mitata)
-- [Pickier Documentation](https://github.com/stacksjs/pickier)
+- [Pickier Documentation](https://github.com/pickier/pickier)
 - [Benchmarking Best Practices](https://easyperf.net/blog/)
 
 ## License
