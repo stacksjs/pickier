@@ -1,11 +1,11 @@
 {
   "lockfileVersion": 1,
-  "configVersion": 0,
   "workspaces": {
     "": {
       "name": "pickier",
       "devDependencies": {
         "@stacksjs/bumpx": "^0.2.4",
+        "@stacksjs/bunpress": "^0.1.0",
         "@stacksjs/clarity": "^0.3.24",
         "@stacksjs/docs": "^0.70.23",
         "@stacksjs/eslint-config": "^4.14.0-beta.3",
@@ -21,7 +21,7 @@
     },
     "packages/bechmarks": {
       "name": "@pickier/benchmarks",
-      "version": "0.1.10",
+      "version": "0.1.11",
       "dependencies": {
         "pickier": "workspace:*",
       },
@@ -39,7 +39,7 @@
     },
     "packages/pickier": {
       "name": "pickier",
-      "version": "0.1.10",
+      "version": "0.1.11",
       "bin": {
         "pickier": "./dist/bin/cli.js",
       },
@@ -54,7 +54,7 @@
     },
     "packages/vscode": {
       "name": "pickier-vscode",
-      "version": "0.1.10",
+      "version": "0.1.11",
       "dependencies": {
         "pickier": "workspace:*",
       },
@@ -629,6 +629,8 @@
     "@sindresorhus/merge-streams": ["@sindresorhus/merge-streams@2.3.0", "", {}, "sha512-LtoMMhxAlorcGhmFYI+LhPgbPZCkgP6ra1YL604EeF6U98pLlQ3iWIGMdWSC+vWmPBWBNgmDBAhnAobLROJmwg=="],
 
     "@stacksjs/bumpx": ["@stacksjs/bumpx@0.2.4", "", { "dependencies": { "@stacksjs/clapp": "^0.2.0", "@stacksjs/logsmith": "^0.2.1", "bunfig": "^0.15.6" }, "bin": { "bumpx": "dist/bin/cli.js" } }, "sha512-bt14GhW4QJKqmAgfTyjW0pDblDu+y6+DSX8xva1HnLk2GtLyQe0YXUs51dUvZBFgYVHcHEUijNoj2pivuwIcjQ=="],
+
+    "@stacksjs/bunpress": ["@stacksjs/bunpress@0.1.0", "", { "bin": { "bunpress": "dist/bin/cli.js" } }, "sha512-pYIVjKc8dSRBX2yZyWQiPF55kXQjDS+1oImRYvoTTdjLycFgauFEfDQhxh71yWsYmMCQZBfoflFKepYpxo1CHg=="],
 
     "@stacksjs/clapp": ["@stacksjs/clapp@0.2.0", "", { "dependencies": { "mri": "^1.2.0", "wrap-ansi": "^9.0.0" }, "bin": { "clapp": "dist/bin/cli.js", "@stacksjs/clapp": "dist/bin/cli.js" } }, "sha512-dSqnbeZjXnQLLvVxC5NU7D9Vpjxc6cC9Bo2ZwaqjgruK7pbVoFCI0goc9Mtf/lfSTbTx6Uvv/mbY7+cOW/j3Og=="],
 
