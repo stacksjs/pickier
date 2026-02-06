@@ -167,12 +167,17 @@ export function mergeConfig(base: PickierConfig, override: Partial<PickierConfig
   }
 }
 
+// Cached copy of defaultConfig for NO_AUTO_CONFIG fast path
+// Avoids re-allocating mergeConfig({}) on every call
+let _cachedDefaultConfig: PickierConfig | null = null
+
 export async function loadConfigFromPath(pathLike: string | undefined): Promise<PickierConfig> {
   if (!pathLike) {
     // Skip auto-loading in test environment
     if (ENV.NO_AUTO_CONFIG) {
-      // Return a copy to avoid mutation of shared defaultConfig
-      return mergeConfig(defaultConfig, {})
+      if (!_cachedDefaultConfig)
+        _cachedDefaultConfig = mergeConfig(defaultConfig, {})
+      return _cachedDefaultConfig
     }
 
     // Try to auto-load bunfig config if it exists in the project root

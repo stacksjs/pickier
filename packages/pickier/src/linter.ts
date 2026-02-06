@@ -10,13 +10,17 @@ import { formatStylish, formatVerbose } from './formatter'
 import { getAllPlugins } from './plugins'
 import { colors, ENV, expandPatterns, getRuleSetting, isCodeFile, loadConfigFromPath, MAX_FIXER_PASSES, shouldIgnorePath, UNIVERSAL_IGNORES } from './utils'
 
-const logger = new Logger('pickier:lint', {
-  showTags: false,
-})
+// Deferred logger — avoids constructor work on startup for format-only path
+let _logger: Logger | null = null
+function getLogger(): Logger {
+  if (!_logger)
+    _logger = new Logger('pickier:lint', { showTags: false })
+  return _logger
+}
 
 function trace(...args: any[]) {
   if (ENV.TRACE)
-    logger.error('[pickier:trace]', args)
+    getLogger().error('[pickier:trace]', args)
 }
 
 // Programmatic single-text lint with optional cancellation
@@ -544,7 +548,7 @@ async function withTimeout<T>(p: Promise<T>, ms: number, label: string): Promise
   catch (e) {
     // Always surface timeouts to stderr so users see an error without enabling trace
 
-    logger.error(`[pickier:error] ${label} failed:`, (e as any)?.message || e)
+    getLogger().error(`[pickier:error] ${label} failed:`, (e as any)?.message || e)
     trace('withTimeout error:', label, e)
     throw e
   }
@@ -1233,10 +1237,10 @@ export async function runLint(globs: string[], options: LintOptions): Promise<nu
   trace('runLint:start', { globs, options })
   const enableDiagnostics = ENV.DIAGNOSTICS
   if (enableDiagnostics)
-    logger.info('[pickier:diagnostics] Starting lint process...')
+    getLogger().info('[pickier:diagnostics] Starting lint process...')
   try {
     if (enableDiagnostics)
-      logger.info('[pickier:diagnostics] Loading config...')
+      getLogger().info('[pickier:diagnostics] Loading config...')
     const cfg = await loadConfigFromPath(options.config)
     trace('config:loaded', { reporter: cfg.lint.reporter, ext: cfg.lint.extensions.join(',') })
 
@@ -1244,18 +1248,18 @@ export async function runLint(globs: string[], options: LintOptions): Promise<nu
     const patterns = expandPatterns(raw)
     trace('patterns', patterns)
     if (enableDiagnostics)
-      logger.info(`[pickier:diagnostics] Patterns to search: ${patterns.join(', ')}`)
+      getLogger().info(`[pickier:diagnostics] Patterns to search: ${patterns.join(', ')}`)
     const extCsv = options.ext || cfg.lint.extensions.join(',')
     const extSet = new Set<string>(extCsv.split(',').map((s: string) => {
       const t = s.trim()
       return t.startsWith('.') ? t : `.${t}`
     }))
     if (enableDiagnostics)
-      logger.info(`[pickier:diagnostics] File extensions: ${Array.from(extSet).join(', ')}`)
+      getLogger().info(`[pickier:diagnostics] File extensions: ${Array.from(extSet).join(', ')}`)
 
     const timeoutMs = ENV.TIMEOUT_MS
     if (enableDiagnostics)
-      logger.info(`[pickier:diagnostics] Glob timeout: ${timeoutMs}ms`)
+      getLogger().info(`[pickier:diagnostics] Glob timeout: ${timeoutMs}ms`)
 
     // Filter ignore patterns based on whether we're globbing inside or outside the project
     // Universal ignores (like **/node_modules/**, **/dist/**) always apply
@@ -1270,9 +1274,9 @@ export async function runLint(globs: string[], options: LintOptions): Promise<nu
       ? [...UNIVERSAL_IGNORES] // Use ALL universal ignores when outside project
       : cfg.ignores
     if (enableDiagnostics) {
-      logger.info(`[pickier:diagnostics] Globbing outside project: ${isGlobbingOutsideProject}, ignore patterns: ${globIgnores.length}`)
+      getLogger().info(`[pickier:diagnostics] Globbing outside project: ${isGlobbingOutsideProject}, ignore patterns: ${globIgnores.length}`)
       if (isGlobbingOutsideProject)
-        logger.info(`[pickier:diagnostics] Using universal ignores: ${UNIVERSAL_IGNORES.slice(0, 5).join(', ')}... (${UNIVERSAL_IGNORES.length} total)`)
+        getLogger().info(`[pickier:diagnostics] Using universal ignores: ${UNIVERSAL_IGNORES.slice(0, 5).join(', ')}... (${UNIVERSAL_IGNORES.length} total)`)
     }
 
     // Fallbacks to avoid globby hangs: handle explicit file paths and simple directory scans
@@ -1280,7 +1284,7 @@ export async function runLint(globs: string[], options: LintOptions): Promise<nu
     // Fast path: if a single concrete file (no glob magic) is provided, just use it directly
     const nonGlobSingle = patterns.length === 1 && !/[*?[\]{}()!]/.test(patterns[0])
     if (enableDiagnostics)
-      logger.info(`[pickier:diagnostics] Starting file discovery... (nonGlobSingle: ${nonGlobSingle})`)
+      getLogger().info(`[pickier:diagnostics] Starting file discovery... (nonGlobSingle: ${nonGlobSingle})`)
     if (nonGlobSingle) {
       try {
         const st = statSync(patterns[0])
@@ -1298,7 +1302,7 @@ export async function runLint(globs: string[], options: LintOptions): Promise<nu
     if (!entries.length && simpleDirPattern) {
       const base = patterns[0].replace(/\/?\*\*\/*\*\*?$/, '')
       if (enableDiagnostics)
-        logger.info(`[pickier:diagnostics] Using fast directory scan for: ${base}`)
+        getLogger().info(`[pickier:diagnostics] Using fast directory scan for: ${base}`)
       try {
         const rootBase = isAbsolute(base) ? base : resolve(process.cwd(), base)
         const stack: string[] = [rootBase]
@@ -1307,7 +1311,7 @@ export async function runLint(globs: string[], options: LintOptions): Promise<nu
           const dir = stack.pop()!
           dirCount++
           if (enableDiagnostics && dirCount % 100 === 0)
-            logger.info(`[pickier:diagnostics] Scanned ${dirCount} directories, ${entries.length} files found so far...`)
+            getLogger().info(`[pickier:diagnostics] Scanned ${dirCount} directories, ${entries.length} files found so far...`)
           const items = readdirSync(dir)
           for (const it of items) {
             const full = join(dir, it)
@@ -1321,11 +1325,11 @@ export async function runLint(globs: string[], options: LintOptions): Promise<nu
           }
         }
         if (enableDiagnostics)
-          logger.info(`[pickier:diagnostics] Fast scan complete: ${dirCount} directories, ${entries.length} total files`)
+          getLogger().info(`[pickier:diagnostics] Fast scan complete: ${dirCount} directories, ${entries.length} total files`)
       }
       catch (e) {
         if (enableDiagnostics)
-          logger.info(`[pickier:diagnostics] Fast scan failed: ${(e as any)?.message}, falling back to tinyglobby`)
+          getLogger().info(`[pickier:diagnostics] Fast scan failed: ${(e as any)?.message}, falling back to tinyglobby`)
         // If fallback fails, use tinyglobby with timeout
         entries = await withTimeout(tinyGlob(patterns, {
           dot: false,
@@ -1337,7 +1341,7 @@ export async function runLint(globs: string[], options: LintOptions): Promise<nu
     }
     else if (!entries.length) {
       if (enableDiagnostics)
-        logger.info(`[pickier:diagnostics] Using tinyglobby with timeout ${timeoutMs}ms...`)
+        getLogger().info(`[pickier:diagnostics] Using tinyglobby with timeout ${timeoutMs}ms...`)
       entries = await withTimeout(tinyGlob(patterns, {
         dot: false,
         ignore: globIgnores,
@@ -1345,28 +1349,28 @@ export async function runLint(globs: string[], options: LintOptions): Promise<nu
         absolute: true,
       }), timeoutMs, 'tinyGlob')
       if (enableDiagnostics)
-        logger.info(`[pickier:diagnostics] tinyglobby found ${entries.length} files`)
+        getLogger().info(`[pickier:diagnostics] tinyglobby found ${entries.length} files`)
     }
 
     trace('globbed entries', entries.length)
     if (enableDiagnostics)
-      logger.info(`[pickier:diagnostics] File discovery complete: ${entries.length} files found`)
+      getLogger().info(`[pickier:diagnostics] File discovery complete: ${entries.length} files found`)
 
     // Safety check: warn if file count is suspiciously high
     if (entries.length > 10000) {
-      logger.warn(`[pickier:warn] Found ${entries.length} files. This seems unusually high and may cause memory issues.`)
-      logger.warn(`[pickier:warn] Consider checking your ignore patterns or being more specific with your glob pattern.`)
-      logger.warn(`[pickier:warn] Common culprits: node_modules, build directories, cache folders, or vendor dependencies.`)
+      getLogger().warn(`[pickier:warn] Found ${entries.length} files. This seems unusually high and may cause memory issues.`)
+      getLogger().warn(`[pickier:warn] Consider checking your ignore patterns or being more specific with your glob pattern.`)
+      getLogger().warn(`[pickier:warn] Common culprits: node_modules, build directories, cache folders, or vendor dependencies.`)
       if (entries.length > 100000) {
-        logger.error(`[pickier:error] File count exceeds 100,000 (${entries.length}). This will likely cause out-of-memory errors.`)
-        logger.error(`[pickier:error] Aborting to prevent crash. Please refine your glob pattern or ignore patterns.`)
+        getLogger().error(`[pickier:error] File count exceeds 100,000 (${entries.length}). This will likely cause out-of-memory errors.`)
+        getLogger().error(`[pickier:error] Aborting to prevent crash. Please refine your glob pattern or ignore patterns.`)
         return 1
       }
     }
 
     // filter with trace counters
     if (enableDiagnostics)
-      logger.info(`[pickier:diagnostics] Filtering ${entries.length} files by extension and ignore patterns...`)
+      getLogger().info(`[pickier:diagnostics] Filtering ${entries.length} files by extension and ignore patterns...`)
     let cntTotal = 0
     let cntIncluded = 0
     let cntNodeModules = 0
@@ -1376,7 +1380,7 @@ export async function runLint(globs: string[], options: LintOptions): Promise<nu
     for (const f of entries) {
       cntTotal++
       if (enableDiagnostics && cntTotal % 1000 === 0)
-        logger.info(`[pickier:diagnostics] Filtering progress: ${cntTotal}/${entries.length} files checked, ${cntIncluded} included...`)
+        getLogger().info(`[pickier:diagnostics] Filtering progress: ${cntTotal}/${entries.length} files checked, ${cntIncluded} included...`)
       const p = f.replace(/\\/g, '/')
       if (p.includes('/node_modules/')) {
         cntNodeModules++
@@ -1396,21 +1400,21 @@ export async function runLint(globs: string[], options: LintOptions): Promise<nu
     trace('filter:cli', { total: cntTotal, included: cntIncluded, node_modules: cntNodeModules, ignored: cntIgnored, wrongExt: cntWrongExt })
     trace('filtered files', files.length)
     if (enableDiagnostics) {
-      logger.info(`[pickier:diagnostics] Filtering complete:`)
-      logger.info(`[pickier:diagnostics]   Total files found: ${cntTotal}`)
-      logger.info(`[pickier:diagnostics]   Files to lint: ${cntIncluded}`)
-      logger.info(`[pickier:diagnostics]   Excluded (node_modules): ${cntNodeModules}`)
-      logger.info(`[pickier:diagnostics]   Excluded (ignored): ${cntIgnored}`)
-      logger.info(`[pickier:diagnostics]   Excluded (wrong extension): ${cntWrongExt}`)
+      getLogger().info(`[pickier:diagnostics] Filtering complete:`)
+      getLogger().info(`[pickier:diagnostics]   Total files found: ${cntTotal}`)
+      getLogger().info(`[pickier:diagnostics]   Files to lint: ${cntIncluded}`)
+      getLogger().info(`[pickier:diagnostics]   Excluded (node_modules): ${cntNodeModules}`)
+      getLogger().info(`[pickier:diagnostics]   Excluded (ignored): ${cntIgnored}`)
+      getLogger().info(`[pickier:diagnostics]   Excluded (wrong extension): ${cntWrongExt}`)
     }
 
     // Safety check after filtering
     if (files.length > 5000) {
-      logger.warn(`[pickier:warn] After filtering, ${files.length} files will be linted. This may take a while and use significant memory.`)
+      getLogger().warn(`[pickier:warn] After filtering, ${files.length} files will be linted. This may take a while and use significant memory.`)
       if (files.length > 50000) {
-        logger.error(`[pickier:error] ${files.length} files to lint exceeds safe limit (50,000). This will likely cause out-of-memory errors.`)
-        logger.error(`[pickier:error] Aborting to prevent crash. Please be more specific with your glob pattern.`)
-        logger.error(`[pickier:error] Example: Instead of '../stx', try '../stx/src' or '../stx/packages/core'`)
+        getLogger().error(`[pickier:error] ${files.length} files to lint exceeds safe limit (50,000). This will likely cause out-of-memory errors.`)
+        getLogger().error(`[pickier:error] Aborting to prevent crash. Please be more specific with your glob pattern.`)
+        getLogger().error(`[pickier:error] Example: Instead of '../stx', try '../stx/src' or '../stx/packages/core'`)
         return 1
       }
     }
@@ -1419,7 +1423,7 @@ export async function runLint(globs: string[], options: LintOptions): Promise<nu
     const concurrency = ENV.CONCURRENCY
     const limit = pLimit(concurrency)
     if (enableDiagnostics)
-      logger.info(`[pickier:diagnostics] Starting to process ${files.length} files with concurrency ${concurrency}...`)
+      getLogger().info(`[pickier:diagnostics] Starting to process ${files.length} files with concurrency ${concurrency}...`)
 
     let processedCount = 0
     const formatOnly = !!options._formatOnly
@@ -1427,7 +1431,7 @@ export async function runLint(globs: string[], options: LintOptions): Promise<nu
       if (enableDiagnostics) {
         processedCount++
         if (processedCount === 1 || processedCount % 10 === 0 || processedCount === files.length)
-          logger.info(`[pickier:diagnostics] Processing file ${processedCount}/${files.length}: ${relative(process.cwd(), file)}`)
+          getLogger().info(`[pickier:diagnostics] Processing file ${processedCount}/${files.length}: ${relative(process.cwd(), file)}`)
       }
       const src = readFileSync(file, 'utf8')
 
@@ -1502,7 +1506,7 @@ export async function runLint(globs: string[], options: LintOptions): Promise<nu
           }
 
           if (options.dryRun && (options.verbose !== undefined ? options.verbose : cfg.verbose)) {
-            logger.debug(colors.gray(`dry-run: would apply fixes in ${relative(process.cwd(), file)}`))
+            getLogger().debug(colors.gray(`dry-run: would apply fixes in ${relative(process.cwd(), file)}`))
           }
         }
       }
@@ -1514,13 +1518,13 @@ export async function runLint(globs: string[], options: LintOptions): Promise<nu
     const issueArrays = await Promise.all(files.map(file => limit(() => processFile(file))))
     const allIssues = issueArrays.flat()
     if (enableDiagnostics)
-      logger.info(`[pickier:diagnostics] Processing complete! Found ${allIssues.length} issues total`)
+      getLogger().info(`[pickier:diagnostics] Processing complete! Found ${allIssues.length} issues total`)
 
     const errors = allIssues.filter(i => i.severity === 'error').length
     const warnings = allIssues.filter(i => i.severity === 'warning').length
     trace('issues:summary', { errors, warnings })
     if (enableDiagnostics)
-      logger.info(`[pickier:diagnostics] Errors: ${errors}, Warnings: ${warnings}`)
+      getLogger().info(`[pickier:diagnostics] Errors: ${errors}, Warnings: ${warnings}`)
 
     const reporter = options.reporter || cfg.lint.reporter
     // Determine verbose mode with proper precedence: CLI option > config > default
@@ -1618,7 +1622,7 @@ export async function runLint(globs: string[], options: LintOptions): Promise<nu
     return 0
   }
   catch (e: any) {
-    logger.error('[pickier:error] runLint failed:', e?.message || e)
+    getLogger().error('[pickier:error] runLint failed:', e?.message || e)
     trace('runLint:exception', e)
     return 1
   }

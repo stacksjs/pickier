@@ -8,13 +8,16 @@ import { formatCode } from './format'
 import { getAllPlugins } from './plugins'
 import { colors, ENV, expandPatterns, loadConfigFromPath, MAX_FIXER_PASSES, shouldIgnorePath } from './utils'
 
-const logger = new Logger('pickier', {
-  showTags: false,
-})
+let _logger: Logger | null = null
+function getLogger(): Logger {
+  if (!_logger)
+    _logger = new Logger('pickier', { showTags: false })
+  return _logger
+}
 
 function trace(...args: any[]) {
   if (ENV.TRACE)
-    logger.debug('[pickier:trace]', args)
+    getLogger().debug('[pickier:trace]', args)
 }
 
 async function withTimeout<T>(p: Promise<T>, ms: number, label: string): Promise<T> {
@@ -28,7 +31,7 @@ async function withTimeout<T>(p: Promise<T>, ms: number, label: string): Promise
     return res as T
   }
   catch (e) {
-    logger.error(`[pickier:error] ${label} failed:`, (e as any)?.message || e)
+    getLogger().error(`[pickier:error] ${label} failed:`, (e as any)?.message || e)
     trace('withTimeout error:', label, e)
     throw e
   }
@@ -289,7 +292,7 @@ export async function runFormat(globs: string[], options: FormatOptions): Promis
     const fmt = formatCode(src, cfg, file)
     if (options.check) {
       if (fmt !== src) {
-        logger.debug(`${relative(process.cwd(), file)} needs formatting`)
+        getLogger().debug(`${relative(process.cwd(), file)} needs formatting`)
         changed++
       }
       checked++
@@ -304,7 +307,7 @@ export async function runFormat(globs: string[], options: FormatOptions): Promis
     else {
       // default to check mode when neither flag specified
       if (fmt !== src) {
-        logger.debug(`${relative(process.cwd(), file)} needs formatting`)
+        getLogger().debug(`${relative(process.cwd(), file)} needs formatting`)
         changed++
       }
       checked++
@@ -313,7 +316,7 @@ export async function runFormat(globs: string[], options: FormatOptions): Promis
 
   const isVerbose = options.verbose !== undefined ? options.verbose : cfg.verbose
   if (isVerbose) {
-    logger.debug(colors.gray(`Checked ${checked} files, ${changed} changed.`))
+    getLogger().debug(colors.gray(`Checked ${checked} files, ${changed} changed.`))
   }
 
   // In check mode, non-zero exit when changes are needed; otherwise 0

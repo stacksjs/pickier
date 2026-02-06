@@ -1,10 +1,55 @@
 #!/usr/bin/env bun
 
-import type { RunOptions } from '../src/index.ts'
 import process from 'node:process'
-import { CLI } from '@stacksjs/clapp'
-import { version } from '../package.json'
-import { run } from '../src/index.ts'
+
+// ---------------------------------------------------------------------------
+// Ultra-fast path: parse process.argv directly for common format commands
+// Avoids importing @stacksjs/clapp (424K, 3909 lines) on the hot path.
+// ---------------------------------------------------------------------------
+const argv = process.argv.slice(2)
+
+if (argv[0] === 'run') {
+  let mode = 'auto'
+  let check = false
+  let write = false
+  let config: string | undefined
+  let verbose = false
+  const globs: string[] = []
+
+  for (let i = 1; i < argv.length; i++) {
+    const a = argv[i]
+    if (a === '--mode') { mode = argv[++i] || 'auto'; continue }
+    if (a === '--check') { check = true; continue }
+    if (a === '--write') { write = true; continue }
+    if (a === '--config') { config = argv[++i]; continue }
+    if (a === '--verbose') { verbose = true; continue }
+    // If we hit lint-only flags, break out and fall through to full CLI
+    if (a === '--fix' || a === '--dry-run' || a === '--reporter' || a === '--max-warnings' || a === '--cache') {
+      // needs full CLI framework
+      globs.length = 0
+      break
+    }
+    if (a === '--ext') { i++; continue } // skip ext value, handled by runUnified
+    if (a === '--ignore-path') { i++; continue }
+    if (a.startsWith('--')) continue
+    globs.push(a)
+  }
+
+  if (globs.length > 0 && (mode === 'format' || mode === 'auto')) {
+    const { runUnified } = await import('../src/run.ts')
+    const code = await runUnified(globs, { mode: mode as any, check, write, config, verbose } as any)
+    process.exit(code)
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Full CLI: import framework for complex commands, help, version, etc.
+// ---------------------------------------------------------------------------
+const { CLI } = await import('@stacksjs/clapp')
+const { version } = await import('../package.json')
+const { runUnified: run } = await import('../src/run.ts')
+
+type RunOptions = import('../src/run.ts').RunOptions
 
 const cli = new CLI('pickier')
 

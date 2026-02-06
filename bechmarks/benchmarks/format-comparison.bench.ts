@@ -65,7 +65,7 @@ const biomeGlobal = which('biome')
 const biomeCmd = biomeGlobal ?? 'npx --yes @biomejs/biome'
 const prettierGlobal = which('prettier')
 const prettierCmd = prettierGlobal ?? 'npx --yes prettier'
-const pickierBin = resolve(__dirname, '../../packages/pickier/dist/bin/cli.js')
+const pickierBin = resolve(__dirname, '../../packages/pickier/bin/pickier')
 
 // Warm up npx cache so the first bench iteration isn't penalised
 try { execSync(`${oxfmtCmd} --version`, { stdio: 'ignore' }) } catch { /* ignore */ }
@@ -124,7 +124,7 @@ function cliPrettier(filePath: string): void {
 
 function cliPickier(filePath: string): void {
   try {
-    execSync(`bun ${pickierBin} run ${filePath} --mode format --check`, {
+    execSync(`${pickierBin} run ${filePath} --mode format --check`, {
       stdio: 'ignore',
       env: { ...process.env, PICKIER_NO_AUTO_CONFIG: '1' },
     })
@@ -144,7 +144,7 @@ console.log(`  Medium: ${stats.medium.lines} lines  (${(stats.medium.bytes / 102
 console.log(`  Large:  ${stats.large.lines} lines  (${(stats.large.bytes / 1024).toFixed(1)} KB)`)
 console.log()
 console.log('Tools:')
-console.log(`  Pickier:   formatCode() in-memory  +  bun CLI`)
+console.log(`  Pickier:   formatCode() in-memory  +  compiled binary CLI`)
 console.log(`  oxfmt:     ${oxfmtGlobal ?? '(via npx)'}  — stdin pipe + CLI  (no JS API)`)
 console.log(`  Biome:     ${biomeGlobal ?? '(via npx)'}  — stdin pipe + CLI  (no JS formatting API)`)
 console.log(`  Prettier:  format() in-memory  +  ${prettierGlobal ?? 'npx'} CLI`)

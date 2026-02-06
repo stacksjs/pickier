@@ -170,14 +170,34 @@ function fixQuotesLine(line: string, preferred: 'single' | 'double'): string {
  * Normalize spacing for a single line (extracted from normalizeCodeSpacing).
  * Uses pre-compiled regex patterns and fast-path maskStrings.
  */
+// Characters that trigger spacing normalization — if none are present, skip all 11 regex passes
+const SPACING_CHARS = new Set(['{', ',', '=', '+', '-', '*', '/', ';', '<', '>'])
+
 function normalizeSpacingLine(line: string): string {
-  // Fast path: skip comment lines entirely
-  const firstNonSpace = line.search(/\S/)
-  if (firstNonSpace >= 0) {
+  // Fast path: skip very short lines (closing braces, etc.)
+  if (line.length < 4)
+    return line
+
+  // Fast path: skip comment lines
+  let firstNonSpace = 0
+  while (firstNonSpace < line.length && (line[firstNonSpace] === ' ' || line[firstNonSpace] === '\t'))
+    firstNonSpace++
+  if (firstNonSpace < line.length) {
     const c = line[firstNonSpace]
     if (c === '/' && (line[firstNonSpace + 1] === '/' || line[firstNonSpace + 1] === '*'))
       return line
   }
+
+  // Fast path: if no operator/punctuation characters exist, nothing to normalize
+  let hasSpacingChar = false
+  for (let j = firstNonSpace; j < line.length; j++) {
+    if (SPACING_CHARS.has(line[j])) {
+      hasSpacingChar = true
+      break
+    }
+  }
+  if (!hasSpacingChar)
+    return line
 
   const { text, strings } = maskStrings(line)
   let t = text
@@ -229,10 +249,11 @@ function processCodeLinesFused(content: string, cfg: PickierConfig): string {
     // Phase 1: Fix quotes
     line = fixQuotesLine(line, preferred)
 
-    // Phase 2: Fix indentation
-    const leadMatch = RE_LEADING_WS.exec(line)
-    const leading = leadMatch ? leadMatch[0] : ''
-    const trimmed = line.slice(leading.length).trimEnd()
+    // Phase 2: Fix indentation (manual char loop avoids regex overhead)
+    let wsEnd = 0
+    while (wsEnd < line.length && (line.charCodeAt(wsEnd) === 32 || line.charCodeAt(wsEnd) === 9))
+      wsEnd++
+    const trimmed = line.slice(wsEnd).trimEnd()
 
     if (RE_CLOSING_BRACE.test(trimmed))
       indentLevel = Math.max(0, indentLevel - 1)
@@ -296,7 +317,9 @@ export function formatCode(src: string, cfg: PickierConfig, filePath: string): s
     const maxConsecutive = Math.max(0, cfg.format.maxConsecutiveBlankLines)
 
     for (const l of rawLines) {
-      const trimmed = l.replace(RE_TRAILING_WS, '')
+      // Fast path: skip regex for lines that don't end with whitespace
+      const last = l[l.length - 1]
+      const trimmed = (last === ' ' || last === '\t') ? l.replace(RE_TRAILING_WS, '') : l
       if (trimmed === '') {
         blank++
         if (blank <= maxConsecutive)
@@ -514,6 +537,11 @@ interface ParsedImport {
 }
 
 export function formatImports(source: string): string {
+  // Fast path: if file doesn't start with import/comment/blank, no import block to process
+  const firstChar = source[0]
+  if (firstChar !== 'i' && firstChar !== ' ' && firstChar !== '\t' && firstChar !== '/' && firstChar !== '\n')
+    return source
+
   const lines = source.split('\n')
   const imports: ParsedImport[] = []
   let idx = 0

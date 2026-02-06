@@ -1,5 +1,9 @@
 import type { FormatOptions, LintOptions } from './types'
-import { runLint } from './linter'
+import { readFileSync, statSync, writeFileSync } from 'node:fs'
+import { isAbsolute, resolve } from 'node:path'
+import process from 'node:process'
+import { formatCode } from './format'
+import { loadConfigFromPath } from './utils'
 
 export type RunOptions = (Partial<LintOptions> & Partial<FormatOptions>) & {
   mode?: 'auto' | 'lint' | 'format'
@@ -7,17 +11,41 @@ export type RunOptions = (Partial<LintOptions> & Partial<FormatOptions>) & {
 
 export async function runUnified(globs: string[], options: RunOptions): Promise<number> {
   const mode = options.mode || 'auto'
+
+  // FAST PATH: format mode with a single concrete file (no glob chars)
+  // Avoids importing linter.ts and its heavy deps (plugins, tinyglobby, p-limit, logger)
+  if (mode === 'format' && globs.length === 1 && !/[*?[\]{}()!]/.test(globs[0])) {
+    try {
+      const p = globs[0]
+      const filePath = isAbsolute(p) ? p : resolve(process.cwd(), p)
+      const st = statSync(filePath)
+      if (st.isFile()) {
+        const cfg = await loadConfigFromPath(options.config)
+        const src = readFileSync(filePath, 'utf8')
+        const fmt = formatCode(src, cfg, filePath)
+        if (options.write && fmt !== src) {
+          writeFileSync(filePath, fmt, 'utf8')
+        }
+        return 0
+      }
+    }
+    catch {
+      // Fall through to full linter path
+    }
+  }
+
+  // Full path: dynamically import linter to defer its heavy deps
+  const { runLint } = await import('./linter')
+
   if (mode === 'lint')
     return runLint(globs, options as LintOptions)
+
   if (mode === 'format') {
-    // Unify: formatting is linting with fixes applied
     const lintOpts: LintOptions = {
       ...(options as any),
       fix: true,
       dryRun: !!options.check,
-      // map format ext to lint ext if provided
       ext: options.ext,
-      // Fast path: skip lint scanning/plugin checks, only apply fixers
       _formatOnly: true,
     }
     return runLint(globs, lintOpts)
