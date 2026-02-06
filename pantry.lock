@@ -1,0 +1,47 @@
+{
+  "version": "1.0.0",
+  "lockfileVersion": 1,
+  "generatedAt": "1770408317",
+  "packages": {
+    "auto:tinyglobby@^0.2.15": {
+      "name": "auto:tinyglobby",
+      "version": "^0.2.15",
+      "source": "pkgx"
+    },
+    "auto:p-limit@^7.2.0": {
+      "name": "auto:p-limit",
+      "version": "^7.2.0",
+      "source": "pkgx"
+    },
+    "auto:bunfig@^0.15.6": {
+      "name": "auto:bunfig",
+      "version": "^0.15.6",
+      "source": "pkgx"
+    },
+    "npm:@vscode/test-electron@^2.5.2": {
+      "name": "npm:@vscode/test-electron",
+      "version": "^2.5.2",
+      "source": "pkgx"
+    },
+    "npm:@vscode/vsce@^3.7.1": {
+      "name": "npm:@vscode/vsce",
+      "version": "^3.7.1",
+      "source": "pkgx"
+    },
+    "npm:@stacksjs/clapp@^0.2.0": {
+      "name": "npm:@stacksjs/clapp",
+      "version": "^0.2.0",
+      "source": "pkgx"
+    },
+    "npm:@types/bun@1.3.3": {
+      "name": "npm:@types/bun",
+      "version": "1.3.3",
+      "source": "pkgx"
+    },
+    "npm:@types/vscode@^1.106.1": {
+      "name": "npm:@types/vscode",
+      "version": "^1.106.1",
+      "source": "pkgx"
+    }
+  }
+}

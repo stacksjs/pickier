@@ -13,3 +13,4 @@ docs/.vitepress/cache
 
 packages/pickier/bin/pickier
 .vscode
+/pantry
