@@ -10,8 +10,6 @@ const RE_OPENING_BRACE = /\{\s*$/
 const RE_FOR_LOOP = /^\s*for\s*\(/
 const RE_EMPTY_SEMI = /^\s*;\s*$/
 const RE_DUP_SEMI = /;{2,}\s*$/
-const RE_COMMENT_LINE = /^\s*\/\//
-const RE_COMMENT_BLOCK = /^\s*\/\*/
 const RE_SPACE_BEFORE_BRACE = /(\S)\{/g
 const RE_SPACE_AFTER_BRACE_KW = /\{(return|if|for|while|switch|const|let|var|function)\b/g
 const RE_COMMA_SPACE = /,(\S)/g
@@ -24,6 +22,14 @@ const RE_SEMI_SPACE = /;([^\s;])/g
 const RE_LT_OP = /([\w\])])<(\S)/g
 const RE_GT_OP = /(\S)>([\w[(])/g
 const RE_MULTI_SPACE = /\s{2,}/g
+const RE_BLANK_LINE = /^\s*$/
+const RE_LINE_COMMENT = /^\s*\/\//
+const RE_BLOCK_COMMENT = /^\s*\/\*/
+const RE_IMPORT_STMT = /^\s*import\b/
+const RE_PACKAGE_JSON = /package\.json$/i
+const RE_TSCONFIG_JSON = /[jt]sconfig(?:\..+)?\.json$/i
+const RE_TRAILING_WS = /[ \t]+$/
+const RE_LEADING_BLANKS = /^(?:[ \t]*\n)+/
 
 function getFileExt(filePath: string): string {
   const idx = filePath.lastIndexOf('.')
@@ -72,187 +78,77 @@ function convertSingleToDouble(str: string): string {
 function fixQuotes(content: string, preferred: 'single' | 'double', filePath: string): string {
   if (!isCodeFileExt(filePath))
     return content
-
-  // OPTIMIZATION: Single-pass quote conversion with position tracking
   const lines = content.split('\n')
-  const result: string[] = []
-
-  for (const line of lines) {
-    let output = ''
-    let i = 0
-    let inString: 'single' | 'double' | 'template' | null = null
-    let stringStart = 0
-
-    while (i < line.length) {
-      const ch = line[i]
-
-      // Check for string boundaries
-      if (!inString) {
-        if (ch === '"') {
-          inString = 'double'
-          stringStart = i
-          i++
-          continue
-        }
-        if (ch === '\'') {
-          inString = 'single'
-          stringStart = i
-          i++
-          continue
-        }
-        if (ch === '`') {
-          inString = 'template'
-          output += ch
-          i++
-          continue
-        }
-        output += ch
-        i++
-      }
-      else {
-        // Inside a string - check if we're exiting (but not if escaped)
-        // Count consecutive backslashes before this position
-        let backslashCount = 0
-        let j = i - 1
-        while (j >= 0 && line[j] === '\\') {
-          backslashCount++
-          j--
-        }
-        const isEscaped = backslashCount % 2 === 1
-
-        if (!isEscaped && ((inString === 'double' && ch === '"') || (inString === 'single' && ch === '\''))) {
-          // Found closing quote - convert if needed
-          const stringContent = line.slice(stringStart + 1, i)
-          if (inString === 'double' && preferred === 'single') {
-            // Convert double to single
-            output += convertDoubleToSingle(`"${stringContent}"`)
-          }
-          else if (inString === 'single' && preferred === 'double') {
-            // Convert single to double
-            output += convertSingleToDouble(`'${stringContent}'`)
-          }
-          else {
-            // Keep as is
-            output += line[stringStart] + stringContent + ch
-          }
-          inString = null
-          i++
-          continue
-        }
-        if (!isEscaped && inString === 'template' && ch === '`') {
-          // Template literal end
-          output += ch
-          inString = null
-          i++
-          continue
-        }
-        // Still inside string, continue scanning
-        i++
-      }
-    }
-
-    // Handle unclosed strings (keep as is)
-    if (inString && inString !== 'template') {
-      output += line.slice(stringStart)
-    }
-
-    result.push(output)
-  }
-
-  return result.join('\n')
+  for (let i = 0; i < lines.length; i++)
+    lines[i] = fixQuotesLine(lines[i], preferred)
+  return lines.join('\n')
 }
 
-function fixIndentation(content: string, indentSize: number, cfg: PickierConfig): string {
-  const lines = content.split('\n')
-  const out: string[] = []
-  let indentLevel = 0 // visual levels
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i]
-    if (line.length === 0) {
-      out.push('')
-      continue
-    }
-    const match = line.match(/^[ \t]*/)
-    const leading = match ? match[0] : ''
-    const rest = line.slice(leading.length)
-    const trimmed = rest.trimEnd()
-
-    // If line starts with a closing brace, decrease indent before applying
-    if (/^\}/.test(trimmed))
-      indentLevel = Math.max(0, indentLevel - 1)
-
-    const fixed = `${makeIndent(indentLevel, cfg)}${trimmed}`
-    out.push(fixed)
-
-    // Increase indentation after opening braces for subsequent lines
-    if (/\{\s*$/.test(trimmed))
-      indentLevel += 1
-  }
-  return out.join('\n')
-}
 
 /**
  * Fix quotes for a single line (extracted from fixQuotes for use in fused pipeline).
  * Converts string quote style to the preferred style.
  */
 function fixQuotesLine(line: string, preferred: 'single' | 'double'): string {
-  let output = ''
+  // Fast path: no quotes to convert
+  const wantSingle = preferred === 'single'
+  if (wantSingle ? !line.includes('"') : !line.includes('\''))
+    return line
+
+  const parts: string[] = []
   let i = 0
-  let inString: 'single' | 'double' | 'template' | null = null
+  let segStart = 0
+  let inString: 0 | 1 | 2 | 3 = 0 // 0=none, 1=single, 2=double, 3=template
   let stringStart = 0
 
   while (i < line.length) {
     const ch = line[i]
 
-    if (!inString) {
+    if (inString === 0) {
       if (ch === '"') {
-        inString = 'double'
+        inString = 2
         stringStart = i
         i++
         continue
       }
       if (ch === '\'') {
-        inString = 'single'
+        inString = 1
         stringStart = i
         i++
         continue
       }
       if (ch === '`') {
-        inString = 'template'
-        output += ch
+        inString = 3
         i++
         continue
       }
-      output += ch
+      i++
+    }
+    else if (inString === 3) {
+      // template literal — just scan for closing backtick
+      if (ch === '\\') { i += 2; continue }
+      if (ch === '`') inString = 0
       i++
     }
     else {
-      let backslashCount = 0
-      let j = i - 1
-      while (j >= 0 && line[j] === '\\') {
-        backslashCount++
-        j--
-      }
-      const isEscaped = backslashCount % 2 === 1
-
-      if (!isEscaped && ((inString === 'double' && ch === '"') || (inString === 'single' && ch === '\''))) {
-        const stringContent = line.slice(stringStart + 1, i)
-        if (inString === 'double' && preferred === 'single') {
-          output += convertDoubleToSingle(`"${stringContent}"`)
+      // single or double string
+      if (ch === '\\') { i += 2; continue }
+      const closeChar = inString === 1 ? '\'' : '"'
+      if (ch === closeChar) {
+        // Found closing quote — convert if needed
+        const needConvert = (inString === 2 && wantSingle) || (inString === 1 && !wantSingle)
+        if (needConvert) {
+          // Flush segment before string
+          if (stringStart > segStart)
+            parts.push(line.slice(segStart, stringStart))
+          const stringContent = line.slice(stringStart + 1, i)
+          if (inString === 2)
+            parts.push(convertDoubleToSingle(`"${stringContent}"`))
+          else
+            parts.push(convertSingleToDouble(`'${stringContent}'`))
+          segStart = i + 1
         }
-        else if (inString === 'single' && preferred === 'double') {
-          output += convertSingleToDouble(`'${stringContent}'`)
-        }
-        else {
-          output += line[stringStart] + stringContent + ch
-        }
-        inString = null
-        i++
-        continue
-      }
-      if (!isEscaped && inString === 'template' && ch === '`') {
-        output += ch
-        inString = null
+        inString = 0
         i++
         continue
       }
@@ -260,11 +156,14 @@ function fixQuotesLine(line: string, preferred: 'single' | 'double'): string {
     }
   }
 
-  if (inString && inString !== 'template') {
-    output += line.slice(stringStart)
-  }
+  // If no conversions happened, return original
+  if (parts.length === 0)
+    return line
 
-  return output
+  // Flush unclosed string or trailing segment
+  if (segStart < line.length)
+    parts.push(line.slice(segStart))
+  return parts.join('')
 }
 
 /**
@@ -272,8 +171,13 @@ function fixQuotesLine(line: string, preferred: 'single' | 'double'): string {
  * Uses pre-compiled regex patterns and fast-path maskStrings.
  */
 function normalizeSpacingLine(line: string): string {
-  if (RE_COMMENT_LINE.test(line) || RE_COMMENT_BLOCK.test(line))
-    return line
+  // Fast path: skip comment lines entirely
+  const firstNonSpace = line.search(/\S/)
+  if (firstNonSpace >= 0) {
+    const c = line[firstNonSpace]
+    if (c === '/' && (line[firstNonSpace + 1] === '/' || line[firstNonSpace + 1] === '*'))
+      return line
+  }
 
   const { text, strings } = maskStrings(line)
   let t = text
@@ -282,24 +186,23 @@ function normalizeSpacingLine(line: string): string {
   t = t.replace(RE_COMMA_SPACE, ', $1')
   t = t.replace(RE_EQUALS_SPACE, ' = ')
   t = t.replace(RE_PLUS_OP, '$1 + $2')
-  t = t.replace(RE_PLUS_OP, '$1 + $2')
-  t = t.replace(RE_MINUS_OP, '$1 - $2')
   t = t.replace(RE_MINUS_OP, '$1 - $2')
   t = t.replace(RE_STAR_OP, '$1 * $2')
-  t = t.replace(RE_STAR_OP, '$1 * $2')
-  t = t.replace(RE_SLASH_OP, '$1 / $2')
   t = t.replace(RE_SLASH_OP, '$1 / $2')
   t = t.replace(RE_SEMI_SPACE, '; $1')
   t = t.replace(RE_LT_OP, '$1 < $2')
   t = t.replace(RE_GT_OP, '$1 > $2')
 
-  const trimmedStart = t.trimStart()
-  const leadLength = t.length - trimmedStart.length
-  const lead = t.slice(0, leadLength)
-  const rest = t.slice(leadLength)
-  const processed = lead + rest.replace(RE_MULTI_SPACE, ' ')
+  // Collapse multi-spaces in code (not leading whitespace)
+  if (firstNonSpace > 0) {
+    const rest = t.slice(firstNonSpace)
+    t = t.slice(0, firstNonSpace) + rest.replace(RE_MULTI_SPACE, ' ')
+  }
+  else {
+    t = t.replace(RE_MULTI_SPACE, ' ')
+  }
 
-  return unmaskStrings(processed, strings)
+  return strings.length > 0 ? unmaskStrings(t, strings) : t
 }
 
 /**
@@ -393,7 +296,7 @@ export function formatCode(src: string, cfg: PickierConfig, filePath: string): s
     const maxConsecutive = Math.max(0, cfg.format.maxConsecutiveBlankLines)
 
     for (const l of rawLines) {
-      const trimmed = l.replace(/[ \t]+$/g, '')
+      const trimmed = l.replace(RE_TRAILING_WS, '')
       if (trimmed === '') {
         blank++
         if (blank <= maxConsecutive)
@@ -412,7 +315,7 @@ export function formatCode(src: string, cfg: PickierConfig, filePath: string): s
 
   let joined = lines.join('\n')
   // Remove any leading blank lines at the top of the file
-  joined = joined.replace(/^(?:[ \t]*\n)+/, '')
+  joined = joined.replace(RE_LEADING_BLANKS, '')
 
   // import management (ts/js only)
   if (isCodeFileExt(filePath))
@@ -555,43 +458,40 @@ function maskStrings(input: string): { text: string, strings: string[] } {
     return { text: input, strings: [] }
 
   const strings: string[] = []
-  let out = ''
+  const parts: string[] = []
   let i = 0
-  let mode: 'none' | 'single' | 'double' | 'template' = 'none'
-  let start = 0
+  let segStart = 0
   while (i < input.length) {
     const ch = input[i]
-    if (mode === 'none' && (ch === '\'' || ch === '"' || ch === '`')) {
-      if (ch === '\'')
-        mode = 'single'
-      else if (ch === '"')
-        mode = 'double'
-      else mode = 'template'
-      start = i
+    if (ch === '\'' || ch === '"' || ch === '`') {
+      // Flush non-string segment
+      if (i > segStart)
+        parts.push(input.slice(segStart, i))
+      const start = i
+      const close = ch
       i++
       while (i < input.length) {
-        const c = input[i]
-        if (c === '\\') {
+        if (input[i] === '\\') {
           i += 2
           continue
         }
-        if ((mode === 'single' && c === '\'') || (mode === 'double' && c === '"') || (mode === 'template' && c === '`')) {
+        if (input[i] === close) {
           i++
           break
         }
         i++
       }
-      const s = input.slice(start, i)
-      const token = `@@S${strings.length}@@`
-      strings.push(s)
-      out += token
-      mode = 'none'
+      strings.push(input.slice(start, i))
+      parts.push(`@@S${strings.length - 1}@@`)
+      segStart = i
       continue
     }
-    out += ch
     i++
   }
-  return { text: out, strings }
+  // Flush trailing segment
+  if (segStart < input.length)
+    parts.push(input.slice(segStart))
+  return { text: parts.join(''), strings }
 }
 
 function unmaskStrings(text: string, strings: string[]): string {
@@ -600,79 +500,6 @@ function unmaskStrings(text: string, strings: string[]): string {
   return text.replace(/@@S(\d+)@@/g, (_, idx: string) => strings[Number(idx)] ?? '')
 }
 
-function normalizeCodeSpacing(input: string): string {
-  const lines = input.split('\n')
-  const result: string[] = []
-
-  for (const line of lines) {
-    // Skip comment-only lines to preserve their formatting
-    if (/^\s*\/\//.test(line) || /^\s*\/\*/.test(line)) {
-      result.push(line)
-      continue
-    }
-
-    const { text, strings } = maskStrings(line)
-    let t = text
-    // ensure a space before opening brace for blocks/objects
-    t = t.replace(/(\S)\{/g, '$1 {')
-    // ensure a space after opening brace before keywords (return, if, etc)
-    t = t.replace(/\{(return|if|for|while|switch|const|let|var|function)\b/g, '{ $1')
-    // add spaces after commas
-    t = t.replace(/,(\S)/g, ', $1')
-    // add spaces around equals but not for ==, ===, =>, <=, >=
-    t = t.replace(/(?<![=!<>])=(?![=><])/g, ' = ')
-    // add spaces around arithmetic operators (run multiple times for consecutive operators)
-    // + operator (not part of ++ or unary +)
-    t = t.replace(/(\w)\+(\w)/g, '$1 + $2')
-    t = t.replace(/(\w)\+(\w)/g, '$1 + $2') // Run again for consecutive operators
-    // - operator (not part of -- or unary -)
-    t = t.replace(/(\w)-(\w)/g, '$1 - $2')
-    t = t.replace(/(\w)-(\w)/g, '$1 - $2')
-    // * and / operators
-    t = t.replace(/(\w)\*(\w)/g, '$1 * $2')
-    t = t.replace(/(\w)\*(\w)/g, '$1 * $2')
-    t = t.replace(/(\w)\/(\w)/g, '$1 / $2')
-    t = t.replace(/(\w)\/(\w)/g, '$1 / $2')
-    // add spaces after semicolons in for headers (but not between consecutive semicolons)
-    t = t.replace(/;([^\s;])/g, '; $1')
-    // add spaces around simple comparison operators
-    t = t.replace(/([\w\])])<(\S)/g, '$1 < $2')
-    t = t.replace(/(\S)>([\w[(])/g, '$1 > $2')
-    // collapse multiple spaces to single, but not leading indentation
-    const trimmedStart = t.trimStart()
-    const leadLength = t.length - trimmedStart.length
-    const lead = t.slice(0, leadLength)
-    const rest = t.slice(leadLength)
-    const processed = lead + rest.replace(/\s{2,}/g, ' ')
-
-    result.push(unmaskStrings(processed, strings))
-  }
-
-  return result.join('\n')
-}
-
-function removeStylisticSemicolons(input: string): string {
-  const lines = input.split('\n')
-  const out: string[] = []
-  for (let i = 0; i < lines.length; i++) {
-    let line = lines[i]
-    // Skip semicolons that are likely required (for-loop headers)
-    if (/^\s*for\s*\(/.test(line)) {
-      out.push(line)
-      continue
-    }
-    // Remove empty statement lines composed solely of semicolons
-    if (/^\s*;\s*$/.test(line)) {
-      out.push('')
-      continue
-    }
-    // Collapse duplicate trailing semicolons to a single one
-    line = line.replace(/;{2,}\s*$/, ';')
-    // Do not strip the final single stylistic semicolon. Keeping it preserves current fixtures.
-    out.push(line)
-  }
-  return out.join('\n')
-}
 
 type ImportKind = 'value' | 'type' | 'side-effect'
 
@@ -693,11 +520,11 @@ export function formatImports(source: string): string {
   // capture contiguous import block at top allowing comments and blank lines
   while (idx < lines.length) {
     const line = lines[idx]
-    if (/^\s*$/.test(line) || /^\s*\/\//.test(line) || /^\s*\/\*/.test(line)) {
+    if (RE_BLANK_LINE.test(line) || RE_LINE_COMMENT.test(line) || RE_BLOCK_COMMENT.test(line)) {
       idx++
       continue
     }
-    if (!/^\s*import\b/.test(line))
+    if (!RE_IMPORT_STMT.test(line))
       break
     const stmt = line.trim()
     const parsed = parseImportStatement(stmt)
@@ -712,7 +539,18 @@ export function formatImports(source: string): string {
 
   // Remove unused only for simple named (no alias). Keep defaults, namespaces, and all type specifiers.
   const codeText = rest
-  const used = (name: string): boolean => new RegExp(`\\b${name}\\b`).test(codeText)
+  const isWordChar = (c: string) => c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || c >= '0' && c <= '9' || c === '_' || c === '$'
+  const used = (name: string): boolean => {
+    let pos = 0
+    while ((pos = codeText.indexOf(name, pos)) !== -1) {
+      const before = pos > 0 ? codeText[pos - 1] : ' '
+      const after = pos + name.length < codeText.length ? codeText[pos + name.length] : ' '
+      if (!isWordChar(before) && !isWordChar(after))
+        return true
+      pos += name.length
+    }
+    return false
+  }
   for (const imp of imports) {
     if (imp.kind !== 'value')
       continue
@@ -947,9 +785,9 @@ function parseImportStatement(stmt: string): ParsedImport | undefined {
 
 // Sort known JSON files according to curated orders
 function trySortKnownJson(input: string, filePath: string): string | null {
-  if (/package\.json$/i.test(filePath))
+  if (RE_PACKAGE_JSON.test(filePath))
     return sortPackageJsonContent(input)
-  if (/[jt]sconfig(?:\..+)?\.json$/i.test(filePath))
+  if (RE_TSCONFIG_JSON.test(filePath))
     return sortTsconfigContent(input)
   return null
 }

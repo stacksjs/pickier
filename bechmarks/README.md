@@ -12,11 +12,11 @@ Pickier `formatCode()` and Prettier `format()` run in-process. oxfmt and Biome a
 
 | File | Pickier | Biome (stdin) | oxfmt (stdin) | Prettier |
 |------|--------:|--------------:|--------------:|---------:|
-| Small (52 lines, 1 KB) | **73 us** | 42 ms | 52 ms | 1.8 ms |
-| Medium (419 lines, 10 KB) | **696 us** | 45 ms | 52 ms | 10.9 ms |
-| Large (1,279 lines, 31 KB) | **2.1 ms** | 48 ms | 52 ms | 28.2 ms |
+| Small (52 lines, 1 KB) | **56 us** | 41 ms | 51 ms | 1.6 ms |
+| Medium (419 lines, 10 KB) | **535 us** | 44 ms | 51 ms | 10.5 ms |
+| Large (1,279 lines, 31 KB) | **1.6 ms** | 47 ms | 51 ms | 28.0 ms |
 
-Pickier's in-memory API is 13-25x faster than Prettier and orders of magnitude faster than tools that must spawn a process per call.
+Pickier's in-memory API is 17-29x faster than Prettier and orders of magnitude faster than tools that must spawn a process per call.
 
 ### Formatting — CLI
 
@@ -24,31 +24,31 @@ All four tools spawn a process and read the file from disk.
 
 | File | Pickier | Biome | oxfmt | Prettier |
 |------|--------:|------:|------:|---------:|
-| Small (52 lines) | **64 ms** | 45 ms | 72 ms | 108 ms |
-| Medium (419 lines) | **63 ms** | 55 ms | 71 ms | 148 ms |
-| Large (1,279 lines) | **63 ms** | 92 ms | 72 ms | 181 ms |
+| Small (52 lines) | **49 ms** | 44 ms | 72 ms | 106 ms |
+| Medium (419 lines) | **50 ms** | 55 ms | 69 ms | 148 ms |
+| Large (1,279 lines) | **52 ms** | 91 ms | 71 ms | 177 ms |
 
-Pickier's format-only fast path keeps CLI time flat at ~63ms regardless of file size. Biome is faster on small files thanks to its native Rust binary, but slower on large files. Prettier is 1.7-2.9x slower across all sizes.
+Pickier's format-only fast path keeps CLI time flat at ~50ms regardless of file size. Biome is slightly faster on small files thanks to its native Rust binary, but slower on medium and large files. Prettier is 2-3.4x slower across all sizes.
 
 ### Formatting — CLI Batch (all fixtures sequential)
 
 | Tool | Time |
 |------|-----:|
-| Pickier | **190 ms** |
-| Biome | 192 ms |
-| oxfmt | 212 ms |
-| Prettier | 461 ms |
+| Pickier | **150 ms** |
+| Biome | 190 ms |
+| oxfmt | 209 ms |
+| Prettier | 431 ms |
 
 ### Formatting — Throughput (large file x 20)
 
 | Tool | Time |
 |------|-----:|
-| Pickier | **46 ms** |
-| Prettier | 567 ms |
-| Biome (stdin) | 984 ms |
-| oxfmt (stdin) | 1,110 ms |
+| Pickier | **33 ms** |
+| Prettier | 557 ms |
+| Biome (stdin) | 979 ms |
+| oxfmt (stdin) | 1,030 ms |
 
-At scale, Pickier is 12x faster than Prettier and 21-24x faster than Biome/oxfmt.
+At scale, Pickier is 17x faster than Prettier and 30x faster than Biome/oxfmt.
 
 ### Linting — Pickier vs ESLint (programmatic)
 

@@ -5,7 +5,7 @@ import process from 'node:process'
 import { Logger } from '@stacksjs/clarity'
 import pLimit from 'p-limit'
 import { glob as tinyGlob } from 'tinyglobby'
-import { detectQuoteIssues, hasIndentIssue } from './format'
+import { detectQuoteIssues, formatCode, hasIndentIssue } from './format'
 import { formatStylish, formatVerbose } from './formatter'
 import { getAllPlugins } from './plugins'
 import { colors, ENV, expandPatterns, getRuleSetting, isCodeFile, loadConfigFromPath, MAX_FIXER_PASSES, shouldIgnorePath, UNIVERSAL_IGNORES } from './utils'
@@ -1429,16 +1429,14 @@ export async function runLint(globs: string[], options: LintOptions): Promise<nu
         if (processedCount === 1 || processedCount % 10 === 0 || processedCount === files.length)
           logger.info(`[pickier:diagnostics] Processing file ${processedCount}/${files.length}: ${relative(process.cwd(), file)}`)
       }
-      trace('scan start', relative(process.cwd(), file))
       const src = readFileSync(file, 'utf8')
 
-      // FAST PATH: format-only mode skips scanning/plugin checks, just applies fixers
+      // FAST PATH: format-only mode — just run formatCode() directly, skip scanning/plugins
       if (formatOnly) {
-        let fixed = applyPluginFixes(file, src, cfg)
+        const fixed = formatCode(src, cfg, file)
         if (fixed !== src && !options.dryRun) {
           writeFileSync(file, fixed, 'utf8')
         }
-        trace('scan done (format-only)', relative(process.cwd(), file), 0)
         return []
       }
 

@@ -65,7 +65,7 @@ const biomeGlobal = which('biome')
 const biomeCmd = biomeGlobal ?? 'npx --yes @biomejs/biome'
 const prettierGlobal = which('prettier')
 const prettierCmd = prettierGlobal ?? 'npx --yes prettier'
-const pickierBin = resolve(__dirname, '../../packages/pickier/bin/cli.ts')
+const pickierBin = resolve(__dirname, '../../packages/pickier/dist/bin/cli.js')
 
 // Warm up npx cache so the first bench iteration isn't penalised
 try { execSync(`${oxfmtCmd} --version`, { stdio: 'ignore' }) } catch { /* ignore */ }
