@@ -1,22 +1,22 @@
 /**
- * Pickier vs oxfmt vs Prettier — Formatting Benchmark
+ * Pickier vs oxfmt vs Biome vs Prettier — Formatting Benchmark
  *
- * All three tools compared in every group:
+ * All four tools compared in every group:
  *
  *   1. Programmatic / In-memory
  *      Pickier formatCode() — in-memory, no process spawn
  *      Prettier format()   — in-memory, no process spawn
- *      oxfmt               — piped via stdin (CLI), no JS API available
+ *      oxfmt               — piped via stdin (no JS API)
+ *      Biome               — piped via stdin (no JS API)
  *
  *   2. CLI (single file)
- *      All tools spawn a subprocess — fair real-world comparison.
+ *      All tools spawn a subprocess.
  *
  *   3. CLI Batch (all fixtures sequentially)
  *
  *   4. Throughput — 20 iterations of the large file
- *      Pickier & Prettier in-memory, oxfmt via stdin
  *
- * Run: bun run bench:oxfmt
+ * Run: bun run bench:format-comparison
  */
 import { execSync } from 'node:child_process'
 import { readFileSync } from 'node:fs'
@@ -61,12 +61,15 @@ function which(bin: string): string | null {
 
 const oxfmtGlobal = which('oxfmt')
 const oxfmtCmd = oxfmtGlobal ?? 'npx --yes oxfmt'
+const biomeGlobal = which('biome')
+const biomeCmd = biomeGlobal ?? 'npx --yes @biomejs/biome'
 const prettierGlobal = which('prettier')
 const prettierCmd = prettierGlobal ?? 'npx --yes prettier'
 const pickierBin = resolve(__dirname, '../../packages/pickier/bin/cli.ts')
 
 // Warm up npx cache so the first bench iteration isn't penalised
 try { execSync(`${oxfmtCmd} --version`, { stdio: 'ignore' }) } catch { /* ignore */ }
+try { execSync(`${biomeCmd} --version`, { stdio: 'ignore' }) } catch { /* ignore */ }
 try { execSync(`${prettierCmd} --version`, { stdio: 'ignore' }) } catch { /* ignore */ }
 
 // ---------------------------------------------------------------------------
@@ -82,7 +85,7 @@ const prettierOpts = {
   printWidth: 100,
 }
 
-/** oxfmt via stdin — the only way to call it since it has no JS API */
+/** oxfmt via stdin — no JS API available */
 function stdinOxfmt(src: string): void {
   try {
     execSync(`${oxfmtCmd} format --stdin-filepath bench.ts`, {
@@ -93,8 +96,24 @@ function stdinOxfmt(src: string): void {
   catch { /* non-zero exit expected */ }
 }
 
+/** Biome via stdin — no JS formatting API available */
+function stdinBiome(src: string): void {
+  try {
+    execSync(`${biomeCmd} format --stdin-file-path=bench.ts --quote-style=single --semicolons=as-needed --indent-width=2`, {
+      input: src,
+      stdio: ['pipe', 'ignore', 'ignore'],
+    })
+  }
+  catch { /* non-zero exit expected */ }
+}
+
 function cliOxfmt(filePath: string): void {
   try { execSync(`${oxfmtCmd} format --check ${filePath}`, { stdio: 'ignore' }) }
+  catch { /* non-zero exit expected */ }
+}
+
+function cliBiome(filePath: string): void {
+  try { execSync(`${biomeCmd} format --quote-style=single --semicolons=as-needed --indent-width=2 ${filePath}`, { stdio: 'ignore' }) }
   catch { /* non-zero exit expected */ }
 }
 
@@ -117,7 +136,7 @@ function cliPickier(filePath: string): void {
 // Header
 // ---------------------------------------------------------------------------
 console.log(`\n${'='.repeat(80)}`)
-console.log('         PICKIER vs OXFMT vs PRETTIER — Formatting Benchmark')
+console.log('     PICKIER vs OXFMT vs BIOME vs PRETTIER — Formatting Benchmark')
 console.log('='.repeat(80))
 console.log('\nFixtures:')
 console.log(`  Small:  ${stats.small.lines} lines  (${(stats.small.bytes / 1024).toFixed(1)} KB)`)
@@ -126,12 +145,13 @@ console.log(`  Large:  ${stats.large.lines} lines  (${(stats.large.bytes / 1024)
 console.log()
 console.log('Tools:')
 console.log(`  Pickier:   formatCode() in-memory  +  bun CLI`)
-console.log(`  oxfmt:     ${oxfmtGlobal ?? `(via npx)`}  — stdin pipe + CLI  (no JS API)`)
+console.log(`  oxfmt:     ${oxfmtGlobal ?? '(via npx)'}  — stdin pipe + CLI  (no JS API)`)
+console.log(`  Biome:     ${biomeGlobal ?? '(via npx)'}  — stdin pipe + CLI  (no JS formatting API)`)
 console.log(`  Prettier:  format() in-memory  +  ${prettierGlobal ?? 'npx'} CLI`)
 console.log(`${'='.repeat(80)}\n`)
 
 // ===================================================================
-// 1. Programmatic — Pickier & Prettier in-memory, oxfmt via stdin
+// 1. Programmatic — Pickier & Prettier in-memory, oxfmt & Biome stdin
 // ===================================================================
 
 for (const [label, size] of [['Small', 'small'], ['Medium', 'medium'], ['Large', 'large']] as const) {
@@ -142,6 +162,10 @@ for (const [label, size] of [['Small', 'small'], ['Medium', 'medium'], ['Large',
 
     bench('oxfmt (stdin)', () => {
       stdinOxfmt(content[size])
+    })
+
+    bench('Biome (stdin)', () => {
+      stdinBiome(content[size])
     })
 
     bench('Prettier', async () => {
@@ -164,6 +188,10 @@ for (const [label, size] of [['Small', 'small'], ['Medium', 'medium'], ['Large',
       cliOxfmt(fixturePaths[size])
     })
 
+    bench('Biome', () => {
+      cliBiome(fixturePaths[size])
+    })
+
     bench('Prettier', () => {
       cliPrettier(fixturePaths[size])
     })
@@ -183,6 +211,10 @@ group('CLI Batch — All Files', () => {
     for (const fp of Object.values(fixturePaths)) cliOxfmt(fp)
   })
 
+  bench('Biome', () => {
+    for (const fp of Object.values(fixturePaths)) cliBiome(fp)
+  })
+
   bench('Prettier', () => {
     for (const fp of Object.values(fixturePaths)) cliPrettier(fp)
   })
@@ -190,7 +222,6 @@ group('CLI Batch — All Files', () => {
 
 // ===================================================================
 // 4. Throughput — 20 iterations of the large file
-//    Pickier & Prettier in-memory, oxfmt via stdin
 // ===================================================================
 
 group('Throughput — Large File x 20', () => {
@@ -200,6 +231,10 @@ group('Throughput — Large File x 20', () => {
 
   bench('oxfmt (stdin)', () => {
     for (let i = 0; i < 20; i++) stdinOxfmt(content.large)
+  })
+
+  bench('Biome (stdin)', () => {
+    for (let i = 0; i < 20; i++) stdinBiome(content.large)
   })
 
   bench('Prettier', async () => {

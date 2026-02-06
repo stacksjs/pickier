@@ -289,49 +289,51 @@ Spacing:
 
 ## Benchmarks
 
-Measured on an Apple M3 Pro with Bun 1.3.9. Each tool uses equivalent settings (single quotes, no semicolons, 2-space indent). Pickier and Prettier use their in-memory APIs; oxfmt has no JS API, so it is called via stdin pipe. Full benchmark source is in `bechmarks/benchmarks/oxfmt.bench.ts`.
+Measured on an Apple M3 Pro with Bun 1.3.9. Each tool uses equivalent settings (single quotes, no semicolons, 2-space indent). Pickier and Prettier use their in-memory APIs; oxfmt and Biome have no JS formatting API, so they are called via stdin pipe. Full benchmark source is in `bechmarks/benchmarks/format-comparison.bench.ts`.
 
 ### In-memory / Programmatic API
 
-Pickier `formatCode()` and Prettier `format()` run in-process with no subprocess overhead. oxfmt has no JS API, so it is piped via stdin.
+Pickier `formatCode()` and Prettier `format()` run in-process. oxfmt and Biome are piped via stdin (no JS formatting API).
 
-| File | Pickier | oxfmt (stdin) | Prettier | Factor vs Prettier |
-|------|--------:|--------------:|---------:|-------------------:|
-| Small (52 lines, 1 KB) | **80 us** | 51 ms | 2.2 ms | ~28x |
-| Medium (419 lines, 10 KB) | **704 us** | 50 ms | 11 ms | ~16x |
-| Large (1,279 lines, 31 KB) | **2.3 ms** | 50 ms | 28 ms | ~12x |
+| File | Pickier | Biome (stdin) | oxfmt (stdin) | Prettier |
+|------|--------:|--------------:|--------------:|---------:|
+| Small (52 lines, 1 KB) | **73 us** | 42 ms | 52 ms | 1.8 ms |
+| Medium (419 lines, 10 KB) | **696 us** | 45 ms | 52 ms | 10.9 ms |
+| Large (1,279 lines, 31 KB) | **2.1 ms** | 48 ms | 52 ms | 28.2 ms |
 
 ### CLI (single file)
 
-All three tools spawn a process and read the file — real-world comparison.
+All four tools spawn a process and read the file from disk.
 
-| File | Pickier | oxfmt | Prettier |
-|------|--------:|------:|---------:|
-| Small (52 lines) | **61 ms** | 67 ms | 104 ms |
-| Medium (419 lines) | **61 ms** | 68 ms | 143 ms |
-| Large (1,279 lines) | **61 ms** | 68 ms | 173 ms |
+| File | Pickier | Biome | oxfmt | Prettier |
+|------|--------:|------:|------:|---------:|
+| Small (52 lines) | **64 ms** | 45 ms | 72 ms | 108 ms |
+| Medium (419 lines) | **63 ms** | 55 ms | 71 ms | 148 ms |
+| Large (1,279 lines) | **63 ms** | 92 ms | 72 ms | 181 ms |
 
 ### CLI Batch (all files, sequential)
 
 | Tool | Time |
 |------|-----:|
-| Pickier | **183 ms** |
-| oxfmt | 203 ms |
-| Prettier | 425 ms |
+| Pickier | **190 ms** |
+| Biome | 192 ms |
+| oxfmt | 212 ms |
+| Prettier | 461 ms |
 
 ### Throughput (large file x 20)
 
 | Tool | Time |
 |------|-----:|
-| Pickier | **43 ms** |
-| Prettier | 569 ms |
-| oxfmt (stdin) | 1,020 ms |
+| Pickier | **46 ms** |
+| Prettier | 567 ms |
+| Biome (stdin) | 984 ms |
+| oxfmt (stdin) | 1,110 ms |
 
-> Pickier wins every benchmark category. The programmatic API (`formatCode`) is **12-28x faster than Prettier** and **22-640x faster than oxfmt** (which must spawn a process since it has no JS API). On CLI, Pickier's format-only fast path and Bun's fast startup give it a consistent ~61ms regardless of file size, beating oxfmt's native Rust binary by ~10%. The batch and throughput tests show this advantage compounds — Pickier is **2.3x faster** than Prettier and **10-24x faster** than oxfmt at scale.
+> Pickier's in-memory API is **13-25x faster than Prettier** and orders of magnitude faster than tools that must spawn a process. On CLI, Pickier's format-only fast path keeps time flat at ~63ms regardless of file size. Biome is faster on small CLI files thanks to its native Rust binary, but Pickier pulls ahead on large files and batch workloads where its integrated pipeline avoids per-file overhead. At throughput scale (20x large file), Pickier is **12x faster** than Prettier and **21-24x faster** than Biome/oxfmt.
 
 ```bash
 # reproduce locally
-bun bechmarks/benchmarks/oxfmt.bench.ts
+bun bechmarks/benchmarks/format-comparison.bench.ts
 ```
 
 ## Programmatic Usage
