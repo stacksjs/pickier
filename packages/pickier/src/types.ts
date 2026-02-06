@@ -106,6 +106,8 @@ export interface LintOptions {
   ext?: string
   cache?: boolean
   verbose?: boolean
+  /** @internal Fast path: skip scanning/plugin checks, only apply fixers */
+  _formatOnly?: boolean
 }
 
 export interface FormatOptions {

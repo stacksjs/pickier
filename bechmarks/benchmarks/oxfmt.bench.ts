@@ -1,15 +1,20 @@
 /**
- * Pickier vs oxfmt Formatting Benchmark
+ * Pickier vs oxfmt vs Prettier — Formatting Benchmark
  *
- * Two comparison categories, each apples-to-apples:
+ * All three tools compared in every group:
  *
- *   1. Programmatic API (in-memory, no process spawn)
- *      Pickier formatCode() vs Prettier format()
- *      oxfmt has no JS API, so it is excluded from this group.
+ *   1. Programmatic / In-memory
+ *      Pickier formatCode() — in-memory, no process spawn
+ *      Prettier format()   — in-memory, no process spawn
+ *      oxfmt               — piped via stdin (CLI), no JS API available
  *
- *   2. CLI (real-world, includes process startup)
- *      Pickier CLI vs oxfmt CLI vs Prettier CLI
- *      All tools spawn a subprocess — the comparison is fair.
+ *   2. CLI (single file)
+ *      All tools spawn a subprocess — fair real-world comparison.
+ *
+ *   3. CLI Batch (all fixtures sequentially)
+ *
+ *   4. Throughput — 20 iterations of the large file
+ *      Pickier & Prettier in-memory, oxfmt via stdin
  *
  * Run: bun run bench:oxfmt
  */
@@ -77,6 +82,17 @@ const prettierOpts = {
   printWidth: 100,
 }
 
+/** oxfmt via stdin — the only way to call it since it has no JS API */
+function stdinOxfmt(src: string): void {
+  try {
+    execSync(`${oxfmtCmd} format --stdin-filepath bench.ts`, {
+      input: src,
+      stdio: ['pipe', 'ignore', 'ignore'],
+    })
+  }
+  catch { /* non-zero exit expected */ }
+}
+
 function cliOxfmt(filePath: string): void {
   try { execSync(`${oxfmtCmd} format --check ${filePath}`, { stdio: 'ignore' }) }
   catch { /* non-zero exit expected */ }
@@ -101,7 +117,7 @@ function cliPickier(filePath: string): void {
 // Header
 // ---------------------------------------------------------------------------
 console.log(`\n${'='.repeat(80)}`)
-console.log('             PICKIER vs OXFMT — Formatting Benchmark')
+console.log('         PICKIER vs OXFMT vs PRETTIER — Formatting Benchmark')
 console.log('='.repeat(80))
 console.log('\nFixtures:')
 console.log(`  Small:  ${stats.small.lines} lines  (${(stats.small.bytes / 1024).toFixed(1)} KB)`)
@@ -110,21 +126,22 @@ console.log(`  Large:  ${stats.large.lines} lines  (${(stats.large.bytes / 1024)
 console.log()
 console.log('Tools:')
 console.log(`  Pickier:   formatCode() in-memory  +  bun CLI`)
-console.log(`  oxfmt:     ${oxfmtGlobal ?? `(via npx)`}  (CLI only, no JS API)`)
+console.log(`  oxfmt:     ${oxfmtGlobal ?? `(via npx)`}  — stdin pipe + CLI  (no JS API)`)
 console.log(`  Prettier:  format() in-memory  +  ${prettierGlobal ?? 'npx'} CLI`)
 console.log(`${'='.repeat(80)}\n`)
 
 // ===================================================================
-// 1. Programmatic API — in-memory, no process spawn
-//    Pickier formatCode() vs Prettier format()
-//    (oxfmt excluded: it has no JS API, so including it would
-//    compare in-memory work against process-spawn overhead)
+// 1. Programmatic — Pickier & Prettier in-memory, oxfmt via stdin
 // ===================================================================
 
 for (const [label, size] of [['Small', 'small'], ['Medium', 'medium'], ['Large', 'large']] as const) {
-  group(`API — ${label} File (${stats[size].lines} lines)`, () => {
+  group(`In-memory — ${label} File (${stats[size].lines} lines)`, () => {
     bench('Pickier', () => {
       formatCode(content[size], cfg, 'bench.ts')
+    })
+
+    bench('oxfmt (stdin)', () => {
+      stdinOxfmt(content[size])
     })
 
     bench('Prettier', async () => {
@@ -135,7 +152,6 @@ for (const [label, size] of [['Small', 'small'], ['Medium', 'medium'], ['Large',
 
 // ===================================================================
 // 2. CLI — every tool spawns a process and reads the file
-//    This is the fairest real-world comparison.
 // ===================================================================
 
 for (const [label, size] of [['Small', 'small'], ['Medium', 'medium'], ['Large', 'large']] as const) {
@@ -156,7 +172,6 @@ for (const [label, size] of [['Small', 'small'], ['Medium', 'medium'], ['Large',
 
 // ===================================================================
 // 3. CLI Batch — format all three fixtures sequentially
-//    All tools use CLI, so process-spawn overhead is consistent.
 // ===================================================================
 
 group('CLI Batch — All Files', () => {
@@ -174,13 +189,17 @@ group('CLI Batch — All Files', () => {
 })
 
 // ===================================================================
-// 4. API Throughput — 20 iterations of the large file, in-memory
-//    Only JS-based tools (Pickier, Prettier) participate.
+// 4. Throughput — 20 iterations of the large file
+//    Pickier & Prettier in-memory, oxfmt via stdin
 // ===================================================================
 
-group('API Throughput — Large File x 20', () => {
+group('Throughput — Large File x 20', () => {
   bench('Pickier', () => {
     for (let i = 0; i < 20; i++) formatCode(content.large, cfg, 'bench.ts')
+  })
+
+  bench('oxfmt (stdin)', () => {
+    for (let i = 0; i < 20; i++) stdinOxfmt(content.large)
   })
 
   bench('Prettier', async () => {

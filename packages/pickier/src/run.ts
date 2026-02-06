@@ -17,7 +17,8 @@ export async function runUnified(globs: string[], options: RunOptions): Promise<
       dryRun: !!options.check,
       // map format ext to lint ext if provided
       ext: options.ext,
-      // suppress reporter differences by keeping defaults
+      // Fast path: skip lint scanning/plugin checks, only apply fixers
+      _formatOnly: true,
     }
     return runLint(globs, lintOpts)
   }

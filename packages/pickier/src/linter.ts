@@ -1,6 +1,6 @@
 import type { LintIssue, LintOptions, PickierConfig, PickierPlugin, RuleContext, RulesConfigMap } from './types'
-import { readFileSync, writeFileSync } from 'node:fs'
-import { isAbsolute, relative, resolve } from 'node:path'
+import { readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs'
+import { isAbsolute, join, relative, resolve } from 'node:path'
 import process from 'node:process'
 import { Logger } from '@stacksjs/clarity'
 import pLimit from 'p-limit'
@@ -99,7 +99,6 @@ export async function runLintProgrammatic(
   const nonGlobSingle = patterns.length === 1 && !/[*?[\]{}()!]/.test(patterns[0])
   if (nonGlobSingle) {
     try {
-      const { statSync } = await import('node:fs')
       const st = statSync(patterns[0])
       if (st.isFile()) {
         const abs = isAbsolute(patterns[0]) ? patterns[0] : resolve(process.cwd(), patterns[0])
@@ -114,8 +113,6 @@ export async function runLintProgrammatic(
     const base = patterns[0].replace(/\/?\*\*\/*\*\*?$/, '')
     const rootBase = isAbsolute(base) ? base : resolve(process.cwd(), base)
     try {
-      const { readdirSync, statSync } = await import('node:fs')
-      const { join } = await import('node:path')
       const stack: string[] = [rootBase]
       while (stack.length) {
         if (signal?.aborted)
@@ -1286,7 +1283,6 @@ export async function runLint(globs: string[], options: LintOptions): Promise<nu
       logger.info(`[pickier:diagnostics] Starting file discovery... (nonGlobSingle: ${nonGlobSingle})`)
     if (nonGlobSingle) {
       try {
-        const { statSync } = await import('node:fs')
         const st = statSync(patterns[0])
         if (st.isFile()) {
           const abs = isAbsolute(patterns[0]) ? patterns[0] : resolve(process.cwd(), patterns[0])
@@ -1304,8 +1300,6 @@ export async function runLint(globs: string[], options: LintOptions): Promise<nu
       if (enableDiagnostics)
         logger.info(`[pickier:diagnostics] Using fast directory scan for: ${base}`)
       try {
-        const { readdirSync, statSync } = await import('node:fs')
-        const { join } = await import('node:path')
         const rootBase = isAbsolute(base) ? base : resolve(process.cwd(), base)
         const stack: string[] = [rootBase]
         let dirCount = 0
@@ -1428,6 +1422,7 @@ export async function runLint(globs: string[], options: LintOptions): Promise<nu
       logger.info(`[pickier:diagnostics] Starting to process ${files.length} files with concurrency ${concurrency}...`)
 
     let processedCount = 0
+    const formatOnly = !!options._formatOnly
     const processFile = async (file: string): Promise<LintIssue[]> => {
       if (enableDiagnostics) {
         processedCount++
@@ -1436,6 +1431,16 @@ export async function runLint(globs: string[], options: LintOptions): Promise<nu
       }
       trace('scan start', relative(process.cwd(), file))
       const src = readFileSync(file, 'utf8')
+
+      // FAST PATH: format-only mode skips scanning/plugin checks, just applies fixers
+      if (formatOnly) {
+        let fixed = applyPluginFixes(file, src, cfg)
+        if (fixed !== src && !options.dryRun) {
+          writeFileSync(file, fixed, 'utf8')
+        }
+        trace('scan done (format-only)', relative(process.cwd(), file), 0)
+        return []
+      }
 
       // OPTIMIZATION: Parse directives and comment lines ONCE upfront
       const suppress = parseDisableDirectives(src)

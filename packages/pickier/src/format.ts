@@ -3,6 +3,28 @@ import type { PickierConfig } from './types'
 const CODE_EXTS = new Set(['.ts', '.js'])
 const JSON_EXTS = new Set(['.json', '.jsonc'])
 
+// Pre-compiled regex patterns for the hot loop (avoids re-creation per line)
+const RE_LEADING_WS = /^[ \t]*/
+const RE_CLOSING_BRACE = /^\}/
+const RE_OPENING_BRACE = /\{\s*$/
+const RE_FOR_LOOP = /^\s*for\s*\(/
+const RE_EMPTY_SEMI = /^\s*;\s*$/
+const RE_DUP_SEMI = /;{2,}\s*$/
+const RE_COMMENT_LINE = /^\s*\/\//
+const RE_COMMENT_BLOCK = /^\s*\/\*/
+const RE_SPACE_BEFORE_BRACE = /(\S)\{/g
+const RE_SPACE_AFTER_BRACE_KW = /\{(return|if|for|while|switch|const|let|var|function)\b/g
+const RE_COMMA_SPACE = /,(\S)/g
+const RE_EQUALS_SPACE = /(?<![=!<>])=(?![=><])/g
+const RE_PLUS_OP = /(\w)\+(\w)/g
+const RE_MINUS_OP = /(\w)-(\w)/g
+const RE_STAR_OP = /(\w)\*(\w)/g
+const RE_SLASH_OP = /(\w)\/(\w)/g
+const RE_SEMI_SPACE = /;([^\s;])/g
+const RE_LT_OP = /([\w\])])<(\S)/g
+const RE_GT_OP = /(\S)>([\w[(])/g
+const RE_MULTI_SPACE = /\s{2,}/g
+
 function getFileExt(filePath: string): string {
   const idx = filePath.lastIndexOf('.')
   return idx >= 0 ? filePath.slice(idx) : ''
@@ -169,6 +191,175 @@ function fixIndentation(content: string, indentSize: number, cfg: PickierConfig)
   return out.join('\n')
 }
 
+/**
+ * Fix quotes for a single line (extracted from fixQuotes for use in fused pipeline).
+ * Converts string quote style to the preferred style.
+ */
+function fixQuotesLine(line: string, preferred: 'single' | 'double'): string {
+  let output = ''
+  let i = 0
+  let inString: 'single' | 'double' | 'template' | null = null
+  let stringStart = 0
+
+  while (i < line.length) {
+    const ch = line[i]
+
+    if (!inString) {
+      if (ch === '"') {
+        inString = 'double'
+        stringStart = i
+        i++
+        continue
+      }
+      if (ch === '\'') {
+        inString = 'single'
+        stringStart = i
+        i++
+        continue
+      }
+      if (ch === '`') {
+        inString = 'template'
+        output += ch
+        i++
+        continue
+      }
+      output += ch
+      i++
+    }
+    else {
+      let backslashCount = 0
+      let j = i - 1
+      while (j >= 0 && line[j] === '\\') {
+        backslashCount++
+        j--
+      }
+      const isEscaped = backslashCount % 2 === 1
+
+      if (!isEscaped && ((inString === 'double' && ch === '"') || (inString === 'single' && ch === '\''))) {
+        const stringContent = line.slice(stringStart + 1, i)
+        if (inString === 'double' && preferred === 'single') {
+          output += convertDoubleToSingle(`"${stringContent}"`)
+        }
+        else if (inString === 'single' && preferred === 'double') {
+          output += convertSingleToDouble(`'${stringContent}'`)
+        }
+        else {
+          output += line[stringStart] + stringContent + ch
+        }
+        inString = null
+        i++
+        continue
+      }
+      if (!isEscaped && inString === 'template' && ch === '`') {
+        output += ch
+        inString = null
+        i++
+        continue
+      }
+      i++
+    }
+  }
+
+  if (inString && inString !== 'template') {
+    output += line.slice(stringStart)
+  }
+
+  return output
+}
+
+/**
+ * Normalize spacing for a single line (extracted from normalizeCodeSpacing).
+ * Uses pre-compiled regex patterns and fast-path maskStrings.
+ */
+function normalizeSpacingLine(line: string): string {
+  if (RE_COMMENT_LINE.test(line) || RE_COMMENT_BLOCK.test(line))
+    return line
+
+  const { text, strings } = maskStrings(line)
+  let t = text
+  t = t.replace(RE_SPACE_BEFORE_BRACE, '$1 {')
+  t = t.replace(RE_SPACE_AFTER_BRACE_KW, '{ $1')
+  t = t.replace(RE_COMMA_SPACE, ', $1')
+  t = t.replace(RE_EQUALS_SPACE, ' = ')
+  t = t.replace(RE_PLUS_OP, '$1 + $2')
+  t = t.replace(RE_PLUS_OP, '$1 + $2')
+  t = t.replace(RE_MINUS_OP, '$1 - $2')
+  t = t.replace(RE_MINUS_OP, '$1 - $2')
+  t = t.replace(RE_STAR_OP, '$1 * $2')
+  t = t.replace(RE_STAR_OP, '$1 * $2')
+  t = t.replace(RE_SLASH_OP, '$1 / $2')
+  t = t.replace(RE_SLASH_OP, '$1 / $2')
+  t = t.replace(RE_SEMI_SPACE, '; $1')
+  t = t.replace(RE_LT_OP, '$1 < $2')
+  t = t.replace(RE_GT_OP, '$1 > $2')
+
+  const trimmedStart = t.trimStart()
+  const leadLength = t.length - trimmedStart.length
+  const lead = t.slice(0, leadLength)
+  const rest = t.slice(leadLength)
+  const processed = lead + rest.replace(RE_MULTI_SPACE, ' ')
+
+  return unmaskStrings(processed, strings)
+}
+
+/**
+ * Fused single-pass code line processor.
+ * Combines fixQuotes + fixIndentation + normalizeCodeSpacing + removeStylisticSemicolons
+ * into ONE split/join cycle instead of four separate ones.
+ */
+function processCodeLinesFused(content: string, cfg: PickierConfig): string {
+  const lines = content.split('\n')
+  const len = lines.length
+  const result = new Array<string>(len)
+  const preferred = cfg.format.quotes
+  const doSemiRemoval = cfg.format.semi === true
+  let indentLevel = 0
+
+  for (let idx = 0; idx < len; idx++) {
+    let line = lines[idx]
+
+    if (line.length === 0) {
+      result[idx] = ''
+      continue
+    }
+
+    // Phase 1: Fix quotes
+    line = fixQuotesLine(line, preferred)
+
+    // Phase 2: Fix indentation
+    const leadMatch = RE_LEADING_WS.exec(line)
+    const leading = leadMatch ? leadMatch[0] : ''
+    const trimmed = line.slice(leading.length).trimEnd()
+
+    if (RE_CLOSING_BRACE.test(trimmed))
+      indentLevel = Math.max(0, indentLevel - 1)
+
+    line = makeIndent(indentLevel, cfg) + trimmed
+
+    if (RE_OPENING_BRACE.test(trimmed))
+      indentLevel += 1
+
+    // Phase 3: Normalize spacing
+    line = normalizeSpacingLine(line)
+
+    // Phase 4: Remove stylistic semicolons (if enabled)
+    if (doSemiRemoval) {
+      if (!RE_FOR_LOOP.test(line)) {
+        if (RE_EMPTY_SEMI.test(line)) {
+          line = ''
+        }
+        else {
+          line = line.replace(RE_DUP_SEMI, ';')
+        }
+      }
+    }
+
+    result[idx] = line
+  }
+
+  return result.join('\n')
+}
+
 function collapseBlankLines(lines: string[], maxConsecutive: number): string[] {
   const out: string[] = []
   let blank = 0
@@ -190,11 +381,9 @@ export function formatCode(src: string, cfg: PickierConfig, filePath: string): s
   if (src.length === 0)
     return ''
 
-  // Check for imports BEFORE any processing to ensure consistent final newline policy
-  const _hadImports = /^\s*import\b/m.test(src)
-
-  // OPTIMIZATION: Normalize newlines and trim trailing whitespace in one pass
-  const rawLines = src.replace(/\r\n/g, '\n').split('\n')
+  // OPTIMIZATION: Only replace \r\n when the file actually contains \r
+  const normalized = src.includes('\r') ? src.replace(/\r\n/g, '\n') : src
+  const rawLines = normalized.split('\n')
   let lines: string[]
 
   if (cfg.format.trimTrailingWhitespace) {
@@ -236,16 +425,11 @@ export function formatCode(src: string, cfg: PickierConfig, filePath: string): s
       joined = sorted
   }
 
-  // OPTIMIZATION: Combine quote fixing, indentation, spacing, and semicolon removal for code files
+  // FUSED: quotes + indentation + spacing + semicolons in ONE split/join pass
   if (isCodeFileExt(filePath)) {
-    joined = fixQuotes(joined, cfg.format.quotes, filePath)
-    joined = fixIndentation(joined, cfg.format.indent, cfg)
-    joined = normalizeCodeSpacing(joined)
-    if (cfg.format.semi === true)
-      joined = removeStylisticSemicolons(joined)
+    joined = processCodeLinesFused(joined, cfg)
   }
   else {
-    // For non-code files, just do quotes
     joined = fixQuotes(joined, cfg.format.quotes, filePath)
   }
 
@@ -366,6 +550,10 @@ export function hasIndentIssue(
 }
 
 function maskStrings(input: string): { text: string, strings: string[] } {
+  // Fast path: no quotes at all — skip character scan
+  if (!input.includes('\'') && !input.includes('"') && !input.includes('`'))
+    return { text: input, strings: [] }
+
   const strings: string[] = []
   let out = ''
   let i = 0
@@ -407,6 +595,8 @@ function maskStrings(input: string): { text: string, strings: string[] } {
 }
 
 function unmaskStrings(text: string, strings: string[]): string {
+  if (strings.length === 0)
+    return text
   return text.replace(/@@S(\d+)@@/g, (_, idx: string) => strings[Number(idx)] ?? '')
 }
 
