@@ -38,7 +38,22 @@ Pickier includes a comprehensive set of linting rules organized into plugins. Al
 |`regexp/no-super-linear-backtracking`| RegExp | ❌ | error | Disallow exponential backtracking in regexes |
 |`regexp/no-unused-capturing-group`| RegExp | ❌ | warn | Disallow unused capturing groups |
 |`regexp/no-useless-lazy`| RegExp | ✅ | warn | Disallow useless lazy quantifiers |
-|`markdown/*` | Markdown | ✅ | varies | Various markdown formatting rules |
+| `style/keyword-spacing` | Style | Yes | off | Require space before/after keywords |
+| `style/arrow-spacing` | Style | Yes | off | Require space before/after `=>` |
+| `style/space-infix-ops` | Style | Yes | off | Require spacing around operators |
+| `style/object-curly-spacing` | Style | Yes | off | Require spaces inside `{ }` |
+| `style/comma-dangle` | Style | Yes | off | Require trailing commas in multiline |
+| `style/comma-spacing` | Style | Yes | off | Require space after commas |
+| `style/arrow-parens` | Style | Yes | off | Require parens around arrow params |
+| `style/no-floating-decimal` | Style | Yes | off | Disallow `.5` and `2.` |
+| `style/new-parens` | Style | Yes | off | Require `new Foo()` not `new Foo` |
+| `style/no-mixed-operators` | Style | No | off | No mixing `&&`/`||`/`??` without parens |
+| `style/*` | Style | varies | varies | 50 total style rules ([see full list](/rules/style)) |
+| `ts/member-delimiter-style` | TypeScript | Yes | off | Consistent delimiters in interfaces |
+| `ts/type-annotation-spacing` | TypeScript | Yes | off | Spacing around type annotation `:` |
+| `ts/type-generic-spacing` | TypeScript | Yes | off | No spaces inside generic brackets |
+| `ts/type-named-tuple-spacing` | TypeScript | Yes | off | Space after `:` in named tuples |
+| `markdown/*` | Markdown | Yes | varies | Various markdown formatting rules |
 
 ## Core Rules
 
@@ -262,33 +277,102 @@ The`pickier/`plugin contains sorting and import organization rules specific to P
 
 ## Style Plugin
 
-The`style/`plugin enforces code style and formatting conventions.
+The `style/` plugin enforces code style and formatting conventions. **50 rules** (34 with auto-fix).
 
 ### Available Rules
 
--`brace-style`- Enforce consistent brace style
--`curly`- Enforce consistent use of curly braces
--`max-statements-per-line`- Enforce maximum number of statements per line
--`if-newline`- Enforce newlines in if statements
--`consistent-chaining`- Enforce consistent newlines in method chains
--`consistent-list-newline`- Enforce consistent newlines in array/object literals
--`indent-unindent`- Enforce consistent indentation levels
+**Spacing:**
+
+- `keyword-spacing` - Require space before/after keywords
+- `arrow-spacing` - Require space before/after `=>`
+- `space-infix-ops` - Require spacing around infix operators
+- `object-curly-spacing` - Require spaces inside `{ }` in objects
+- `block-spacing` - Require spaces inside single-line blocks
+- `space-before-blocks` - Require space before opening brace
+- `comma-spacing` - Require space after commas
+- `semi-spacing` - No space before `;`, space after
+- `rest-spread-spacing` - No space after `...`
+- `key-spacing` - Require space after `:` in object properties
+- `computed-property-spacing` - No spaces inside `[expr]`
+- `array-bracket-spacing` - No spaces inside `[ ]`
+- `space-in-parens` - No spaces inside `( )`
+- `template-curly-spacing` - No spaces inside `${ }`
+- `space-unary-ops` - Space after word unary ops, none after symbol ops
+- `switch-colon-spacing` - Spacing around `:` in case/default
+- `generator-star-spacing` - Enforce `function* foo()` spacing
+- `yield-star-spacing` - Enforce `yield* expr` spacing
+- `function-call-spacing` - No space between function name and `(`
+- `template-tag-spacing` - No space between tag and template literal
+- `no-whitespace-before-property` - No whitespace before `.` or `?.`
+- `spaced-comment` - Require space after `//` and `/*`
+
+**Punctuation & Parens:**
+
+- `comma-dangle` - Require trailing commas in multiline
+- `arrow-parens` - Require parentheses around arrow params
+- `space-before-function-paren` - Control spacing before `(` in functions
+- `quote-props` - Remove unnecessary quotes from object keys
+- `no-floating-decimal` - Disallow `.5` and `2.`
+- `new-parens` - Require `new Foo()` not `new Foo`
+- `no-extra-parens` - Remove redundant parens in `return (x)`
+- `wrap-iife` - Require parens around IIFEs
+
+**Line Breaks & Blocks:**
+
+- `comma-style` - Enforce comma-last style
+- `dot-location` - Dot on property line in chained calls
+- `operator-linebreak` - Operators at start of continued lines
+- `multiline-ternary` - Consistent multiline ternary expressions
+- `padded-blocks` - No empty lines after `{` / before `}`
+- `lines-between-class-members` - Blank line between class members
+- `brace-style` - Consistent brace style
+- `curly` - Consistent use of curly braces
+- `max-statements-per-line` - Limit statements per line
+- `if-newline` - Newline after `if` without braces
+- `consistent-chaining` - Consistent line breaks in method chains
+- `consistent-list-newline` - Consistent newlines in arrays/objects/imports
+- `indent-unindent` - Consistent indentation in tagged templates
+
+**Expression Rules:**
+
+- `no-mixed-operators` - No mixing `&&`/`||`/`??` without parens
+- `indent-binary-ops` - Consistent indentation of binary op continuation lines
+
+**Whitespace:**
+
+- `no-multi-spaces` - No multiple consecutive spaces
+- `no-multiple-empty-lines` - No multiple consecutive blank lines
+- `no-trailing-spaces` - No trailing whitespace
+- `no-tabs` - No tab characters (when using spaces)
+- `no-mixed-spaces-and-tabs` - No mixed indentation
 
 ## TypeScript Plugin
 
-The`ts/`plugin contains TypeScript-specific linting rules.
+The `ts/` plugin contains TypeScript-specific linting rules. **13 rules** (7 with auto-fix).
 
 ### Available Rules
 
--`no-require-imports`- Disallow require() imports
--`no-top-level-await`- Disallow top-level await
--`no-ts-export-equal`- Disallow TypeScript export = syntax
--`no-explicit-any`- Disallow explicit any types
--`prefer-nullish-coalescing`- Prefer nullish coalescing operator (??)
--`prefer-optional-chain`- Prefer optional chaining (?.)
--`no-floating-promises`- Require promises to be awaited or returned
--`no-misused-promises`- Disallow misused promises
--`no-unsafe-assignment`- Disallow unsafe assignments
+**Type Safety:**
+
+- `no-explicit-any` - Disallow the `any` type
+- `no-unsafe-assignment` - Disallow assigning `any` typed values
+- `no-floating-promises` - Require promises to be awaited, returned, or `.catch()`'d
+- `no-misused-promises` - Disallow promises in places not designed for them
+- `prefer-nullish-coalescing` - Prefer `??` over `||` for null/undefined checks
+- `prefer-optional-chain` - Prefer `?.` over chained `&&`
+
+**Module Rules:**
+
+- `no-require-imports` - Disallow `require()` imports
+- `no-ts-export-equal` - Disallow `export =` syntax
+- `no-top-level-await` - Disallow top-level `await`
+
+**Formatting:**
+
+- `member-delimiter-style` - Enforce consistent `;` or `,` in interfaces/type literals
+- `type-annotation-spacing` - Consistent spacing around `:` in type annotations
+- `type-generic-spacing` - No spaces inside generic angle brackets
+- `type-named-tuple-spacing` - Require space after `:` in named tuples
 
 ## RegExp Plugin
 

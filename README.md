@@ -178,8 +178,8 @@ Pickier supports an ESLint-style plugin system for lint rules organized into foc
 | `pickier/` | Sorting, import organization, and core checks | 17+ |
 | `general/` | Error detection and possible problems | 35+ |
 | `quality/` | Best practices and code quality | 40+ |
-| `style/` | Code style enforcement | 7+ |
-| `ts/` | TypeScript-specific rules | 9+ |
+| `style/` | Code style enforcement (spacing, punctuation, line breaks, etc.) | 50+ |
+| `ts/` | TypeScript-specific rules (type safety, formatting) | 13+ |
 | `regexp/` | Regular expression safety | 3+ |
 | `markdown/` | Markdown documentation linting | 53+ |
 | `lockfile/` | Lock file validation | 5+ |

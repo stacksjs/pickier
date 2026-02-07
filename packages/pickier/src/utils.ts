@@ -63,6 +63,10 @@ export const UNIVERSAL_IGNORES = [
   '**/.turbo/**',
   '**/.vscode/**',
   '**/.idea/**',
+  '**/.zed/**',
+  '**/.cursor/**',
+  '**/.claude/**',
+  '**/.github/**',
   '**/coverage/**',
   '**/.nyc_output/**',
   '**/tmp/**',
@@ -157,9 +161,15 @@ export const colors: {
 
 // Shared CLI utilities (moved from cli/utils.ts)
 export function mergeConfig(base: PickierConfig, override: Partial<PickierConfig>): PickierConfig {
+  // Merge ignores arrays: combine base + override, deduplicate
+  const mergedIgnores = override.ignores
+    ? [...new Set([...(base.ignores || []), ...override.ignores])]
+    : base.ignores
+
   return {
     ...base,
     ...override,
+    ignores: mergedIgnores,
     lint: { ...base.lint, ...(override.lint || {}) },
     format: { ...base.format, ...(override.format || {}) },
     rules: { ...base.rules, ...(override.rules || {}) },

@@ -961,6 +961,12 @@ export function scanContentOptimized(
   // Base formatting-related checks (lightweight heuristics)
   const lines = content.split(/\r?\n/)
   const preferredQuotes = cfg.format.quotes
+  // Skip quotes check for JSON/JSONC files (double quotes required by spec), lock files,
+  // markdown files (HTML attributes use double quotes), and YAML files
+  const fileExt = filePath.split('.').pop()?.toLowerCase() ?? ''
+  const skipQuotesCheck = fileExt === 'json' || fileExt === 'jsonc' || fileExt === 'lock'
+    || fileExt === 'md' || fileExt === 'yaml' || fileExt === 'yml'
+    || filePath.endsWith('bun.lock')
   let quotesReported = false
   const sevMap = (s: 'warn' | 'error' | 'off' | undefined): 'warning' | 'error' | undefined =>
     s === 'warn' ? 'warning' : s === 'error' ? 'error' : undefined
@@ -1015,8 +1021,8 @@ export function scanContentOptimized(
       continue
     }
 
-    // Skip quote detection for lines inside multi-line template literals
-    if (!linesInTemplate.has(lineNo)) {
+    // Skip quote detection for JSON/lock files and lines inside multi-line template literals
+    if (!skipQuotesCheck && !linesInTemplate.has(lineNo)) {
       // Strip comments and regex literals to avoid false positives
       const strippedLine = stripComments(stripRegexLiterals(line))
       const indices = detectQuoteIssues(strippedLine, preferredQuotes)
