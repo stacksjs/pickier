@@ -17,6 +17,7 @@ export const defaultConfig: PickierConfig = {
     '**/.cache/**',
     '**/coverage/**',
     '**/vendor/**',
+    '**/pantry/**',
     '**/tmp/**',
     '**/.git/**',
     '**/.idea/**',

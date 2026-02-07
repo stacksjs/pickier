@@ -74,6 +74,7 @@ export const UNIVERSAL_IGNORES = [
   '**/.tmp/**',
   '**/.temp/**',
   '**/vendor/**',
+  '**/pantry/**',
   '**/target/**', // Rust
   '**/zig-cache/**', // Zig
   '**/zig-out/**', // Zig

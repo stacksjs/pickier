@@ -13,6 +13,7 @@ const config: PickierOptions = {
     '**/node_modules/**',
     '**/dist/**',
     '**/build/**',
+    '**/pantry/**',
     '**/test/fixtures/**',
     '**/test/output/**',
     '**/*.test.ts', // Ignore test files - they contain intentional examples of problematic code

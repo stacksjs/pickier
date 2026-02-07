@@ -57,12 +57,15 @@ describe('mergeConfig', () => {
     expect((result.pluginRules as any)['custom/rule']).toBe('error')
   })
 
-  it('override ignores replaces base ignores', () => {
+  it('override ignores merges with base ignores', () => {
     const result = mergeConfig(defaultConfig, {
       ignores: ['custom/**'],
     })
-    // Spread operator replaces array, not merges
-    expect(result.ignores).toEqual(['custom/**'])
+    // mergeConfig combines base + override ignores, deduplicated
+    expect(result.ignores).toContain('custom/**')
+    for (const ig of defaultConfig.ignores) {
+      expect(result.ignores).toContain(ig)
+    }
   })
 
   it('does not mutate the base config', () => {
